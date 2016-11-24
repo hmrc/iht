@@ -1,0 +1,478 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "IHT Case Details",
+    "description": "Retrieve Details of an individual IHT case - Marital Status enumerations amended. (10-09-2015 - Clearance Granted added to caseStatus)",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/successResponse"
+        },
+        {
+            "$ref": "#/definitions/failureResponse"
+        }
+    ],
+    "definitions": {
+        "failureResponse": {
+            "type": "object",
+            "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "where an internal error has occurred, this is the ID of the incident created - used for diagnostic and support purposes",
+                    "pattern": "[A-Za-z0-9]{1,32}"
+                },
+                "reason": {
+                    "type": "string",
+                    "description": "Where necessary, used to contextualise the HTTP response code",
+                    "maxLength": 4
+                }
+            },
+            "required": [
+                "reason"
+            ],
+            "additionalProperties": false
+        },
+        "successResponse": {
+            "type": "object",
+            "properties": {
+                "acknowledgmentReference": {
+                    "type": "string",
+                    "description": "a unique reference for the transaction",
+                    "pattern": "^[A-Za-z0-9]{32}$"
+                },
+				"ihtReference": {
+                    "type": "string",
+                    "description": "The unique reference for the entry concerned",
+                    "maxLength": 15
+                },
+                "event": {
+                    "type": "object",
+                    "properties": {
+                        "eventType": {
+                            "type": "string",
+                            "description": "contains the type of event, for now just has death, but will be expanded",
+                            "enum": [
+                                "Death"
+                            ]
+                        },
+                        "entryType": {
+                            "type": "string",
+                            "enum": [
+                                "Free Estate",
+                                "Failed PET",
+                                "Clawback",
+                                "FCE Death",
+                                "LCTWM - Lifetime",
+                                "Conditional Exemption during Lifetime",
+                                "10yr Anniversary Charge",
+                                "Exit Charge",
+                                "Gift with Reservation"
+                            ]
+                        }
+                    },
+                    "required": [
+                        "eventType",
+                        "entryType"
+                    ]
+                },
+                "leadExecutor": {
+                    "$ref": "#/definitions/executor"
+                },
+                "deceased": {
+                    "$ref": "#/definitions/deceased"
+                },
+                "coExecutors": {
+                    "type": "array",
+                    "minItems": 0,
+                    "maxItems": 3,
+                    "items": {
+                        "$ref": "#/definitions/executor"
+                    }
+                },
+                "caseStatus": {
+                    "type": "string",
+                    "enum": [
+                        "Awaiting Return",
+                        "In Review",
+                        "Closed",
+                        "Under Enquiry",
+                        "Ineligible Application",
+						"Clearance Granted"						
+                    ]
+                },
+                "returns": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "title": "IHT Return Summary",
+                        "type": "object",
+                        "properties": {
+                            "returnDate": {
+                                "type": "string",
+                                "description": "ISO8601 standard CCYY-MM-DDTHH:mm:ss",
+                                "pattern": "^[12]\\d{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"
+                            },
+                            "returnId": {
+                                "type": "string",
+                                "description": "A number identifying the return object in ETMP"
+                            },
+                            "returnVersionNumber": {
+                                "type": "string",
+                                "maxLength": 4
+                            },
+                            "submitterRole": {
+                                "type": "string",
+                                "description": "At Phase 1, just expect Executor",
+                                "enum": [
+                                    "Lead Executor"
+                                ]
+                            }
+                        },
+                        "required": [
+                            "submitterRole"
+                        ],
+                        "additionalProperties": false
+                    }
+                }
+            },
+            "required": [
+                "acknowledgmentReference",
+                "ihtReference",
+                "event",
+                "deceased",
+                "returns",
+                "caseStatus"
+            ],
+            "additionalProperties": false
+        },
+        "executor": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "firstName": {
+                    "type": [
+                        "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "middleName": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "lastName": {
+                    "type": [
+                        "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "mainAddress": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/ukAddress"
+                        },
+                        {
+                            "$ref": "#/definitions/foreignAddress"
+                        }
+                    ]
+                },
+                "contactDetails": {
+                    "$ref": "#/definitions/contactDetails"
+                },
+                "nino": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "[A-Z]{2}\\d{6}[A-Z]{0,1}"
+                },
+                "utr": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "^\\d{5}[3-9]\\d{4}$"
+                },
+                "dateOfBirth": {
+                    "$ref": "#/definitions/dateString"
+                },
+                "gender": {
+                    "type": "string",
+                    "enum": [
+                        "Male",
+                        "Female"
+                    ]
+                }
+            },
+            "required": [
+                "firstName",
+                "lastName",
+                "mainAddress",
+                "dateOfBirth"
+            ],
+            "additionalProperties": false
+        },
+        "deceased": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "firstName": {
+                    "type": [
+                        "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "middleName": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "lastName": {
+                    "type": [
+                        "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                },
+                "mainAddress": {
+                    "oneOf": [
+                        {
+                            "$ref": "#/definitions/ukAddress"
+                        },
+                        {
+                            "$ref": "#/definitions/foreignAddress"
+                        }
+                    ]
+                },
+                "nino": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "[A-Z]{2}\\d{6}[A-Z]{0,1}"
+                },
+                "utr": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "pattern": "^\\d{5}[3-9]\\d{4}$"
+                },
+                "dateOfBirth": {
+                    "$ref": "#/definitions/dateString"
+                },
+                "gender": {
+                    "type": "string",
+                    "enum": [
+                        "Male",
+                        "Female"
+                    ]
+                },
+                "maritalStatus": {
+                    "type": "string",
+                    "enum": [
+                        "Married or in Civil Partnership",
+                        "Single",
+                        "Divorced or Former Civil Partner",
+                        "Widowed or a Surviving Civil Partner"
+                    ]
+                },
+                "dateOfDeath": {
+                    "$ref": "#/definitions/dateString"
+                },
+                "domicile": {
+                    "type": "string",
+                    "enum": [
+                        "England or Wales",
+                        "Scotland",
+                        "Northern Ireland"
+                    ]
+                },
+                "occupation": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 60
+                }
+            },
+            "required": [
+                "firstName",
+                "lastName",
+                "mainAddress",
+                "dateOfBirth",
+                "maritalStatus",
+                "dateOfDeath",
+                "domicile"
+            ],
+            "additionalProperties": false
+        },
+        "ukAddress": {
+            "type": "object",
+            "properties": {
+                "addressLine1": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine2": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine3": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine4": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "postalCode": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 10
+                },
+                "countryCode": {
+                    "type": "string",
+                    "pattern": "^GB$"
+                }
+            },
+            "required": [
+                "addressLine1",
+                "addressLine2",
+                "postalCode",
+                "countryCode"
+            ],
+            "additionalProperties": false
+        },
+        "foreignAddress": {
+            "type": "object",
+            "properties": {
+                "addressLine1": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine2": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine3": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "addressLine4": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 35
+                },
+                "postalCode": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 10
+                },
+                "countryCode": {
+                    "type": "string",
+                    "pattern": "^(?!GB)[A-Z]{2}$"
+                }
+            },
+            "required": [
+                "addressLine1",
+                "addressLine2",
+                "countryCode"
+            ],
+            "additionalProperties": false
+        },
+        "contactDetails": {
+            "type": "object",
+            "properties": {
+                "phoneNumber": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 30
+                },
+                "mobileNumber": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 30
+                },
+                "faxNumber": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 30
+                },
+                "eMailAddress": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 241
+                },
+                "dxNumber": {
+                    "type": [
+                        "string",
+                        "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 10
+                }
+            }
+        },
+        "dateString": {
+            "type": [
+                "string"
+            ],
+            "description": "Format CCYY-MM-DD",
+            "pattern": "\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
+        }
+    }
+}

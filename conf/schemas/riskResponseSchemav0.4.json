@@ -1,0 +1,93 @@
+{
+"$schema": "http://json-schema.org/draft-04/schema#",
+"title": "IHT Risk Outcome",
+"description": "The results of an IHT Risk assessment as returned by EDH. Version 0.2.",
+"type":"object",
+"properties":
+	{
+	"acknowledgementReference":{"type":"string", "description":"a unique reference for the transaction - expect this to be a GUID", "pattern":"^[A-Za-z0-9]{32}$"},
+	"ihtReference":{"type":"string", "description":"the unique reference of the IHT entry", "maxLength": 25},
+	"assessmentDateTime":{"type":"string", "description":"the timestamp of the risk assessment CCYY-MM-DDTHH:mm:ss", "pattern":"^[12]\\d{3}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d$"},
+	"rulesFired":
+		{
+		"type":"array",
+		"minItems":0,
+		"items":
+			{
+			"anyOf":
+				[
+				{"$ref":"#/definitions/generalRule"},
+				{"$ref":"#/definitions/personRule"},
+				{"$ref":"#/definitions/assetRule"},
+				{"$ref":"#/definitions/caseRule"}
+				]
+			}
+		}
+	},
+"required":["acknowledgementReference", "ihtReference", "assessmentDateTime", "rulesFired"],
+"additionalProperties":false,
+"definitions":
+	{
+	"generalRule":
+		{
+		"type":"object",
+		"properties":
+			{
+			"ruleID":{"type":"string"},
+			"ruleDescription":{"type":"string"},
+			"ruleScore":{"type":"integer"},
+			"ruleCategory":{"type":"string"},
+			"inTranscationRule":{"type":"boolean"},
+			"supportingInformation":{"type":"string"}
+			},
+		"required":["ruleID", "ruleDescription", "ruleScore", "ruleCategory", "inTransactionRule"]
+		},
+	"personRule":
+		{
+		"allOf":
+			[
+			{"$ref":"#/definitions/generalRule"},
+			{
+			"properties":
+				{
+				"personNino":{"type":["string", "null"],"pattern":"[A-Z]{2}\\d{6}[A-Z]{0,1}"},
+				"personfirstName":{"type":["string"],"minLength": 0, "maxLength": 40},
+				"personLastName":{"type":["string"],"minLength": 0, "maxLength": 40},
+                                "personID":{"type":["string"],"minLength":0,"maxLength":40}
+				},
+			"required":["personNino", "personfirstName", "personLastName"]
+			}
+			]
+		},
+	"caseRule":
+		{
+		"allOf":
+			[
+			{"$ref":"#/definitions/generalRule"},
+			{
+			"properties":
+				{
+				"ihtReference":{"type":"string", "maxLength":25}
+				},
+			"required":["ihtReference"]
+			}
+			]
+		},
+	"assetRule":
+		{
+		"allOf":
+			[
+			{"$ref":"#/definitions/generalRule"},
+			{
+			"properties":
+				{
+				"assetCode":{"type":"string", "pattern":"^\\d{4}$"},
+				"assetDescription":{"type":"string"},
+				"assetID":{"type":["string", "null"], "description":"the internal identifier of the assset - always null on the initial return", "maxLength":40}
+				},
+			"required":["assetCode", "assetDescription", "assetID"]
+			}
+			]
+		}
+	}
+}

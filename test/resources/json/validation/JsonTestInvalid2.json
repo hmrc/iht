@@ -1,0 +1,69 @@
+{
+  "acknowledgmentReference":"<ACKREF>",
+  "event":
+    {
+    "eventType": "death",
+    "entryType":"Free Estate"
+    },
+  "leadExecutor":
+    {
+      "firstName": "Xyz",
+      "lastName": "Abcde",
+      "nino": "<NINO>",
+      "utr": "0123456789",
+      "dateOfBirth": "1978-12-27",
+      "mainAddress":
+        {
+          "addressLine1": "Addressline1",
+          "addressLine2": "Addressline2",
+          "addressLine3": "Addressline3",
+          "addressLine4":"Addressline4",
+          "countryCode": "GB"
+        },
+	  "probateLocation":"Liverpool",
+      "contactDetails": {
+        "phoneNumber": "012 345678",
+        "emailAddress": "joe@example.com"
+      }
+    },
+    "coExecutors":
+    [
+    {
+      "firstName": "Nmbvc",
+      "lastName": "Xyzabc",
+      "nino": "<NINO>",
+      "utr": "1234567890",
+      "dateOfBirth": "1976-03-26",
+      "mainAddress":
+        {
+          "addressLine1": "Addressline1",
+          "addressLine2": "Addressline2",
+          "postalCode": "AA1 1AA",
+          "countryCode": "GB"
+        },
+      "contactDetails":
+            {
+            "phoneNumber": "012 345678",
+            "emailAddress": "joe@example.com"
+            }
+    }
+    ],
+     
+  "deceased": {
+    "firstName": "Qqqqqq",
+    "lastName": "Wwwwww",
+    "nino": "<NINO>",
+    "utr": "1234567890",
+    "dateOfBirth": "1976-03-26",
+    "dateOfDeath": "2004-10-05",
+    "domicile": "England or Wales",
+    "maritalStatus": "Single",
+    "mainAddress":
+        {
+          "addressLine1": "Addressline1",
+          "addressLine2": "Addressline2",
+          "postalCode": "AA1 1AA",
+          "countryCode": "GB"
+        }
+  }
+}

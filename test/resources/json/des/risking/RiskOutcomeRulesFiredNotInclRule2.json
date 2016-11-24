@@ -1,0 +1,20 @@
+{
+  "acknowledgementReference" : "<ACKREF>",
+  "ihtReference" : "ABCDE123456",
+  "assessmentDateTime" : "2015-10-01T09:55:47",
+  "rulesFired" : [
+    {
+      "ruleID" : "7",
+      "ruleDescription" : "Undeclared Property",
+      "ruleScore" : 10,
+      "ruleCategory" : "Risk",
+      "inTransactionRule" : false,
+      "supportingInformation" : "Number of additional Properties found in SDLT: 1 / Number of properties declared: 0" }, {
+      "ruleID" : "22",
+      "ruleDescription" : "Some other check",
+      "ruleScore" : 10,
+      "ruleCategory" : "Risk",
+      "inTransactionRule" : true,
+      "supportingInformation" : "Bla - some other check" }
+  ]
+}

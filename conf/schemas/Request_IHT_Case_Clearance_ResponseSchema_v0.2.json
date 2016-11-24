@@ -1,0 +1,72 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "title": "IHT Registration - Response",
+    "description": "Response to request for clearance - V0.2 - Case Status enumerations amended",
+    "oneOf": [
+        {
+            "$ref": "#/definitions/successResponse"
+        },
+        {
+            "$ref": "#/definitions/failureResponse"
+        }
+    ],
+    "definitions": {
+        "successResponse": {
+            "type": "object",
+            "properties": {
+                "clearanceStatus": {
+                    "type": "object",
+                    "properties": {
+                        "status": {
+                            "type": "string",
+                            "enum": [
+                                "Clearance Requested",
+                                "Clearance Granted"
+                            ]
+                        },
+                        "statusDate": {
+                            "type": [
+                                "string"
+                            ],
+                            "description": "Format YYYY-MM-DD",
+                            "pattern": "^\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+                        }
+                    },
+                    "required": [
+                        "status",
+                        "statusDate"
+                    ]
+                },
+                "caseStatus": {
+                    "type": "string",
+                    "enum": [
+                        "Awaiting Return",
+						"Clearance Granted",
+                        "Closed",
+                        "In Review",  
+						"Ineligible Application",
+						"Under Enquiry"
+                    ]
+                }
+            },
+            "required": [
+                "clearanceStatus",
+                "caseStatus"
+            ],
+            "additionalProperties": false
+        },
+        "failureResponse": {
+            "type": "object",
+            "properties": {
+                "reason": {
+                    "type": "string",
+                    "description": "a simple description for the failure"
+                }
+            },
+            "required": [
+                "reason"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

@@ -1,0 +1,77 @@
+{
+  "$schema":"http://json-schema.org/draft-04/schema#",
+  "title":"IHT Notify Courts Service",
+  "description":"Provide information to ETMP for probate certificate - Version 0.1",
+  "oneOf":[
+    {
+      "$ref":"#/definitions/successResponse"
+    },
+    {
+      "$ref":"#/definitions/failureResponse"
+    }
+  ],
+  "definitions":{
+    "failureResponse":{
+      "type":"object",
+      "properties":{
+        "incidentReference":{
+          "type":"string",
+          "description":"where an internal error has occurred, this is the ID of the incident created - used for diagnostic and support purposes",
+          "pattern":"[A-Z0-9]{16}"
+        },
+        "businessResponseCode":{
+          "type":"string",
+          "description":"Where necessary, used to contextualise the HTTP response code",
+          "maxLength":4
+        }
+      },
+      "additionalProperties":false
+    },
+    "successResponse":{
+      "type":"object",
+      "properties":{
+        "probateTotals":{
+          "type":"object",
+          "properties":{
+            "grossEstateforIHTPurposes":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "grossEstateforProbatePurposes":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "totalDeductionsForProbatePurposes":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "netEstateForProbatePurposes":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "valueOfEstateOutsideOfTheUK":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "valueOfTaxPaid":{
+              "$ref":"#/definitions/probateTotalType"
+            },
+            "probateReference":{
+              "type":["string"],
+              "minLength": 15,
+              "maxLength": 15
+            }
+          },
+          "required":[
+            "grossEstateforIHTPurposes",
+            "grossEstateforProbatePurposes",
+            "totalDeductionsForProbatePurposes",
+            "netEstateForProbatePurposes",
+            "valueOfEstateOutsideOfTheUK",
+            "valueOfTaxPaid"
+          ],
+          "additionalProperties":false
+        }
+      }
+    },
+    "probateTotalType":{
+      "type":"number",
+      "multipleOf":0.01
+    }
+  }
+}

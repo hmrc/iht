@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "IHT Request for clearance",
+  "description": "Request for clearance",
+  "type":"object",
+  "properties":
+  {
+    "acknowledgmentReference":
+    {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]{32}$"
+    },
+    "confirmRequest":
+    {
+      "type":"boolean",
+      "description":"indicates that the customer has confirmed that they have completed their dealings with the case"
+    }
+  },
+  "required":["acknowledgmentReference", "confirmRequest"],
+  "additionalProperties":false
+}

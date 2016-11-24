@@ -1,0 +1,185 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "IHT Event Registration",
+  "description": "Registering and IHT Event to obtain a reference number v0.5 - New items Threshold and Acknowledgement Reference added",
+  "oneOf": [
+    {
+      "$ref": "#/definitions/successResponse"
+    },
+    {
+      "$ref": "#/definitions/failureResponse"
+    }
+  ],
+  "definitions": {
+    "successResponse": {
+      "type": "object",
+      "properties": {
+        "deathEvents": {
+          "type": "array",
+          "minItems": 0,
+          "items": {
+            "title": "IHT Case",
+            "type": "object",
+            "properties": {
+              "acknowledgmentReference": {
+                "type": "string",
+                "description": "a unique reference for the transaction",
+                "pattern": "^[A-Za-z0-9]{32}$"
+              },
+              "ihtReference": {
+                "type": "string",
+                "description": "The unique reference for the entry concerned",
+                "maxLength": 15
+              },
+              "deceased": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 35
+                  },
+                  "firstName": {
+                    "type": [
+                      "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                  },
+                  "middleName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                  },
+                  "lastName": {
+                    "type": [
+                      "string"
+                    ],
+                    "minLength": 0,
+                    "maxLength": 40
+                  },
+                  "dateOfBirth": {
+                    "$ref": "#/definitions/dateString"
+                  },
+                  "dateOfDeath": {
+                    "$ref": "#/definitions/dateString"
+                  },
+                  "nino": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "[A-Z]{2}\\d{6}[A-Z]{0,1}"
+                  },
+                  "utr": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^\\d{5}[3-9]\\d{4}$"
+                  }
+                },
+                "required": [
+                  "firstName",
+                  "lastName",
+                  "dateOfBirth",
+                  "dateOfDeath"
+                ]
+              },
+              "caseSummary": {
+                "type": "object",
+                "properties": {
+                  "entryType": {
+                    "type": "string",
+                    "enum": [
+                      "Free Estate",
+                      "Failed PET (gift)",
+                      "Clawback",
+                      "FCE Death",
+                      "LCTWM - Lifetime",
+                      "Conditional Exemption during Lifetime",
+                      "10yr Anniversary Charge",
+                      "Exit Charge",
+                      "Gift with Reservation"
+                    ]
+                  },
+                  "roleOfSubject": {
+                    "type": "string",
+                    "description": "the role of the subject provided in the request for this case",
+                    "enum": [
+                      "Lead Executor",
+                      "Executor",
+                      "Trustee",
+                      "Donee",
+                      "Settlor",
+                      "Agent"
+                    ]
+                  },
+                  "registrationDate": {
+                    "$ref": "#/definitions/dateString"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "Awaiting Return",
+                      "In Review",
+                      "Closed",
+                      "Under Enquiry",
+                      "Ineligible Application",
+                      "Clearance Granted"
+                    ]
+                  },
+                  "statusReason": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "threshold": {
+                    "type": "number",
+                    "multipleOf": 0.01
+                  }
+                },
+                "required": [
+                  "entryType",
+                  "registrationDate",
+                  "status",
+                  "roleOfSubject"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "ihtReference",
+              "deceased",
+              "caseSummary"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "failureResponse": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string",
+          "description": "a simple description for the failure"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "dateString": {
+      "type": [
+        "string"
+      ],
+      "description": "Format CCYY-MM-DD",
+      "pattern": "\\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])"
+    }
+  }
+}
