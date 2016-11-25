@@ -30,7 +30,7 @@ private object AppDependencies {
 
   private val playMicroServiceVersion = "6.23.0"
   private val playHealthVersion = "0.7.0"
-  private val hmrctest = "0.4.0"
+  private val hmrctest = "1.9.0"
   private val httpCachingClientVersion = "5.3.0"
 
   val compile = Seq(
