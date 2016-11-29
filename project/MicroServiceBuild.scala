@@ -40,8 +40,7 @@ private object AppDependencies {
     "uk.gov.hmrc" %% "http-verbs" % "5.0.0",
     "uk.gov.hmrc" %% "http-caching-client" % "5.6.0",
     "uk.gov.hmrc" %% "domain" % "3.7.0",
-    "com.kenshoo" %% "metrics-play" % "2.3.0_0.1.6",
-    "com.codahale.metrics" % "metrics-graphite" % "3.0.2",
+    "uk.gov.hmrc" %% "play-graphite" % "2.0.0",
     "com.github.fge" % "json-schema-validator" % "2.2.6"
   )
 
