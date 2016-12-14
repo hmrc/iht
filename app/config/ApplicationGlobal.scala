@@ -21,9 +21,7 @@ import com.typesafe.config.Config
 import connectors.securestorage._
 import net.ceedubs.ficus.Ficus.configValueReader
 import net.ceedubs.ficus.Ficus.toFicusConfig
-import play.api.Application
-import play.api.Configuration
-import play.api.Play
+import play.api.{Logger, Application, Configuration, Play}
 import play.libs.Akka
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
@@ -82,6 +80,12 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
       val platformKey = conf.getString(s"$env.securestorage.platformkey").getOrElse {
         throw new RuntimeException(s"$env.securestorage.platformkey is not defined")
       }
+      if (platformKey == "LOCALKEY") {
+        Logger.info("Secure storage key is LOCALKEY")
+      }else {
+        Logger.info("Secure storage key is NOT LOCALKEY")
+      }
+
       val host = conf.getString(s"$env.securestorage.host").getOrElse("localhost")
       val dbName = conf.getString(s"$env.securestorage.dbname").getOrElse("securestorage")
 
