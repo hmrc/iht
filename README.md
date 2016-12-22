@@ -1,4 +1,4 @@
-# Inheritance Tax Micorservice
+# Inheritance Tax Microservice
 
 [![Build Status](https://travis-ci.org/hmrc/iht.svg?branch=master)](https://travis-ci.org/hmrc/iht) [![Download](https://api.bintray.com/packages/hmrc/releases/iht/images/download.svg)](https://bintray.com/hmrc/releases/iht/_latestVersion)
 
