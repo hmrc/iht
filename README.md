@@ -18,13 +18,13 @@ The microservice faciliates the communication between the service and HMRC. This
 
 | Event | URI | HTTP METHOD | Request Body | Response Body |
 |---|---|---|---|---|
-| Register For IHT | /inheritance-tax/individuals/<NINO>/cases/ | POST | YES | YES |
-| IHT Tax Return (Application) | /inheritance-tax/individuals/<NINO>/cases/<IHTref>/returns | POST | YES | YES |
-| Get Return Details | /inheritance-tax/individuals/<NINO>/cases/<IHTref>/returns/<returnId> | GET | NO | YES |
-| Get Case Details | /inheritance-tax/individuals/<NINO>/cases/<IHTref> | GET | NO | YES |
-| List Cases | /inheritance-tax/individuals/<NINO>/cases/ | GET | NO | YES |
-| Request Clearance | /inheritance-tax/individuals/<NINO>/cases/<IHTref>/clearance | POST | YES | YES |
-| Get Probate Details | /inheritance-tax/individuals/<NINO>/cases/<IHTref>/returns/<returnId>/probate | GET |	NO |	YES |
+| Register For IHT | /inheritance-tax/individuals/[NINO]/cases/ | POST | YES | YES |
+| IHT Tax Return (Application) | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/returns | POST | YES | YES |
+| Get Return Details | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/returns/[returnId] | GET | NO | YES |
+| Get Case Details | /inheritance-tax/individuals/[NINO]/cases/[IHTref] | GET | NO | YES |
+| List Cases | /inheritance-tax/individuals/[NINO]/cases/ | GET | NO | YES |
+| Request Clearance | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/clearance | POST | YES | YES |
+| Get Probate Details | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/returns/[returnId]/probate | GET |	NO |	YES |
 
 ### License
 
