@@ -26,6 +26,10 @@ The microservice faciliates the communication between the service and HMRC. This
 | Request Clearance | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/clearance | POST | YES | YES |
 | Get Probate Details | /inheritance-tax/individuals/[NINO]/cases/[IHTref]/returns/[returnId]/probate | GET |	NO |	YES |
 
+## How to run
+
+You will need to clone the project first then navigate to the main folder and run the following sbt command ```sbt "run 9071"```.
+
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
