@@ -56,6 +56,10 @@ trait MicroService {
       libraryDependencies ++= appDependencies,
       retrieveManaged := true,
       routesGenerator := StaticRoutesGenerator)
+    .settings(
+      resolvers += Resolver.bintrayRepo("hmrc", "releases"),
+      resolvers += Resolver.jcenterRepo
+    )
     .settings(wartremoverSettings : _*)
     .settings(
       wartremoverWarnings ++= Warts.unsafe,

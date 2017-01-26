@@ -21,7 +21,7 @@ import com.typesafe.config.Config
 import connectors.securestorage._
 import net.ceedubs.ficus.Ficus.configValueReader
 import net.ceedubs.ficus.Ficus.toFicusConfig
-import play.api.{Logger, Application, Configuration, Play}
+import play.api.{Application, Configuration, Logger, Play}
 import play.libs.Akka
 import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
@@ -34,6 +34,8 @@ import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import connectors.ApplicationAuditConnector
 import connectors.ApplicationAuthConnector
 import play.api.libs.concurrent.Execution.Implicits._
+import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
+
 import scala.concurrent.duration._
 
 object ControllerConfiguration extends ControllerConfig {
@@ -44,16 +46,16 @@ object AuthParamsControllerConfiguration extends AuthParamsControllerConfig {
   lazy val controllerConfigs = ControllerConfiguration.controllerConfigs
 }
 
-object MicroserviceAuditFilter extends AuditFilter with AppName {
+object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport{
   override val auditConnector = ApplicationAuditConnector
   override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
 }
 
-object MicroserviceLoggingFilter extends LoggingFilter {
+object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport{
   override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
 }
 
-object MicroserviceAuthFilter extends AuthorisationFilter {
+object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport{
   override lazy val authParamsConfig = AuthParamsControllerConfiguration
   override lazy val authConnector = ApplicationAuthConnector
   override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
