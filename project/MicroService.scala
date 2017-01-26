@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import play.routes.compiler.StaticRoutesGenerator
+import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys._
 import sbt._
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
@@ -47,12 +49,13 @@ trait MicroService {
   val wartRemovedExcludedClasses = Seq()
 
   lazy val microservice = Project(appName, file("."))
-    .enablePlugins(Seq(play.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin) ++ plugins : _*)
+    .enablePlugins(Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin) ++ plugins : _*)
     .settings(playSettings ++ scoverageSettings : _*)
     .settings(publishingSettings: _*)
     .settings(
       libraryDependencies ++= appDependencies,
-      retrieveManaged := true)
+      retrieveManaged := true,
+      routesGenerator := StaticRoutesGenerator)
     .settings(wartremoverSettings : _*)
     .settings(
       wartremoverWarnings ++= Warts.unsafe,
