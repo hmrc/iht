@@ -16,11 +16,11 @@
 
 package metrics
 
-import com.codahale.metrics.Timer
+import com.codahale.metrics.{MetricRegistry, Timer}
 import com.codahale.metrics.Timer.Context
-import com.kenshoo.play.metrics.MetricsRegistry
 import models.enums.Api
 import models.enums.Api.Api
+import uk.gov.hmrc.play.graphite.MicroserviceMetrics
 
 /**
  *
@@ -36,40 +36,42 @@ trait Metrics {
   def incrementFailedCounter(api: Api): Unit
 }
 
-object Metrics extends Metrics{
+object Metrics extends Metrics with MicroserviceMetrics{
+
+  val registry: MetricRegistry = metrics.defaultRegistry
 
   val timers = Map(
-    Api.GET_CASE_LIST -> MetricsRegistry.defaultRegistry.timer("caseList-response-timer"),
-    Api.GET_CASE_DETAILS -> MetricsRegistry.defaultRegistry.timer("caseDetails-response-timer"),
-    Api.GET_PROBATE_DETAILS -> MetricsRegistry.defaultRegistry.timer("probateDetails-response-timer"),
-    Api.GET_APPLICATION_DETAILS -> MetricsRegistry.defaultRegistry.timer("applicationDetails-response-timer"),
-    Api.SUB_REGISTRATION -> MetricsRegistry.defaultRegistry.timer("subRegistration-response-timer"),
-    Api.SUB_REAL_TIME_RISKING -> MetricsRegistry.defaultRegistry.timer("subRealTimeRisking-response-timer"),
-    Api.SUB_APPLICATION -> MetricsRegistry.defaultRegistry.timer("subApplication-response-timer"),
-    Api.SUB_REQUEST_CLEARANCE -> MetricsRegistry.defaultRegistry.timer("subReqClearance-response-timer")
+    Api.GET_CASE_LIST -> registry.timer("caseList-response-timer"),
+    Api.GET_CASE_DETAILS -> registry.timer("caseDetails-response-timer"),
+    Api.GET_PROBATE_DETAILS -> registry.timer("probateDetails-response-timer"),
+    Api.GET_APPLICATION_DETAILS -> registry.timer("applicationDetails-response-timer"),
+    Api.SUB_REGISTRATION -> registry.timer("subRegistration-response-timer"),
+    Api.SUB_REAL_TIME_RISKING -> registry.timer("subRealTimeRisking-response-timer"),
+    Api.SUB_APPLICATION -> registry.timer("subApplication-response-timer"),
+    Api.SUB_REQUEST_CLEARANCE -> registry.timer("subReqClearance-response-timer")
   )
 
   val successCounters = Map(
-    Api.GET_CASE_LIST -> MetricsRegistry.defaultRegistry.counter("caseList-success-counter"),
-    Api.GET_CASE_DETAILS -> MetricsRegistry.defaultRegistry.counter("caseDetails-success-counter"),
-    Api.GET_PROBATE_DETAILS -> MetricsRegistry.defaultRegistry.counter("probateDetails-success-counter"),
-    Api.GET_APPLICATION_DETAILS -> MetricsRegistry.defaultRegistry.counter("applicationDetails-success-counter"),
-    Api.SUB_REGISTRATION -> MetricsRegistry.defaultRegistry.counter("subRegistration-success-counter"),
-    Api.SUB_REAL_TIME_RISKING -> MetricsRegistry.defaultRegistry.counter("subRealTimeRisking-success-counter"),
-    Api.SUB_APPLICATION -> MetricsRegistry.defaultRegistry.counter("subApplication-success-counter"),
-    Api.SUB_REQUEST_CLEARANCE -> MetricsRegistry.defaultRegistry.counter("subReqClearance-success-counter")
+    Api.GET_CASE_LIST -> registry.counter("caseList-success-counter"),
+    Api.GET_CASE_DETAILS -> registry.counter("caseDetails-success-counter"),
+    Api.GET_PROBATE_DETAILS -> registry.counter("probateDetails-success-counter"),
+    Api.GET_APPLICATION_DETAILS -> registry.counter("applicationDetails-success-counter"),
+    Api.SUB_REGISTRATION -> registry.counter("subRegistration-success-counter"),
+    Api.SUB_REAL_TIME_RISKING -> registry.counter("subRealTimeRisking-success-counter"),
+    Api.SUB_APPLICATION -> registry.counter("subApplication-success-counter"),
+    Api.SUB_REQUEST_CLEARANCE -> registry.counter("subReqClearance-success-counter")
   )
 
   val failedCounters = Map(
 
-    Api.GET_CASE_LIST -> MetricsRegistry.defaultRegistry.counter("caseList-failed-counter"),
-    Api.GET_CASE_DETAILS -> MetricsRegistry.defaultRegistry.counter("caseDetails-failed-counter"),
-    Api.GET_PROBATE_DETAILS -> MetricsRegistry.defaultRegistry.counter("probateDetails-failed-counter"),
-    Api.GET_APPLICATION_DETAILS -> MetricsRegistry.defaultRegistry.counter("applicationDetails-failed-counter"),
-    Api.SUB_REGISTRATION -> MetricsRegistry.defaultRegistry.counter("subRegistration-failed-counter"),
-    Api.SUB_REAL_TIME_RISKING -> MetricsRegistry.defaultRegistry.counter("subRealTimeRisking-failed-counter"),
-    Api.SUB_APPLICATION -> MetricsRegistry.defaultRegistry.counter("subApplication-failed-counter"),
-    Api.SUB_REQUEST_CLEARANCE -> MetricsRegistry.defaultRegistry.counter("subReqClearance-failed-counter")
+    Api.GET_CASE_LIST -> registry.counter("caseList-failed-counter"),
+    Api.GET_CASE_DETAILS -> registry.counter("caseDetails-failed-counter"),
+    Api.GET_PROBATE_DETAILS -> registry.counter("probateDetails-failed-counter"),
+    Api.GET_APPLICATION_DETAILS -> registry.counter("applicationDetails-failed-counter"),
+    Api.SUB_REGISTRATION -> registry.counter("subRegistration-failed-counter"),
+    Api.SUB_REAL_TIME_RISKING -> registry.counter("subRealTimeRisking-failed-counter"),
+    Api.SUB_APPLICATION -> registry.counter("subApplication-failed-counter"),
+    Api.SUB_REQUEST_CLEARANCE -> registry.counter("subReqClearance-failed-counter")
   )
 
   override def startTimer(api: Api): Context = timers(api).time()
