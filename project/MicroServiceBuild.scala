@@ -58,7 +58,8 @@ private object AppDependencies {
         "org.scalacheck" %% "scalacheck" % "1.12.2" % scope,
         "org.pegdown" % "pegdown" % "1.4.2" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "com.github.fge" % "json-schema-validator" % "2.2.6"
+        "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
+        "org.mockito" % "mockito-all" % "1.9.5" % scope
       )
     }.test
   }
