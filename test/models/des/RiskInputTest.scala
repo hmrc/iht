@@ -84,7 +84,6 @@ class RiskInputTest  extends UnitSpec {
         Some("AA1 1AA"),
         Some("GB")
       )),
-      OtherAddresses= None,
       dateOfDeath = Some("1987-12-12"),
       domicile=Some(Constants.IHTReturnDummyDomicile),
       otherDomicile=None,

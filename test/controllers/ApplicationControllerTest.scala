@@ -32,12 +32,12 @@ import utils._
 import constants.Constants
 import models._
 
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import json.JsonValidator
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.core.report.ProcessingReport
+import models.ProbateDetails.probateDetailsReads
 import models.enums.Api
 
 class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
@@ -302,7 +302,8 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
     "correct Probate Details values are returned after parsing JS response " in {
       val json = Json.parse(TestHelper.JsSampleProbateDetails)
-      val jsonValueAfterParsing = Json.fromJson[ProbateDetails](json \ "probateTotals").getOrElse(throw new RuntimeException("Probate Details response not parsed properly"))
+      val jsonValueAfterParsing: ProbateDetails = Json.fromJson((json \ "probateTotals").get)(probateDetailsReads)
+        .getOrElse(throw new RuntimeException("Probate Details response not parsed properly"))
 
       assert(jsonValueAfterParsing.probateReference=="12345678A01-123","Probate Reference is AAA111222")
       assert(jsonValueAfterParsing.grossEstateforIHTPurposes== 123456.78,"grossEstateforIHTPurposes is 123456.78")
