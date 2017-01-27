@@ -84,7 +84,7 @@ trait IhtHomeController extends BaseController {
 
 
   def processResponse(js:JsValue): Seq[IhtApplication] = {
-    (js \ "deathEvents").asInstanceOf[JsArray].value.map(createIhtApplication(_))
+    (js \ "deathEvents").as[JsArray].value.map(createIhtApplication(_))
 
   }
 

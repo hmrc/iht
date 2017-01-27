@@ -127,11 +127,11 @@ object RegistrationDetails {
     )(ReturnDetails.apply _)
 
   implicit val registrationDetailsReads: Reads[RegistrationDetails]=(
-    (JsPath \ "deceased" \ "dateOfDeath").read[Option[LocalDate]].map(_.map(DeceasedDateOfDeath(_))) and
-      (JsPath \ "leadExecutor").read[Option[ApplicantDetails]] and
-      (JsPath \ "deceased" ).read[Option[DeceasedDetails]] and
+    (JsPath \ "deceased" \ "dateOfDeath").readNullable[LocalDate].map(_.map(DeceasedDateOfDeath(_))) and
+      (JsPath \ "leadExecutor").readNullable[ApplicantDetails] and
+      (JsPath \ "deceased" ).readNullable[DeceasedDetails] and
       (JsPath \ "coExecutors").readNullable[Seq[CoExecutor]].map{_.getOrElse(Seq())} and
-      (JsPath \ "ihtReference").read[Option[String]] and
+      (JsPath \ "ihtReference").readNullable[String] and
       (JsPath \ "caseStatus").read[String] and
       (JsPath \ "acknowledgmentReference").read[String] and
       (JsPath \ "returns").read[Seq[ReturnDetails]]
