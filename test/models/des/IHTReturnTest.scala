@@ -137,12 +137,6 @@ class IHTReturnTest  extends UnitSpec {
       postalCode= Some("AA1 1AA"), countryCode= Some("GB")
     )
 
-    val otherAddress = OtherAddress(
-      addressLine1= Some("addr1"), addressLine2= Some("addr2"),
-      addressLine3= None, addressLine4= None,
-      postalCode= Some("AA1 1AA"), countryCode= Some("GB"), addressType= Some("?")
-    )
-
     val declaration = Declaration(
       reasonForBeingBelowLimit= Some("Excepted Estate"),
       declarationAccepted= Some(true),
@@ -258,7 +252,7 @@ class IHTReturnTest  extends UnitSpec {
       title= None, firstName= Some("ABCDE"), middleName= None,
       lastName= Some("XYZAB"), dateOfBirth= Some("2011-11-12"),
       gender= None, nino= None, utr= None,
-      mainAddress= None, OtherAddresses= None,
+      mainAddress= None,
 
       // Other
       dateOfMarriage= Some(CommonHelper.dateToDesString(dateOfDeath.minusDays(1))), domicile= Some(Constants.IHTReturnDummyDomicile),
@@ -269,7 +263,7 @@ class IHTReturnTest  extends UnitSpec {
       title= None, firstName= Some("ABCXYZ"), middleName= None,
       lastName= Some("XYZABC"), dateOfBirth= Some(Constants.IHTReturnDummyDateOfBirth),
       gender= None, nino= None, utr= None,
-      mainAddress= None, OtherAddresses= None,
+      mainAddress= None,
 
       // Other
       dateOfMarriage= Some("2008-12-13"), dateOfDeath=Some("2010-10-12")

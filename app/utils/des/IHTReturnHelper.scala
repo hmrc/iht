@@ -45,7 +45,7 @@ object IHTReturnHelper {
         title= None, firstName= a.firstName, middleName= None,
         lastName= a.lastName, dateOfBirth= Some(Constants.IHTReturnDummyDateOfBirth),
         gender= None, nino= None, utr= None,
-        mainAddress= None, OtherAddresses= None,
+        mainAddress= None,
 
         // Other
         dateOfMarriage= a.dateOfMarriage.flatMap(date=> Some(dateToDesString(date))),
@@ -94,7 +94,6 @@ object IHTReturnHelper {
         nino= None,
         utr= None,
         mainAddress= None,
-        OtherAddresses= None,
         // Other - dateOfMarriage is one day before Deceased date of death
         dateOfMarriage= Some(dateToDesString(dateOfDeath.minusDays(1))),
         domicile= Some(Constants.IHTReturnDummyDomicile), otherDomicile= None)

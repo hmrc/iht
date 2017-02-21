@@ -353,7 +353,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
    * @return
    */
   private def processResponse(js : JsValue) : ProbateDetails = {
-    val probateDetails: ProbateDetails = Json.fromJson(js \ "probateTotals")(probateDetailsReads)
+    val probateDetails: ProbateDetails = Json.fromJson((js \ "probateTotals").get)(probateDetailsReads)
       .getOrElse(throw new RuntimeException("Probate Details response not parsed properly"))
 
     probateDetails

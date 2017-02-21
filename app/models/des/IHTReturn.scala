@@ -31,15 +31,6 @@ object Address {
   implicit val formats = Json.format[Address]
 }
 
-case class OtherAddress(addressLine1: Option[String]=None, addressLine2: Option[String]=None,
-                        addressLine3: Option[Option[String]] = None, addressLine4: Option[Option[String]] = None,
-                        postalCode: Option[String]=None, countryCode: Option[String]=None,
-                        addressType: Option[String]=None)
-
-object OtherAddress {
-  implicit val formats = Json.format[OtherAddress]
-}
-
 case class SpousesEstate(domiciledInUk: Option[Boolean]=None, whollyExempt: Option[Boolean]=None,
                          jointAssetsPassingToOther: Option[Boolean]=None,
                          otherGifts: Option[Boolean]=None,
@@ -56,7 +47,7 @@ case class Spouse(
                    title: Option[String]=None, firstName: Option[String]=None, middleName: Option[String]=None,
                    lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                    gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
-                   mainAddress: Option[Address]=None, OtherAddresses: Option[Set[OtherAddress]]=None,
+                   mainAddress: Option[Address]=None,
 
                    // Other
                    dateOfMarriage: Option[String]=None, dateOfDeath: Option[String]=None
@@ -85,7 +76,7 @@ case class SurvivingSpouse(
                             middleName: Option[String]=None,
                             lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                             gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
-                            mainAddress: Option[Address]=None, OtherAddresses: Option[Set[OtherAddress]]=None,
+                            mainAddress: Option[Address]=None,
 
                             // Other
                             dateOfMarriage: Option[String]=None, domicile: Option[String]=None,
@@ -116,7 +107,7 @@ case class JointOwner(
                        middleName: Option[String]=None,
                        lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                        gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
-                       mainAddress: Option[Address]=None, OtherAddresses: Option[Set[OtherAddress]]=None,
+                       mainAddress: Option[Address]=None,
 
                        // Organisation
                        name: Option[String]=None, ctUtr: Option[String]=None,
@@ -157,7 +148,7 @@ case class OtherBeneficiary(
                              middleName: Option[String]=None,
                              lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                              gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
-                             mainAddress: Option[Address]=None, OtherAddresses: Option[Set[OtherAddress]]=None,
+                             mainAddress: Option[Address]=None,
 
                              // Organisation
                              name: Option[String]=None, ctUtr: Option[String]=None,
@@ -234,7 +225,7 @@ case class InterestInOtherEstate(
                   title: Option[String]=None, firstName: Option[String]=None, middleName: Option[String]=None,
                   lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                   gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
-                  mainAddress: Option[Address]=None, OtherAddresses: Option[Set[OtherAddress]]=None,
+                  mainAddress: Option[Address]=None,
 
                   // Other
                   otherEstateAssets: Option[Set[Asset]]=None
@@ -250,7 +241,6 @@ case class Trustee(
                     lastName: Option[String]=None, dateOfBirth: Option[String]=None,
                     gender: Option[String]=None, nino: Option[String]=None, utr: Option[String]=None,
                     mainAddress: Option[Address]=None,
-                    OtherAddresses: Option[Set[OtherAddress]]=None,
 
                     // Organisation
                     name: Option[String]=None, ctUtr: Option[String]=None,
