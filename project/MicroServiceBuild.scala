@@ -28,7 +28,7 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo" % "5.1.0",
+    "uk.gov.hmrc" %% "play-reactivemongo" % "5.2.0",
     ws,
     "uk.gov.hmrc" %% "microservice-bootstrap" % "5.13.0",
     "uk.gov.hmrc" %% "play-authorisation" % "4.3.0",
@@ -53,7 +53,7 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % "2.0.0" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "2.2.0" % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "2.3.0" % scope,
         "org.scalatest" %% "scalatest" % "2.2.2" % scope,
         "org.scalacheck" %% "scalacheck" % "1.12.2" % scope,
         "org.pegdown" % "pegdown" % "1.4.2" % scope,
