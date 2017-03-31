@@ -66,7 +66,6 @@ object CommonBuilder {
     middleName=Some(DefaultMiddleName),
     lastName=DefaultLastName,
     nino=DefaultNino,
-    utr=DefaultUtr,
     dateOfBirth=DefaultDateOfBirth,
     ukAddress=DefaultUkAddress,
     phoneNo=Some(DefaultPhoneNo),
@@ -81,7 +80,6 @@ object CommonBuilder {
     lastName=DefaultLastName,
     nino=DefaultNino,
     ukAddress=DefaultUkAddress,
-    utr=DefaultUtr,
     dateOfBirth=DefaultDateOfBirth,
     domicile=DefaultDomicile,
     maritalStatus=DefaultMaritalStatus)
@@ -94,7 +92,6 @@ object CommonBuilder {
     lastName=DefaultLastName,
     dateOfBirth=DefaultDateOfBirth,
     nino=DefaultNino,
-    utr=DefaultUtr,
     ukAddress=DefaultUkAddress,
     contactDetails=DefaultContactDetails,
     role =Some(DefaultCoExecutorRole))
