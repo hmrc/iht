@@ -58,17 +58,15 @@ object RegistrationDetails {
       (JsPath \ "middleName").readNullable[String] and
       (JsPath \ "lastName").read[String] and
       (JsPath \ "nino").readNullable[String] and
-      (JsPath \ "utr").readNullable[String] and
       (JsPath \ "gender").readNullable[String] and
       (JsPath \ "dateOfBirth").read[LocalDate] and
       (JsPath \ "mainAddress").read[UkAddress] and
       (JsPath \ "contactDetails").readNullable[ContactDetails]
-    )((firstName,middleName,lastName,nino,utr,gender,dateOfBirth,mainAddress,contactDetails) => ApplicantDetails.apply(
+    )((firstName,middleName,lastName,nino,gender,dateOfBirth,mainAddress,contactDetails) => ApplicantDetails.apply(
     firstName,
     Some(middleName.getOrElse("")),
     lastName,
     nino.getOrElse(""),
-    Some(utr.getOrElse("")),
     dateOfBirth,
     mainAddress,
     contactDetails.map(_.phoneNo),
@@ -90,7 +88,6 @@ object RegistrationDetails {
     lastName,
     nino.getOrElse(""),
     mainAddress,
-    utr=None,
     dateOfBirth,
     domicile,
     maritalStatus
@@ -102,18 +99,16 @@ object RegistrationDetails {
       (JsPath \ "lastName").read[String] and
       (JsPath \ "dateOfBirth").read[LocalDate] and
       (JsPath \ "nino").readNullable[String] and
-      (JsPath \ "utr").readNullable[String] and
       (JsPath \ "gender").readNullable[String] and
       (JsPath \ "mainAddress").read[UkAddress] and
       (JsPath \ "contactDetails").readNullable[ContactDetails]
-    )((firstName,middleName,lastName,dateOfBirth,nino,utr,gender,mainAddress,contactDetails)=>CoExecutor.apply(
+    )((firstName,middleName,lastName,dateOfBirth,nino,gender,mainAddress,contactDetails)=>CoExecutor.apply(
     id=None,
     firstName,
     Some(middleName.getOrElse("")),
     lastName,
     dateOfBirth,
     nino.getOrElse(""),
-    Some(utr.getOrElse("")),
     mainAddress,
     contactDetails.getOrElse(new ContactDetails("","")),
     role= Some(Constants.RoleExecutor)
