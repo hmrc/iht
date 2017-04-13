@@ -17,8 +17,11 @@
 package utils
 
 import models.BasicEstateElement
+import models.application.WidowCheck
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
+import org.joda.time.LocalDate
+
 
 class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
@@ -33,9 +36,9 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
     "return, as a Map[String, Map[String,String]] the differences between " +
       "the currency values in two ApplicationDetails objects" in {
-      def appDetails(moneyOwned: Int) = CommonBuilder.buildApplicationDetailsAllFields.copy(
+      def appDetails(moneyOwed: Int) = CommonBuilder.buildApplicationDetailsAllFields.copy(
         allAssets = Some(CommonBuilder.buildAllAssets.copy(
-          moneyOwed = Some(BasicEstateElement(Some(moneyOwned), Some(true))))))
+          moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))))
 
       val beforeUpdate = appDetails(100)
       val afterUpdate = appDetails(1000)
@@ -44,6 +47,28 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       differences shouldBe Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
     }
 
+    "return an empty Map for two different ApplicationDetails objects when the differences relate" +
+      "to non-currency values" in {
+      def appDetails(date: LocalDate) = CommonBuilder.buildApplicationDetailsAllFields.copy(widowCheck = Some(WidowCheck(
+        widowed = Some(true), dateOfPreDeceased = Some(date))))
+
+      val beforeUpdate = appDetails(new LocalDate(2015, 10, 10))
+      val afterUpdate = appDetails(new LocalDate(2015, 11, 10))
+      val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
+      differences shouldBe Map()
+    }
+
+    "return a Map containing a changed currency field but not a changed non-currency field" in {
+      def appDetails(moneyOwed: Int, date: LocalDate) = CommonBuilder.buildApplicationDetailsAllFields.copy(widowCheck = Some(WidowCheck(
+        widowed = Some(true), dateOfPreDeceased = Some(date))), allAssets = Some(CommonBuilder.buildAllAssets.copy(
+        moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))))
+
+      val beforeUpdate = appDetails(100, new LocalDate(2015, 10, 10))
+      val afterUpdate = appDetails(1000, new LocalDate(2015, 11, 10))
+
+      val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
+      differences shouldBe Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
+    }
   }
 
 }

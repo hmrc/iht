@@ -19,11 +19,30 @@ package utils
 import models.ApplicationDetails
 
 object ModelHelper {
+
+  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+    (
+      _.allAssets.flatMap(_.moneyOwed).flatMap(_.value),
+      "moneyOwed"
+    )
+  )
+
   def currencyFieldDifferences(adBefore: ApplicationDetails, adAfter: ApplicationDetails): Map[String, Map[String, String]] = {
     if(adBefore == adAfter) {
       Map()
     } else {
-      Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
+      var fields = currencyFields.foldLeft(Map[String, Map[String, String]]()) {
+        (currentValues: Map[String, Map[String, String]], fieldExpr: ((ApplicationDetails) => Option[BigDecimal], String)) =>
+        val beforeValue = fieldExpr._1(adBefore)
+        val afterValue = fieldExpr._1(adAfter)
+        if (beforeValue != afterValue) {
+          currentValues ++ Map(fieldExpr._2 -> Map("old" -> beforeValue.fold("")(_.toString),
+            "new" -> afterValue.fold("")(_.toString)))
+        } else {
+          currentValues
+        }
+      }
+      fields
     }
   }
 }
