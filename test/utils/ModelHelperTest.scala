@@ -21,7 +21,7 @@ import models.application.WidowCheck
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
 import org.joda.time.LocalDate
-
+import constants.Constants
 
 class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
@@ -44,7 +44,7 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000)
 
       val differences: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
+      differences shouldBe Map(Constants.moneyOwed -> Map(Constants.previousValue -> "100", Constants.newValue -> "1000"))
     }
 
     "return an empty Map for two different ApplicationDetails objects when the differences relate" +
@@ -67,7 +67,7 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000, new LocalDate(2015, 11, 10))
 
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
+      differences shouldBe Map(Constants.moneyOwed -> Map(Constants.previousValue -> "100", Constants.newValue -> "1000"))
     }
 
     "return a Map containing two changed currency fields" in {
@@ -83,12 +83,10 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(
-        "moneyOwed" -> Map("old" -> "100", "new" -> "1000"),
-        "otherDebts" -> Map("old" -> "1000", "new" -> "100")
+        Constants.moneyOwed -> Map(Constants.previousValue -> "100", Constants.newValue -> "1000"),
+        Constants.otherDebts -> Map(Constants.previousValue -> "1000", Constants.newValue -> "100")
       )
     }
-
-
 
   }
 

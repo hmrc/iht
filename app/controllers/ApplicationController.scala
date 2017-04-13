@@ -392,51 +392,9 @@ trait ApplicationController extends BaseController with SecureStorageController{
       CommonHelper.getOrException(appDetails.ihtRef))
 
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
-      val appMap: Map[String, Map[String, String]] = isApplicationChanged(acknowledgementReference, appDetails, securedStorageAppDetails)
-
-      if (appMap.nonEmpty) {
-        // Check for explicit auditing
-        if(appMap("debt").nonEmpty) {
-          AuditService.sendDebtDataChangeEvent(appMap("debt"))
-        }
-      }
+      val appMap: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
+      if(appMap.nonEmpty) appMap.keys foreach { key => AuditService.sendEvent(key, appMap(key)) }
     }
-  }
-
-  /**
-   * Checks whether application details has been changed from the last time the object was saved
-   * @param acknowledgementReference
-   * @param appDetails
-   * @return
-   */
-  private def isApplicationChanged(acknowledgementReference: String, appDetails:
-  ApplicationDetails, securedStorageAppDetails: ApplicationDetails): Map[String, Map[String, String]] = {
-
-    if (appDetails.allLiabilities.isDefined && securedStorageAppDetails.allLiabilities.isDefined) {
-
-      val newMortgageValue = appDetails.allLiabilities.fold(BigDecimal(0)){allLiabilities=>allLiabilities.mortgageValue}
-      val oldMortgageValue = securedStorageAppDetails.allLiabilities.fold(BigDecimal(0)){allLiabilities=>allLiabilities.mortgageValue}
-
-        if (newMortgageValue != oldMortgageValue) {
-          val debtMap = getDebtMap(newMortgageValue.toString, oldMortgageValue.toString)
-          Map("debt" -> debtMap)
-        } else {
-          Map()
-        }
-    } else {
-      Map()
-    }
-  }
-
-  /**
-   * Creates the debtMap for Auditing purpose
-   * @param newMortgageValue
-   * @param oldMortgageValue
-   * @return
-   */
-  private def getDebtMap(newMortgageValue: String, oldMortgageValue: String): Map[String, String] = {
-    Map("oldMortgageValue" -> oldMortgageValue,
-      "newMortgageValue" -> newMortgageValue)
   }
 
   /**

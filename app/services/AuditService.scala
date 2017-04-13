@@ -71,7 +71,7 @@ trait AuditService extends HttpAuditing {
     AuditingHook(url, verb, body,responseToAuditF)
   }
 
-  private def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
     auditConnector.sendEvent(ihtEvent(auditType, detail))
 
   //Creates iht event

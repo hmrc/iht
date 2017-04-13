@@ -15,7 +15,11 @@
  */
 
 package constants
+import models.AllAssets
+
+import scala.reflect.runtime.universe._
 import scala.collection.immutable.ListMap
+import scala.reflect.runtime.universe
 
 /**
  * Created by xavierzanatta on 3/25/15.
@@ -135,6 +139,33 @@ object Constants {
     MaritalStatusDivorced -> "Divorced or former Civil Partner",
     MaritalStatusWidowed -> "Widowed or a surviving civil partner"
   )
+
+  // audit even value keys
+  val previousValue = "previousValue"
+  val newValue = "newValue"
+
+  val properties = "properties"
+  val motorVehicles = "motorVehicles"
+  val motorVehiclesShared = "motorVehiclesShared"
+  val privatePensions = "privatePensions"
+  val stocksAndSharesListed = "stocksAndSharesListed"
+  val stocksAndSharesNotListed = "stocksAndSharesNotListed"
+  val insurancePolicies = "insurancePolicies"
+  val insurancePoliciesJointlyHeld = "insurancePoliciesJointlyHeld"
+  val businessInterests = "businessInterests"
+  val nominatedAssets = "nominatedAssets"
+  val assetsHeldInTrust = "assetsHeldInTrust"
+  val foreignAssets = "foreignAssets"
+  val moneyOwed = "moneyOwed"
+  val otherAssets = "otherAssets"
+
+  val mortgages = "mortgages"
+  val funeralExpenses = "funeralExpenses"
+  val debtsOwedFromATrust = "debtsOwedFromATrust"
+  val debtsOwedToAnyoneOutsideUK = "debtsOwedToAnyoneOutsideUK"
+  val debtsOwedOnJointlyOwnedAssets = "debtsOwedOnJointlyOwnedAssets"
+  val otherDebts = "otherDebts"
+
 }
 
 object AssetDetails {
