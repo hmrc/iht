@@ -46,7 +46,17 @@ object ModelHelper {
     (_.allLiabilities.flatMap(_.jointlyOwned).flatMap(_.value), Constants.debtsOwedOnJointlyOwnedAssets),
     (_.allLiabilities.flatMap(_.other).flatMap(_.value), Constants.otherDebts))
 
-  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields
+  val exemptionFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+    (_.charities.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionCharities),
+    (_.qualifyingBodies.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionQualfifyingBodies),
+    (_.allExemptions.flatMap(_.partner).flatMap(_.totalAssets), Constants.exemptionPartner)
+  )
+
+  val giftsFields  : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+    (???, Constants.exemptionPartner)
+  )
+
+  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields
 
   def currencyFieldDifferences(adBefore: ApplicationDetails, adAfter: ApplicationDetails): Map[String, Map[String, String]] = {
     if(adBefore == adAfter) {

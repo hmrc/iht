@@ -15,11 +15,7 @@
  */
 
 package constants
-import models.AllAssets
-
-import scala.reflect.runtime.universe._
 import scala.collection.immutable.ListMap
-import scala.reflect.runtime.universe
 
 /**
  * Created by xavierzanatta on 3/25/15.
@@ -166,6 +162,9 @@ object Constants {
   val debtsOwedOnJointlyOwnedAssets = "debtsOwedOnJointlyOwnedAssets"
   val otherDebts = "otherDebts"
 
+  val exemptionPartner = "exemptionPartner"
+  val exemptionCharities = "exemptionCharities"
+  val exemptionQualfifyingBodies = "exemptionQualifyingBodies"
 }
 
 object AssetDetails {
