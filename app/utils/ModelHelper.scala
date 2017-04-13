@@ -24,6 +24,10 @@ object ModelHelper {
     (
       _.allAssets.flatMap(_.moneyOwed).flatMap(_.value),
       "moneyOwed"
+    ),
+    (
+      _.allLiabilities.flatMap(_.other).flatMap(_.value),
+      "otherDebts"
     )
   )
 

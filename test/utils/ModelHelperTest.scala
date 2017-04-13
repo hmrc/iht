@@ -16,7 +16,7 @@
 
 package utils
 
-import models.BasicEstateElement
+import models.{BasicEstateElement, BasicEstateElementLiabilities}
 import models.application.WidowCheck
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
@@ -69,6 +69,27 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map("moneyOwed" -> Map("old" -> "100", "new" -> "1000"))
     }
+
+    "return a Map containing two changed currency fields" in {
+      def appDetails(moneyOwed: Int, otherDebts: Int) = CommonBuilder.buildApplicationDetailsAllFields.copy(
+        allAssets = Some(CommonBuilder.buildAllAssets.copy(
+        moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))),
+        allLiabilities = Some(CommonBuilder.buildAllLiabilities.copy(
+          other = Some(BasicEstateElementLiabilities(Some(true), Some(BigDecimal(otherDebts))))
+        )))
+
+      val beforeUpdate = appDetails(100, 1000)
+      val afterUpdate = appDetails(1000, 100)
+
+      val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
+      differences shouldBe Map(
+        "moneyOwed" -> Map("old" -> "100", "new" -> "1000"),
+        "otherDebts" -> Map("old" -> "1000", "new" -> "100")
+      )
+    }
+
+
+
   }
 
 }
