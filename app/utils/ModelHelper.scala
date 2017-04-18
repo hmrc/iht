@@ -21,7 +21,7 @@ import models.ApplicationDetails
 
 object ModelHelper {
 
-  val assetFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+  private val assetFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.propertyList.flatMap(_.value).reduceLeftOption(_ + _), Constants.properties),
     (_.allAssets.flatMap(_.money).flatMap(_.value), Constants.money),
     (_.allAssets.flatMap(_.money).flatMap(_.shareValue), Constants.moneyShared),
@@ -42,7 +42,7 @@ object ModelHelper {
     (_.allAssets.flatMap(_.other).flatMap(_.value), Constants.otherAssets)
   )
 
-  val debtFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+  private val debtFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.allLiabilities.flatMap(_.mortgages.flatMap(_.mortgageList.flatMap(_.value).reduceLeftOption(_ + _))), Constants.mortgages),
     (_.allLiabilities.flatMap(_.funeralExpenses).flatMap(_.value), Constants.funeralExpenses),
     (_.allLiabilities.flatMap(_.trust).flatMap(_.value), Constants.debtsOwedFromATrust),
@@ -50,17 +50,17 @@ object ModelHelper {
     (_.allLiabilities.flatMap(_.jointlyOwned).flatMap(_.value), Constants.debtsOwedOnJointlyOwnedAssets),
     (_.allLiabilities.flatMap(_.other).flatMap(_.value), Constants.otherDebts))
 
-  val exemptionFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+  private val exemptionFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.charities.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionCharities),
     (_.qualifyingBodies.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionQualfifyingBodies),
     (_.allExemptions.flatMap(_.partner).flatMap(_.totalAssets), Constants.exemptionPartner)
   )
 
-  val giftsFields  : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
+  private val giftsFields  : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.totalGiftsValue, Constants.gifts)
   )
 
-  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields ++ giftsFields
+  private val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields ++ giftsFields
 
   def currencyFieldDifferences(adBefore: ApplicationDetails, adAfter: ApplicationDetails): Map[String, Map[String, String]] = {
     if(adBefore == adAfter) {

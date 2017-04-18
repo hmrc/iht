@@ -17,9 +17,9 @@
 package services
 
 import config.wiring.MicroserviceAuditConnector
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.http.{HeaderFieldsExtractor, HttpAuditing}
-import uk.gov.hmrc.play.audit.model.{DataEvent, MergedDataEvent, DataCall}
+import uk.gov.hmrc.play.audit.model.{DataCall, DataEvent, MergedDataEvent}
 import uk.gov.hmrc.play.config.AppName
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 
@@ -38,30 +38,6 @@ trait AuditService extends HttpAuditing {
   override def auditConnector: AuditConnector = MicroserviceAuditConnector
   override def appName: String="iht"
 
-  def sendApplicationDataChangeEvent( detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.APPLICATION, detail)
-  }
-
-  def sendAssetDataChangeEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.ASSETS, detail)
-  }
-
-  def sendGiftDataChangeEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.GIFTS, detail)
-  }
-
-  def sendDebtDataChangeEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.DEBTS, detail)
-  }
-
-  def sendExemptionDataChangeEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.EXEMPTIONS, detail)
-  }
-
-  def sendTnrbDataChangeEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.TNRB, detail)
-  }
-
   def sendSubmissionFailureEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
     sendEvent(AuditTypes.SUB_FAILURE, detail)
   }
@@ -71,8 +47,9 @@ trait AuditService extends HttpAuditing {
     AuditingHook(url, verb, body,responseToAuditF)
   }
 
-  def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext) =
+  def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] = {
     auditConnector.sendEvent(ihtEvent(auditType, detail))
+  }
 
   //Creates iht event
   private def ihtEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier) =
@@ -84,12 +61,6 @@ trait AuditService extends HttpAuditing {
 
   // Creates audit types
   object AuditTypes {
-    val APPLICATION = "ApplicationDataChange"
-    val ASSETS = "AssetDataChange"
-    val GIFTS = "GiftDataChange"
-    val DEBTS = "DebtDataChange"
-    val EXEMPTIONS = "ExemptionsDataChange"
-    val TNRB = "TnrbDataChange"
     val SUB_FAILURE = "OutboundCall"
   }
 

@@ -16,31 +16,34 @@
 
 package controllers
 
-import connectors._
-import connectors.securestorage.SecureStorage
-import metrics.Metrics
-import org.mockito.Matchers._
-import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
-import play.api.libs.json._
-import play.api.test.{FakeHeaders, FakeRequest}
-import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HttpResponse
-import uk.gov.hmrc.play.test.UnitSpec
-import utils._
-import constants.Constants
-import models._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import json.JsonValidator
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.core.report.ProcessingReport
+import connectors._
+import connectors.securestorage.SecureStorage
+import constants.Constants
+import json.JsonValidator
+import metrics.Metrics
 import models.ProbateDetails.probateDetailsReads
+import models._
 import models.enums.Api
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.BeforeAndAfter
+import org.scalatest.mock.MockitoSugar
+import play.api.libs.json._
+import play.api.test.Helpers._
+import play.api.test.{FakeHeaders, FakeRequest}
+import services.AuditService
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.test.UnitSpec
+import utils._
 
-class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
+
+class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfter {
 
   implicit val headerCarrier = FakeHeaders()
   implicit val request = FakeRequest()
@@ -53,6 +56,11 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   val mockJsonValidator: JsonValidator = mock[JsonValidator]
   val mockRegistrationHelper: RegistrationHelper = mock[RegistrationHelper]
   val mockSecureStorage : SecureStorage = mock[SecureStorage]
+  var mockAuditService: AuditService = mock[AuditService]
+
+   before {
+     mockAuditService = mock[AuditService]
+   }
 
   def applicationController = new ApplicationController {
 
@@ -61,6 +69,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
     override val registrationHelper = mockRegistrationHelper
     override lazy val secureStorage = mockSecureStorage
     override def metrics: Metrics = Metrics
+    override def auditService = mockAuditService
   }
 
   def applicationControllerMockedValidator = new ApplicationController {
@@ -69,6 +78,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
     override val registrationHelper = mockRegistrationHelper
     override lazy val secureStorage = mockSecureStorage
     override def metrics: Metrics = Metrics
+    override def auditService = mockAuditService
   }
 
   private def buildApplicationDetails = {
@@ -142,7 +152,6 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   ))),Map())
 
   "Application Controller" must {
-    import com.github.fge.jsonschema.core.report.ProcessingMessage
       "return JSON for application details on valid IHT Reference" in {
         when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(new ApplicationDetails)))
 
@@ -168,14 +177,97 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(OK)
     }
 
-//    "call persistence connector and return error if save not successful" in {
-//      doThrow(new RuntimeException()).when(mockSecureStorage).update("chicken", "bigkey", Json.toJson(new ApplicationDetails))
-//
-//      val applicationDetails = Json.toJson(buildApplicationDetails)
-//
-//      val result = applicationController.save()(request.withBody(applicationDetails))
-//      status(result) should be(INTERNAL_SERVER_ERROR)
-//    }
+    "call the audit service on save" in {
+      implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
+      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
+
+      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("IHT123"))
+      val moneyOwedAfter = BasicEstateElement(Some(BigDecimal(50)))
+      val optionAllAssetsAfter = adBefore.allAssets.map( _ copy (moneyOwed = Some(moneyOwedAfter)))
+      val adAfter = adBefore.copy(allAssets = optionAllAssetsAfter)
+
+      when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
+      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+
+      val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
+
+      val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
+      val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
+
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      eventCaptorForString.getValue shouldBe "moneyOwed"
+      eventCaptorForMap.getValue shouldBe Map(Constants.previousValue->"15",Constants.newValue->"50")
+  }
+
+    "call the audit service on save of gifts" in {
+      implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
+      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
+      val beforeGiftsList = CommonBuilder.buildGiftsList
+      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("IHT123"), giftsList = Some(beforeGiftsList))
+      val optionAllGifts = Seq(
+        PreviousYearsGifts(
+          yearId=Some("1"),
+          value= Some(BigDecimal(1000)),
+          exemptions = Some(BigDecimal(0)),
+          startDate= Some("6 April 2004"),
+          endDate= Some("5 April 2005")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("2"),
+          value= Some(BigDecimal(2000)),
+          exemptions = Some(BigDecimal(200)),
+          startDate= Some("6 April 2005"),
+          endDate= Some("5 April 2006")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("3"),
+          value= Some(BigDecimal(2000)),
+          exemptions = Some(BigDecimal(0)),
+          startDate= Some("6 April 2006"),
+          endDate= Some("5 April 2007")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("4"),
+          value= Some(BigDecimal(4000)),
+          exemptions = Some(BigDecimal(10)),
+          startDate= Some("6 April 2007"),
+          endDate= Some("5 April 2008")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("5"),
+          value= Some(BigDecimal(5000)),
+          exemptions = Some(BigDecimal(0)),
+          startDate= Some("6 April 2008"),
+          endDate= Some("5 April 2009")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("6"),
+          value= Some(BigDecimal(6000)),
+          exemptions = Some(BigDecimal(0)),
+          startDate= Some("6 April 2009"),
+          endDate= Some("5 April 2010")
+        ),
+        PreviousYearsGifts(
+          yearId=Some("7"),
+          value= Some(BigDecimal(8000)),
+          exemptions = Some(BigDecimal(0)),
+          startDate= Some("6 April 2010"),
+          endDate= Some("5 April 2011")
+        ))
+      val adAfter = adBefore.copy(giftsList = Some(optionAllGifts))
+
+      when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
+      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+
+      val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
+
+      val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
+      val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
+
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      eventCaptorForString.getValue shouldBe "gifts"
+      eventCaptorForMap.getValue shouldBe Map(Constants.previousValue->"27800",Constants.newValue->"27790")
+    }
 
     val mockProcessingReport = mock[ProcessingReport]
     when(mockProcessingReport.isSuccess()).thenReturn(true)

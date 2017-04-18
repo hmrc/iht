@@ -47,6 +47,7 @@ object ApplicationController extends ApplicationController {
   lazy val jsonValidator = JsonValidator
   lazy val registrationHelper = RegistrationHelper
   def metrics: Metrics = Metrics
+  def auditService = AuditService
 }
 
 trait ApplicationController extends BaseController with SecureStorageController{
@@ -58,6 +59,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
   def registrationHelper: RegistrationHelper
   def metrics: Metrics
   def auditConnector: AuditConnector = MicroserviceAuditConnector
+  def auditService: AuditService
 
   /**
    * Save application details to secure storage using the IHT reference as the cache ID.
@@ -392,7 +394,11 @@ trait ApplicationController extends BaseController with SecureStorageController{
 
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
       val appMap: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
-      if(appMap.nonEmpty) appMap.keys foreach { key => AuditService.sendEvent(key, appMap(key)) }
+      if(appMap.nonEmpty) {
+        appMap.keys foreach { key =>
+          auditService.sendEvent(key, appMap(key))
+        }
+      }
     }
   }
 
