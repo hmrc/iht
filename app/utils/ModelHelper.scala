@@ -53,10 +53,10 @@ object ModelHelper {
   )
 
   val giftsFields  : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
-    (???, Constants.exemptionPartner)
+    (_.totalGiftsValue, Constants.gifts)
   )
 
-  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields
+  val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields ++ giftsFields
 
   def currencyFieldDifferences(adBefore: ApplicationDetails, adAfter: ApplicationDetails): Map[String, Map[String, String]] = {
     if(adBefore == adAfter) {

@@ -20,8 +20,6 @@ import constants.Constants
 import models.application.{TnrbEligibiltyModel, WidowCheck}
 import org.joda.time.LocalDate
 import play.api.libs.functional.syntax._
-import play.api.libs.json.Json
-import play.api.libs.json.Json
 import play.api.libs.json.{JsPath, Json, Reads}
 import utils.CommonHelper
 
@@ -279,6 +277,12 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
                               reasonForBeingBelowLimit: Option[String] = None,
                               hasSeenExemptionGuidance: Option[Boolean] = Some(false)){
 
+  def totalGiftsValue: Option[BigDecimal] = {
+    val seqOfPreviousYearsGifts = giftsList.getOrElse(Seq())
+    val valueOfGifts = seqOfPreviousYearsGifts.flatMap(_.value).sum
+    val valueOfExemptions = seqOfPreviousYearsGifts.flatMap(_.exemptions).sum
+    Some(valueOfGifts - valueOfExemptions)
+  }
 
   def totalPropertyValue:BigDecimal = propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
 
@@ -296,7 +300,6 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
 
   //TODO: Check this
   def totalValue:BigDecimal = totalAssetsValue
-
 
 
 }

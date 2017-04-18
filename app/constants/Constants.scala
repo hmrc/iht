@@ -165,6 +165,8 @@ object Constants {
   val exemptionPartner = "exemptionPartner"
   val exemptionCharities = "exemptionCharities"
   val exemptionQualfifyingBodies = "exemptionQualifyingBodies"
+
+  val gifts = "gifts"
 }
 
 object AssetDetails {
