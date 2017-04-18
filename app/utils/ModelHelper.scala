@@ -23,6 +23,10 @@ object ModelHelper {
 
   val assetFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.propertyList.flatMap(_.value).reduceLeftOption(_ + _), Constants.properties),
+    (_.allAssets.flatMap(_.money).flatMap(_.value), Constants.money),
+    (_.allAssets.flatMap(_.money).flatMap(_.shareValue), Constants.moneyShared),
+    (_.allAssets.flatMap(_.household).flatMap(_.value), Constants.household),
+    (_.allAssets.flatMap(_.household).flatMap(_.shareValue), Constants.householdShared),
     (_.allAssets.flatMap(_.vehicles).flatMap(_.value), Constants.motorVehicles),
     (_.allAssets.flatMap(_.vehicles).flatMap(_.shareValue), Constants.motorVehiclesShared),
     (_.allAssets.flatMap(_.privatePension).flatMap(_.value), Constants.privatePensions),

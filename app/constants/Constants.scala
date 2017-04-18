@@ -141,6 +141,10 @@ object Constants {
   val newValue = "newValue"
 
   val properties = "properties"
+  val money = "money"
+  val moneyShared = "moneyShared"
+  val household = "household"
+  val householdShared = "householdShared"
   val motorVehicles = "motorVehicles"
   val motorVehiclesShared = "motorVehiclesShared"
   val privatePensions = "privatePensions"
