@@ -340,7 +340,7 @@ object CommonBuilder {
     other=Some(BasicEstateElement(value=Some(BigDecimal(1998))))
   ) // Total = £326100
 
-  val buildAllAssetsTotal122960 = AllAssets(
+  val buildAllAssetsTotal121960 = AllAssets(
     action=None,
     money=Some(ShareableBasicEstateElement(value=Some(BigDecimal(26155)), shareValue=Some(BigDecimal(200)))),
     household=Some(ShareableBasicEstateElement(value=Some(BigDecimal(300)), shareValue=Some(BigDecimal(400)))),
@@ -357,7 +357,7 @@ object CommonBuilder {
     heldInTrust=None,
     foreign=Some(BasicEstateElement(value=Some(BigDecimal(18000)))),
     other=Some(BasicEstateElement(value=Some(BigDecimal(1998))))
-  ) // Total = £122,960
+  ) // Total = £121,960
 
   val buildPropertyListTotal3000=List(
     Property(id=Some("1"), address=Some(DefaultUkAddress), propertyType=Some("Deceased's home"),
@@ -432,7 +432,7 @@ object CommonBuilder {
   )
 
   val buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate=ApplicationDetails(
-    allAssets=Some(buildAllAssetsTotal122960),
+    allAssets=Some(buildAllAssetsTotal121960),
     propertyList=buildPropertyListTotal3000,
     allLiabilities=None,
     allExemptions=None,

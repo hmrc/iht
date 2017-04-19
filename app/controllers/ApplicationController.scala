@@ -220,17 +220,21 @@ trait ApplicationController extends BaseController with SecureStorageController{
               val pr:ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
               if (pr.isSuccess) {
                 Logger.info("DES Json successfully validated")
-                desConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson).map {
-                  httpResponse => httpResponse.status match {
+                desConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson).flatMap {
+                  httpResponse =>
+                    httpResponse.status match {
                     case OK => {
                       Logger.info("Received response from DES")
                       Logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
                       metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
-                      processResponse(ad.ihtRef.get, httpResponse.body)
+                      val finalEstateValue = ad.estateValue
+                      auditService.sendEvent("finalEstateValue", Map("value"->finalEstateValue.toString())).flatMap{ aa =>
+                        Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
+                      }
                     }
                     case _ => {
                       Logger.info("No valid response from DES")
-                      InternalServerError(httpResponse.status.toString)
+                      Future.successful(InternalServerError(httpResponse.status.toString))
                     }
                   }
                 }
@@ -396,6 +400,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
       val appMap: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if(appMap.nonEmpty) {
         appMap.keys foreach { key =>
+          Logger.debug(s"audit currency change: $appMap")
           auditService.sendEvent(key, appMap(key))
         }
       }

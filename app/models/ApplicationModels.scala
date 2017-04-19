@@ -140,11 +140,24 @@ case class AllAssets(action: Option[String],
                      properties: Option[Properties] = None) {
 
   def totalValueWithoutProperties(): BigDecimal = {
-    val amountList = money.flatMap(_.value) :: household.flatMap(_.value) :: vehicles.flatMap(_.value) ::
-      privatePension.flatMap(_.value) :: stockAndShare.flatMap(_.valueListed) :: stockAndShare.flatMap(_.valueNotListed)::
-      insurancePolicy.flatMap(_.value) :: businessInterest.flatMap(_.value) :: moneyOwed.flatMap(_.value) ::
-      nominated.flatMap(_.value) :: heldInTrust.flatMap(_.value) :: foreign.flatMap(_.value) :: other.flatMap(_.value) ::
+    val amountList = money.flatMap(_.value) ::
+      household.flatMap(_.value) ::
+      vehicles.flatMap(_.value) ::
+      privatePension.flatMap(_.value) ::
+      stockAndShare.flatMap(_.valueListed) ::
+      stockAndShare.flatMap(_.valueNotListed)::
+      insurancePolicy.flatMap(_.value) ::
+      businessInterest.flatMap(_.value) ::
+      moneyOwed.flatMap(_.value) ::
+      nominated.flatMap(_.value) ::
+      heldInTrust.flatMap(_.value) ::
+      foreign.flatMap(_.value) ::
+      other.flatMap(_.value) ::
+      money.flatMap(_.shareValue) :: household.flatMap(_.shareValue) ::
+      vehicles.flatMap(_.shareValue) ::
+      insurancePolicy.flatMap(_.shareValue) ::
       Nil
+
     amountList.flatten.foldLeft(BigDecimal(0))(_ + _)
   }
 }
@@ -298,9 +311,13 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
 
   def totalLiabilitiesValue:BigDecimal = allLiabilities.map(_.totalValue()).getOrElse(BigDecimal(0))
 
-  //TODO: Check this
-  def totalValue:BigDecimal = totalAssetsValue
-
+  def estateValue:BigDecimal = {
+    if(totalExemptionsValue > 0) {
+      totalAssetsValue + totalGiftsValue.getOrElse(0) - totalExemptionsValue - totalLiabilitiesValue
+    } else {
+      totalAssetsValue + totalGiftsValue.getOrElse(0)
+    }
+  }
 
 }
 

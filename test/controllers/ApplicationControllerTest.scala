@@ -329,6 +329,29 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       assert(Metrics.successCounters(Api.SUB_APPLICATION).getCount>0, "Success counter for Sub Application Api is more than one")
     }
 
+    "send an audit event containing the final estate value on a successful submission" in {
+      implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
+      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
+
+      val correctIhtSuccessJson = Json.parse(
+        """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""" )
+      val correctHttpResponse = HttpResponse(OK,Some(correctIhtSuccessJson),Map(),None)
+      val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
+
+      val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
+      val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
+
+      when(mockDesConnector.submitApplication(any(), any(), any())).thenReturn(Future.successful(correctHttpResponse))
+      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+
+      val result = applicationController.submit("IHT123", "")(request.withBody(jsonAD))
+
+      status(result) shouldBe OK
+
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      eventCaptorForString.getValue shouldBe "finalEstateValue"
+      eventCaptorForMap.getValue shouldBe Map("value"->"28090")
+    }
 
     "return no content response when valid front end JSON submitted to real time risking" in {
 

@@ -38,6 +38,30 @@ class ApplicationModelsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
     }
 
+    "estateValue is called" must {
+
+      "return the correct value when there are exemptions" in {
+        val exemptions = CommonBuilder.buildAllExemptionsTotal3000
+        val debts = CommonBuilder.buildAllLiabilities
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
+          allExemptions = Some(exemptions), allLiabilities = Some(debts))
+        ad.estateValue shouldBe BigDecimal(121960 - 340)
+      }
+
+      "return the correct value when there are no exemptions and no debts in" in {
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
+      }
+
+      "return the correct value when there are debts but no exemptions " in {
+        val debts = CommonBuilder.buildAllLiabilities
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
+          allLiabilities = Some(debts))
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
+      }
+
+    }
+
   }
 
 }

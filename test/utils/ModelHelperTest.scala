@@ -88,6 +88,24 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       )
     }
 
+    "return a Map containing two changed currency fields where before or after a field was/is a None" in {
+      def appDetails(moneyOwed: Option[BigDecimal], otherDebts: Option[BigDecimal]) = CommonBuilder.buildApplicationDetailsAllFields.copy(
+        allAssets = Some(CommonBuilder.buildAllAssets.copy(
+          moneyOwed = Some(BasicEstateElement(moneyOwed, Some(true))))),
+        allLiabilities = Some(CommonBuilder.buildAllLiabilities.copy(
+          other = Some(BasicEstateElementLiabilities(Some(true), otherDebts))))
+        )
+
+      val beforeUpdate = appDetails(None, Some(BigDecimal(1000)))
+      val afterUpdate = appDetails(Some(BigDecimal(1000)), None)
+
+      val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
+      differences shouldBe Map(
+        Constants.moneyOwed -> Map(Constants.previousValue -> "", Constants.newValue -> "1000"),
+        Constants.otherDebts -> Map(Constants.previousValue -> "1000", Constants.newValue -> "")
+      )
+    }
+
   }
 
 }
