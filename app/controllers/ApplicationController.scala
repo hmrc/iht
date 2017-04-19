@@ -31,7 +31,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 import services.AuditService
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.ControllerHelper._
@@ -73,9 +73,14 @@ trait ApplicationController extends BaseController with SecureStorageController{
           try {
             Logger.info("Updating secure storage")
             // Explicit auditing check
-            doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
+            val result = doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
             secureStorage.update(ihtRef, acknowledgementReference, Json.toJson(applicationDetails))
-            Future.successful(Ok)
+            result.map {
+              case AuditResult.Failure(msg, throwable) =>
+                Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+                Ok
+              case _ => Ok
+            }
           } catch {
             case e:Exception => {
               Logger.info("Failed to get a return from Secure Storage")
@@ -393,7 +398,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
    * @param appDetails
    */
   private def doExplicitAuditCheck(nino: String, acknowledgementReference: String, appDetails: ApplicationDetails)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext) ={
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] ={
 
     val securedStorageAppDetails: ApplicationDetails = getApplicationDetails(acknowledgementReference,
       CommonHelper.getOrException(appDetails.ihtRef))
@@ -401,11 +406,19 @@ trait ApplicationController extends BaseController with SecureStorageController{
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
       val appMap: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if(appMap.nonEmpty) {
-        appMap.keys foreach { key =>
-          Logger.debug(s"audit event sent for currency change: $appMap")
-          auditService.sendEvent(key, appMap(key))
+        if (appMap.size>1) {
+          Logger.warn("More than one currency field changed in one go - only the first will be audited")
         }
+
+        auditService.sendEvent("bye", appMap(appMap.keys.head)).map{ auditResult =>
+          Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
+          auditResult
+        }
+      } else {
+        Future.successful(AuditResult.Disabled)
       }
+    } else {
+      Future.successful(AuditResult.Disabled)
     }
   }
 

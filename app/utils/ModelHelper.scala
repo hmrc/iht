@@ -71,8 +71,8 @@ object ModelHelper {
           val beforeValue = fieldExpr._1(adBefore)
           val afterValue = fieldExpr._1(adAfter)
           if (beforeValue != afterValue) {
-            currentValues ++ Map(fieldExpr._2 -> Map(Constants.AuditTypePreviousValue -> beforeValue.fold("")(_.toString),
-              Constants.AuditTypeNewValue -> afterValue.fold("")(_.toString)))
+            currentValues ++ Map(fieldExpr._2 -> Map(fieldExpr._2 + " " + Constants.AuditTypePreviousValue -> beforeValue.fold("")(_.toString),
+              fieldExpr._2 + " " + Constants.AuditTypeNewValue -> afterValue.fold("")(_.toString)))
           } else {
             currentValues
           }

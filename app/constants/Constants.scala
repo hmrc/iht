@@ -137,6 +137,8 @@ object Constants {
   )
 
   // audit even value keys
+  val AuditTypeCurrencyValueChange = "currencyValueChange"
+
   val AuditTypePreviousValue = "previousValue"
   val AuditTypeNewValue = "newValue"
   val AuditTypeValue = "value"
