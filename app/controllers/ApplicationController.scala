@@ -234,9 +234,14 @@ trait ApplicationController extends BaseController with SecureStorageController{
                       metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
                       val finalEstateValue = ad.estateValue
                       val map = Map(Constants.AuditTypeValue->finalEstateValue.toString())
-                      auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap{ _ =>
-                        Logger.info(s"audit event sent for ${Constants.AuditTypeFinalEstateValue} of " + map)
-                        Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
+                      auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap{ auditResult =>
+                      auditResult match {
+                        case AuditResult.Failure(msg, throwable) =>
+                          Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+                        case _ =>
+                      }
+                      Logger.info(s"audit event sent for ${Constants.AuditTypeFinalEstateValue} of " + map)
+                      Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
                       }
                     }
                     case _ => {
@@ -410,7 +415,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
           Logger.warn("More than one currency field changed in one go - only the first will be audited")
         }
 
-        auditService.sendEvent("bye", appMap(appMap.keys.head)).map{ auditResult =>
+        auditService.sendEvent(Constants.AuditTypeCurrencyValueChange, appMap(appMap.keys.head)).map{ auditResult =>
           Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
           auditResult
         }

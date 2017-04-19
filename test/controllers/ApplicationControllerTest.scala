@@ -195,8 +195,9 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
-      eventCaptorForString.getValue shouldBe "moneyOwed"
-      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypePreviousValue->"15",Constants.AuditTypeNewValue->"50")
+      eventCaptorForString.getValue shouldBe Constants.AuditTypeCurrencyValueChange
+      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue->"15",
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue->"50")
   }
 
     "call the audit service on save of multiple values" in {
@@ -265,8 +266,9 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
-      eventCaptorForString.getValue shouldBe "gifts"
-      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypePreviousValue->"27800",Constants.AuditTypeNewValue->"27790")
+      eventCaptorForString.getValue shouldBe Constants.AuditTypeCurrencyValueChange
+      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypeGifts + " " + Constants.AuditTypePreviousValue->"27800",
+        Constants.AuditTypeGifts + " " + Constants.AuditTypeNewValue->"27790")
     }
 
     val mockProcessingReport = mock[ProcessingReport]

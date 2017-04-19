@@ -44,7 +44,9 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000)
 
       val differences: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(Constants.AuditTypePreviousValue -> "100", Constants.AuditTypeNewValue -> "1000"))
+      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"))
     }
 
     "return an empty Map for two different ApplicationDetails objects when the differences relate" +
@@ -67,7 +69,9 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000, new LocalDate(2015, 11, 10))
 
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(Constants.AuditTypePreviousValue -> "100", Constants.AuditTypeNewValue -> "1000"))
+      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"))
     }
 
     "return a Map containing two changed currency fields" in {
@@ -83,8 +87,12 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(
-        Constants.AuditTypeMoneyOwed -> Map(Constants.AuditTypePreviousValue -> "100", Constants.AuditTypeNewValue -> "1000"),
-        Constants.AuditTypeOtherDebts -> Map(Constants.AuditTypePreviousValue -> "1000", Constants.AuditTypeNewValue -> "100")
+        Constants.AuditTypeMoneyOwed -> Map(
+          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
+          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
+        Constants.AuditTypeOtherDebts -> Map(
+          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
+          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "100")
       )
     }
 
@@ -101,8 +109,12 @@ class ModelHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
       val differences = ModelHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(
-        Constants.AuditTypeMoneyOwed -> Map(Constants.AuditTypePreviousValue -> "", Constants.AuditTypeNewValue -> "1000"),
-        Constants.AuditTypeOtherDebts -> Map(Constants.AuditTypePreviousValue -> "1000", Constants.AuditTypeNewValue -> "")
+        Constants.AuditTypeMoneyOwed -> Map(
+          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "",
+          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
+        Constants.AuditTypeOtherDebts -> Map(
+          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
+          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "")
       )
     }
 
