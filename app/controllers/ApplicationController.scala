@@ -228,7 +228,9 @@ trait ApplicationController extends BaseController with SecureStorageController{
                       Logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
                       metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
                       val finalEstateValue = ad.estateValue
-                      auditService.sendEvent("finalEstateValue", Map("value"->finalEstateValue.toString())).flatMap{ aa =>
+                      val map = Map(Constants.AuditTypeValue->finalEstateValue.toString())
+                      auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap{ _ =>
+                        Logger.info(s"audit event sent for ${Constants.AuditTypeFinalEstateValue} of " + map)
                         Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
                       }
                     }
@@ -400,7 +402,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
       val appMap: Map[String, Map[String, String]] = ModelHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if(appMap.nonEmpty) {
         appMap.keys foreach { key =>
-          Logger.debug(s"audit currency change: $appMap")
+          Logger.debug(s"audit event sent for currency change: $appMap")
           auditService.sendEvent(key, appMap(key))
         }
       }

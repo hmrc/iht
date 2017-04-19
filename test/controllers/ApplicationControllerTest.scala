@@ -177,7 +177,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(OK)
     }
 
-    "call the audit service on save" in {
+    "call the audit service on save of single value" in {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
@@ -196,10 +196,10 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
       eventCaptorForString.getValue shouldBe "moneyOwed"
-      eventCaptorForMap.getValue shouldBe Map(Constants.previousValue->"15",Constants.newValue->"50")
+      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypePreviousValue->"15",Constants.AuditTypeNewValue->"50")
   }
 
-    "call the audit service on save of gifts" in {
+    "call the audit service on save of multiple values" in {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
       val beforeGiftsList = CommonBuilder.buildGiftsList
@@ -266,7 +266,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
       eventCaptorForString.getValue shouldBe "gifts"
-      eventCaptorForMap.getValue shouldBe Map(Constants.previousValue->"27800",Constants.newValue->"27790")
+      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypePreviousValue->"27800",Constants.AuditTypeNewValue->"27790")
     }
 
     val mockProcessingReport = mock[ProcessingReport]

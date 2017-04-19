@@ -22,42 +22,42 @@ import models.ApplicationDetails
 object ModelHelper {
 
   private val assetFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
-    (_.propertyList.flatMap(_.value).reduceLeftOption(_ + _), Constants.properties),
-    (_.allAssets.flatMap(_.money).flatMap(_.value), Constants.money),
-    (_.allAssets.flatMap(_.money).flatMap(_.shareValue), Constants.moneyShared),
-    (_.allAssets.flatMap(_.household).flatMap(_.value), Constants.household),
-    (_.allAssets.flatMap(_.household).flatMap(_.shareValue), Constants.householdShared),
-    (_.allAssets.flatMap(_.vehicles).flatMap(_.value), Constants.motorVehicles),
-    (_.allAssets.flatMap(_.vehicles).flatMap(_.shareValue), Constants.motorVehiclesShared),
-    (_.allAssets.flatMap(_.privatePension).flatMap(_.value), Constants.privatePensions),
-    (_.allAssets.flatMap(_.stockAndShare).flatMap(_.valueListed), Constants.stocksAndSharesListed),
-    (_.allAssets.flatMap(_.stockAndShare).flatMap(_.valueNotListed), Constants.stocksAndSharesNotListed),
-    (_.allAssets.flatMap(_.insurancePolicy).flatMap(_.value), Constants.insurancePolicies),
-    (_.allAssets.flatMap(_.insurancePolicy).flatMap(_.shareValue), Constants.insurancePoliciesJointlyHeld),
-    (_.allAssets.flatMap(_.businessInterest).flatMap(_.value), Constants.businessInterests),
-    (_.allAssets.flatMap(_.nominated).flatMap(_.value), Constants.nominatedAssets),
-    (_.allAssets.flatMap(_.heldInTrust).flatMap(_.value), Constants.assetsHeldInTrust),
-    (_.allAssets.flatMap(_.foreign).flatMap(_.value), Constants.foreignAssets),
-    (_.allAssets.flatMap(_.moneyOwed).flatMap(_.value), Constants.moneyOwed),
-    (_.allAssets.flatMap(_.other).flatMap(_.value), Constants.otherAssets)
+    (_.propertyList.flatMap(_.value).reduceLeftOption(_ + _), Constants.AuditTypeProperties),
+    (_.allAssets.flatMap(_.money).flatMap(_.value), Constants.AuditTypeMoney),
+    (_.allAssets.flatMap(_.money).flatMap(_.shareValue), Constants.AuditTypeMoneyShared),
+    (_.allAssets.flatMap(_.household).flatMap(_.value), Constants.AuditTypeHousehold),
+    (_.allAssets.flatMap(_.household).flatMap(_.shareValue), Constants.AuditTypeHouseholdShared),
+    (_.allAssets.flatMap(_.vehicles).flatMap(_.value), Constants.AuditTypeMotorVehicles),
+    (_.allAssets.flatMap(_.vehicles).flatMap(_.shareValue), Constants.AuditTypeMotorVehiclesShared),
+    (_.allAssets.flatMap(_.privatePension).flatMap(_.value), Constants.AuditTypePrivatePensions),
+    (_.allAssets.flatMap(_.stockAndShare).flatMap(_.valueListed), Constants.AuditTypeStocksAndSharesListed),
+    (_.allAssets.flatMap(_.stockAndShare).flatMap(_.valueNotListed), Constants.AuditTypeStocksAndSharesNotListed),
+    (_.allAssets.flatMap(_.insurancePolicy).flatMap(_.value), Constants.AuditTypeInsurancePolicies),
+    (_.allAssets.flatMap(_.insurancePolicy).flatMap(_.shareValue), Constants.AuditTypeInsurancePoliciesJointlyHeld),
+    (_.allAssets.flatMap(_.businessInterest).flatMap(_.value), Constants.AuditTypeBusinessInterests),
+    (_.allAssets.flatMap(_.nominated).flatMap(_.value), Constants.AuditTypeNominatedAssets),
+    (_.allAssets.flatMap(_.heldInTrust).flatMap(_.value), Constants.AuditTypeAssetsHeldInTrust),
+    (_.allAssets.flatMap(_.foreign).flatMap(_.value), Constants.AuditTypeForeignAssets),
+    (_.allAssets.flatMap(_.moneyOwed).flatMap(_.value), Constants.AuditTypeMoneyOwed),
+    (_.allAssets.flatMap(_.other).flatMap(_.value), Constants.AuditTypeOtherAssets)
   )
 
   private val debtFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
-    (_.allLiabilities.flatMap(_.mortgages.flatMap(_.mortgageList.flatMap(_.value).reduceLeftOption(_ + _))), Constants.mortgages),
-    (_.allLiabilities.flatMap(_.funeralExpenses).flatMap(_.value), Constants.funeralExpenses),
-    (_.allLiabilities.flatMap(_.trust).flatMap(_.value), Constants.debtsOwedFromATrust),
-    (_.allLiabilities.flatMap(_.debtsOutsideUk).flatMap(_.value), Constants.debtsOwedToAnyoneOutsideUK),
-    (_.allLiabilities.flatMap(_.jointlyOwned).flatMap(_.value), Constants.debtsOwedOnJointlyOwnedAssets),
-    (_.allLiabilities.flatMap(_.other).flatMap(_.value), Constants.otherDebts))
+    (_.allLiabilities.flatMap(_.mortgages.flatMap(_.mortgageList.flatMap(_.value).reduceLeftOption(_ + _))), Constants.AuditTypeMortgages),
+    (_.allLiabilities.flatMap(_.funeralExpenses).flatMap(_.value), Constants.AuditTypeFuneralExpenses),
+    (_.allLiabilities.flatMap(_.trust).flatMap(_.value), Constants.AuditTypeDebtsOwedFromATrust),
+    (_.allLiabilities.flatMap(_.debtsOutsideUk).flatMap(_.value), Constants.AuditTypeDebtsOwedToAnyoneOutsideUK),
+    (_.allLiabilities.flatMap(_.jointlyOwned).flatMap(_.value), Constants.AuditTypeDebtsOwedOnJointlyOwnedAssets),
+    (_.allLiabilities.flatMap(_.other).flatMap(_.value), Constants.AuditTypeOtherDebts))
 
   private val exemptionFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
-    (_.charities.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionCharities),
-    (_.qualifyingBodies.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.exemptionQualfifyingBodies),
-    (_.allExemptions.flatMap(_.partner).flatMap(_.totalAssets), Constants.exemptionPartner)
+    (_.charities.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.AuditTypeExemptionCharities),
+    (_.qualifyingBodies.flatMap(_.totalValue).reduceLeftOption(_ + _), Constants.AuditTypeExemptionQualfifyingBodies),
+    (_.allExemptions.flatMap(_.partner).flatMap(_.totalAssets), Constants.AuditTypeExemptionPartner)
   )
 
   private val giftsFields  : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
-    (_.totalGiftsValue, Constants.gifts)
+    (_.totalGiftsValue, Constants.AuditTypeGifts)
   )
 
   private val currencyFields: Seq[(ApplicationDetails=>Option[BigDecimal], String)] = assetFields ++ debtFields ++ exemptionFields ++ giftsFields
@@ -71,8 +71,8 @@ object ModelHelper {
           val beforeValue = fieldExpr._1(adBefore)
           val afterValue = fieldExpr._1(adAfter)
           if (beforeValue != afterValue) {
-            currentValues ++ Map(fieldExpr._2 -> Map(Constants.previousValue -> beforeValue.fold("")(_.toString),
-              Constants.newValue -> afterValue.fold("")(_.toString)))
+            currentValues ++ Map(fieldExpr._2 -> Map(Constants.AuditTypePreviousValue -> beforeValue.fold("")(_.toString),
+              Constants.AuditTypeNewValue -> afterValue.fold("")(_.toString)))
           } else {
             currentValues
           }
