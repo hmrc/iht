@@ -324,6 +324,8 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       when(mockDesConnector.submitApplication(any(), any(), any()))
         .thenReturn(Future.successful(correctHttpResponse))
+      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+
       val result = applicationController.submit("","")(request.withBody(jsonAD))
       status(result) should be(OK)
       assert(Metrics.successCounters(Api.SUB_APPLICATION).getCount>0, "Success counter for Sub Application Api is more than one")
