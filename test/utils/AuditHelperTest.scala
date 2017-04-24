@@ -25,7 +25,7 @@ import constants.Constants
 
 class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
-  "ModelHelper" must {
+  "AuditHelper" must {
 
     "return an empty Map for two identical ApplicationDetails objects" in {
       val beforeUpdate = CommonBuilder.buildApplicationDetailsAllFields
