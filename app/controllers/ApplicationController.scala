@@ -46,19 +46,26 @@ object ApplicationController extends ApplicationController {
   lazy val desConnector = IHTConnector
   lazy val jsonValidator = JsonValidator
   lazy val registrationHelper = RegistrationHelper
+
   def metrics: Metrics = Metrics
+
   def auditService = AuditService
 }
 
-trait ApplicationController extends BaseController with SecureStorageController{
+trait ApplicationController extends BaseController with SecureStorageController {
 
   import com.github.fge.jsonschema.core.report.ProcessingReport
 
   def desConnector: IHTConnector
+
   def jsonValidator: JsonValidator
+
   def registrationHelper: RegistrationHelper
+
   def metrics: Metrics
+
   def auditConnector: AuditConnector = MicroserviceAuditConnector
+
   def auditService: AuditService
 
   /**
@@ -96,15 +103,17 @@ trait ApplicationController extends BaseController with SecureStorageController{
       }
     }
   }
+
   /**
     * Retrieve application details previously saved to secure storage.
+    *
     * @param ihtRef
     */
-  def get(nino: String, ihtRef:String, acknowledgementReference:String) = Action {
+  def get(nino: String, ihtRef: String, acknowledgementReference: String) = Action {
     implicit request => {
       Logger.info("Fetching secure storage record. Acknowlegenent Reference " + acknowledgementReference)
       secureStorage.get(ihtRef, acknowledgementReference) match {
-        case Some(jsValue) => Logger.info("Secure storage returned record");Ok(jsValue)
+        case Some(jsValue) => Logger.info("Secure storage returned record"); Ok(jsValue)
         case None => Ok(Json.toJson(new ApplicationDetails(status = Constants.AppStatusNotStarted,
           ihtRef = Some(ihtRef))
         ))
@@ -118,68 +127,72 @@ trait ApplicationController extends BaseController with SecureStorageController{
     * but in the future they will be, and the risking is applicable to applications,
     * which is why this is here rather than on the ihtHomeController.
     */
-  def getRealtimeRiskingMessage(ihtAppReference: String, nino:String) = Action.async {
-    implicit request => ControllerHelper.exceptionCheckForResponses ({
-      registrationHelper.getRegistrationDetails(nino, ihtAppReference) match {
-        case None => {
-          Future.successful(InternalServerError("No registration details found"))
-        }
-        case Some(rd) => {
-          val acknowledgmentReference = CommonHelper.generateAcknowledgeReference
-          val ri = RiskInput.fromRegistrationDetails(rd, acknowledgmentReference)
-          val desJson = Json.toJson(ri)
+  def getRealtimeRiskingMessage(ihtAppReference: String, nino: String) = Action.async {
+    implicit request =>
+      ControllerHelper.exceptionCheckForResponses({
+        registrationHelper.getRegistrationDetails(nino, ihtAppReference) match {
+          case None => {
+            Future.successful(InternalServerError("No registration details found"))
+          }
+          case Some(rd) => {
+            val acknowledgmentReference = CommonHelper.generateAcknowledgeReference
+            val ri = RiskInput.fromRegistrationDetails(rd, acknowledgmentReference)
+            val desJson = Json.toJson(ri)
 
-          Logger.debug("DES json for real-time risking successfully generated:-\n" + Json.prettyPrint(desJson))
-          val pr:ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathRealTimeRisking)
-          if (pr.isSuccess) {
-            Logger.info("Request Validated")
-            desConnector.submitRealtimeRisking(rd.ihtReference.getOrElse(""),
-              ri.acknowledgementReference.getOrElse(""),
-              desJson).map {
-              httpResponse => httpResponse.status match {
-                case OK => {
-                  metrics.incrementSuccessCounter(Api.SUB_REAL_TIME_RISKING)
-                  processRealtimeRiskingResponse(httpResponse.body)
-                }
-                case _ => InternalServerError(httpResponse.status.toString)
+            Logger.debug("DES json for real-time risking successfully generated:-\n" + Json.prettyPrint(desJson))
+            val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathRealTimeRisking)
+            if (pr.isSuccess) {
+              Logger.info("Request Validated")
+              desConnector.submitRealtimeRisking(rd.ihtReference.getOrElse(""),
+                ri.acknowledgementReference.getOrElse(""),
+                desJson).map {
+                httpResponse =>
+                  httpResponse.status match {
+                    case OK => {
+                      metrics.incrementSuccessCounter(Api.SUB_REAL_TIME_RISKING)
+                      processRealtimeRiskingResponse(httpResponse.body)
+                    }
+                    case _ => InternalServerError(httpResponse.status.toString)
+                  }
               }
+            } else {
+              Future(processJsonValidationError(pr, desJson))
             }
-          } else { Future(processJsonValidationError(pr, desJson)) }
+          }
         }
-      }
-    },Api.SUB_REAL_TIME_RISKING)
+      }, Api.SUB_REAL_TIME_RISKING)
   }
 
-  private def processRealtimeRiskingResponse(httpResponseBody:String) = {
+  private def processRealtimeRiskingResponse(httpResponseBody: String) = {
     import models.des.realtimerisking.RiskResponse
     val jsValue = Json.parse(httpResponseBody)
     Logger.info("Real-time risking response json:-\n" + Json.prettyPrint(jsValue))
 
     val riskResponse = jsValue.asOpt[RiskResponse]
-    Logger.debug( "Created RiskResponse object:-\n" + riskResponse.toString())
+    Logger.debug("Created RiskResponse object:-\n" + riskResponse.toString())
     CommonHelper.getOrException(riskResponse).rulesFired match {
       case None => {
         Logger.info("Real-time risking response: No rules fired.")
         NoContent
       }
       case Some(rulesFired) => {
-        if (rulesFired.size == 0 ) {
+        if (rulesFired.size == 0) {
           Logger.info("Real-time risking response: No rules fired.")
           NoContent
         } else {
           Logger.info("Real-time risking response: " + rulesFired.size + " rules fired.")
 
           //val moneyRule = rulesFired.find( _.assetCode.getOrElse("")
-          val moneyRule = rulesFired.find( _.ruleID.getOrElse("")
-            == AssetDetails.IHTReturnRuleIDBankAndBuildingSocietyAccounts )
+          val moneyRule = rulesFired.find(_.ruleID.getOrElse("")
+            == AssetDetails.IHTReturnRuleIDBankAndBuildingSocietyAccounts)
           // For now any non-empty string indicates a matching rule is found:-
           moneyRule match {
             case Some(_) => {
 
-              val ruleSupportingInfo = moneyRule.get.supportingInformation.fold("")(supInfo=>supInfo)
+              val ruleSupportingInfo = moneyRule.get.supportingInformation.fold("")(supInfo => supInfo)
 
-              if (ruleSupportingInfo.nonEmpty){
-                Logger.info("Rule Supporting Info :: "+ruleSupportingInfo)
+              if (ruleSupportingInfo.nonEmpty) {
+                Logger.info("Rule Supporting Info :: " + ruleSupportingInfo)
               } else {
                 Logger.info("Rule Supporting Info is not available")
               }
@@ -275,7 +288,7 @@ trait ApplicationController extends BaseController with SecureStorageController{
     }
   }
 
-  private def processResponse(ihtReference:String,httpResponseBody:String) = {
+  private def processResponse(ihtReference: String, httpResponseBody: String) = {
     (Json.parse(httpResponseBody) \ "returnId").asOpt[String] match {
       case Some(successResponse) => {
         // Removing the given Iht reference details from Secure storage
@@ -308,63 +321,67 @@ trait ApplicationController extends BaseController with SecureStorageController{
     }
   }
 
-  def requestClearance(nino:String, ihtReference:String) = Action.async {
-    implicit request => ControllerHelper.exceptionCheckForResponses ({
-      val desJson = Json.toJson(ClearanceRequest(AcknowledgeRefGenerator.getUUID))
-      val pr:ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
-      Logger.info("Clearance Request Json for DES has been validated successfully")
+  def requestClearance(nino: String, ihtReference: String) = Action.async {
+    implicit request =>
+      ControllerHelper.exceptionCheckForResponses({
+        val desJson = Json.toJson(ClearanceRequest(AcknowledgeRefGenerator.getUUID))
+        val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
+        Logger.info("Clearance Request Json for DES has been validated successfully")
 
-      if (pr.isSuccess) {
-        Logger.debug("Request Clearance Validated")
-        desConnector.requestClearance(nino, ihtReference, desJson).map {
-          httpResponse => httpResponse.status match {
-            case OK =>  {
-              Logger.info("Received response from DES (Clearance)")
-              metrics.incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
-              Ok("Clearance Granted")
-            }
-            case ACCEPTED => InternalServerError("The request has been accepted but not processed immediately")
-            case _ => InternalServerError(httpResponse.status.toString)
+        if (pr.isSuccess) {
+          Logger.debug("Request Clearance Validated")
+          desConnector.requestClearance(nino, ihtReference, desJson).map {
+            httpResponse =>
+              httpResponse.status match {
+                case OK => {
+                  Logger.info("Received response from DES (Clearance)")
+                  metrics.incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
+                  Ok("Clearance Granted")
+                }
+                case ACCEPTED => InternalServerError("The request has been accepted but not processed immediately")
+                case _ => InternalServerError(httpResponse.status.toString)
+              }
           }
+        } else {
+          Future(processJsonValidationError(pr, desJson))
         }
-      } else {
-        Future(processJsonValidationError(pr, desJson))
-      }
-    },Api.SUB_REQUEST_CLEARANCE)
+      }, Api.SUB_REQUEST_CLEARANCE)
   }
 
   /*
    * Get the Probate details for given nino, ihtReference and ihtReturnId
    */
-  def getProbateDetails(nino:String, ihtReference:String, ihtReturnId: String) = Action.async {
-    implicit request => ControllerHelper.exceptionCheckForResponses ({
-      desConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
-        httpResponse => httpResponse.status match {
-          case OK => {
-            Logger.info("Received response from DES")
-            metrics.incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
-            val js: JsValue = Json.parse(httpResponse.body)
+  def getProbateDetails(nino: String, ihtReference: String, ihtReturnId: String) = Action.async {
+    implicit request =>
+      ControllerHelper.exceptionCheckForResponses({
+        desConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
+          httpResponse =>
+            httpResponse.status match {
+              case OK => {
+                Logger.info("Received response from DES")
+                metrics.incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
+                val js: JsValue = Json.parse(httpResponse.body)
 
-            val pr:ProcessingReport = jsonValidator.validate(js, Constants.schemaPathProbateDetails)
-            if(pr.isSuccess) {
-              Logger.info("DES Response Validated")
-              Ok(Json.toJson(processResponse(js))).as("text/json")
-            } else {
-              processJsonValidationError(pr, js)
+                val pr: ProcessingReport = jsonValidator.validate(js, Constants.schemaPathProbateDetails)
+                if (pr.isSuccess) {
+                  Logger.info("DES Response Validated")
+                  Ok(Json.toJson(processResponse(js))).as("text/json")
+                } else {
+                  processJsonValidationError(pr, js)
+                }
+              }
+              case NO_CONTENT => {
+                Logger.info("No contents in response from DES")
+                NoContent
+              }
+              case (_) => {
+                Logger.info("No valid response from DES")
+                InternalServerError
+              }
+
             }
-          }
-          case NO_CONTENT => {
-            Logger.info("No contents in response from DES")
-            NoContent
-          }
-          case (_) => {
-            Logger.info("No valid response from DES")
-            InternalServerError
-          }
-
         }
-      }
-    },Api.GET_PROBATE_DETAILS)
+      }, Api.GET_PROBATE_DETAILS)
   }
 
   /**
@@ -372,33 +389,35 @@ trait ApplicationController extends BaseController with SecureStorageController{
     * @param js
     * @return
     */
-  private def processResponse(js : JsValue) : ProbateDetails = {
+  private def processResponse(js: JsValue): ProbateDetails = {
     val probateDetails: ProbateDetails = Json.fromJson((js \ "probateTotals").get)(probateDetailsReads)
       .getOrElse(throw new RuntimeException("Probate Details response not parsed properly"))
 
     probateDetails
   }
 
-  def getSubmittedApplicationDetails(nino:String, ihtReference:String, returnId:String) = Action.async {
-    implicit request => desConnector.getSubmittedApplicationDetails(nino, ihtReference, returnId).map {
-      httpResponse => httpResponse.status match {
-        case OK => {
-          Logger.debug("getSubmittedApplicationDetails response OK")
-          metrics.incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
-          val js:JsValue = Json.parse(httpResponse.body)
-          val pr:ProcessingReport = jsonValidator.validate(js, Constants.schemaPathIhtReturn)
-          if (pr.isSuccess) {
-            Logger.info("DES Response Validated")
-            Ok(js)
-          } else {
-            processJsonValidationError(pr, js)
+  def getSubmittedApplicationDetails(nino: String, ihtReference: String, returnId: String) = Action.async {
+    implicit request =>
+      desConnector.getSubmittedApplicationDetails(nino, ihtReference, returnId).map {
+        httpResponse =>
+          httpResponse.status match {
+            case OK => {
+              Logger.debug("getSubmittedApplicationDetails response OK")
+              metrics.incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
+              val js: JsValue = Json.parse(httpResponse.body)
+              val pr: ProcessingReport = jsonValidator.validate(js, Constants.schemaPathIhtReturn)
+              if (pr.isSuccess) {
+                Logger.info("DES Response Validated")
+                Ok(js)
+              } else {
+                processJsonValidationError(pr, js)
+              }
+            }
+            case (_) => {
+              InternalServerError("Failed to return the requested application details")
+            }
           }
-        }
-        case ( _ ) => {
-          InternalServerError("Failed to return the requested application details")
-        }
       }
-    }
   }
 
   /**
@@ -433,14 +452,15 @@ trait ApplicationController extends BaseController with SecureStorageController{
 
   /**
     * Retrieves the application details object from secure storage
+    *
     * @param acknowledgementReference
     * @param ihtRef
     * @return
     */
-  private def getApplicationDetails( acknowledgementReference: String , ihtRef: String): ApplicationDetails = {
+  private def getApplicationDetails(acknowledgementReference: String, ihtRef: String): ApplicationDetails = {
 
     Json.fromJson[ApplicationDetails](secureStorage.get(ihtRef, acknowledgementReference) match {
-      case Some(jsValue) => Logger.info("Secure storage returned record");jsValue
+      case Some(jsValue) => Logger.info("Secure storage returned record"); jsValue
       case None => Json.toJson(new ApplicationDetails(status = Constants.AppStatusNotStarted,
         ihtRef = Some(ihtRef)))
     }).get
