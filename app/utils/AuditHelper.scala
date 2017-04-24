@@ -19,7 +19,7 @@ package utils
 import constants.Constants
 import models.ApplicationDetails
 
-object ModelHelper {
+object AuditHelper {
 
   private val assetFields : Seq[(ApplicationDetails=>Option[BigDecimal], String)] = Seq(
     (_.propertyList.flatMap(_.value).reduceLeftOption(_ + _), Constants.AuditTypeProperties),
