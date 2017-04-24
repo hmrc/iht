@@ -135,6 +135,47 @@ object Constants {
     MaritalStatusDivorced -> "Divorced or former Civil Partner",
     MaritalStatusWidowed -> "Widowed or a surviving civil partner"
   )
+
+  // audit even value keys
+  val AuditTypeCurrencyValueChange = "currencyValueChange"
+
+  val AuditTypePreviousValue = "previousValue"
+  val AuditTypeNewValue = "newValue"
+  val AuditTypeValue = "value"
+
+  val AuditTypeProperties = "properties"
+  val AuditTypeMoney = "money"
+  val AuditTypeMoneyShared = "moneyShared"
+  val AuditTypeHousehold = "household"
+  val AuditTypeHouseholdShared = "householdShared"
+  val AuditTypeMotorVehicles = "motorVehicles"
+  val AuditTypeMotorVehiclesShared = "motorVehiclesShared"
+  val AuditTypePrivatePensions = "privatePensions"
+  val AuditTypeStocksAndSharesListed = "stocksAndSharesListed"
+  val AuditTypeStocksAndSharesNotListed = "stocksAndSharesNotListed"
+  val AuditTypeInsurancePolicies = "insurancePolicies"
+  val AuditTypeInsurancePoliciesJointlyHeld = "insurancePoliciesJointlyHeld"
+  val AuditTypeBusinessInterests = "businessInterests"
+  val AuditTypeNominatedAssets = "nominatedAssets"
+  val AuditTypeAssetsHeldInTrust = "assetsHeldInTrust"
+  val AuditTypeForeignAssets = "foreignAssets"
+  val AuditTypeMoneyOwed = "moneyOwed"
+  val AuditTypeOtherAssets = "otherAssets"
+
+  val AuditTypeMortgages = "mortgages"
+  val AuditTypeFuneralExpenses = "funeralExpenses"
+  val AuditTypeDebtsOwedFromATrust = "debtsOwedFromATrust"
+  val AuditTypeDebtsOwedToAnyoneOutsideUK = "debtsOwedToAnyoneOutsideUK"
+  val AuditTypeDebtsOwedOnJointlyOwnedAssets = "debtsOwedOnJointlyOwnedAssets"
+  val AuditTypeOtherDebts = "otherDebts"
+
+  val AuditTypeExemptionPartner = "exemptionPartner"
+  val AuditTypeExemptionCharities = "exemptionCharities"
+  val AuditTypeExemptionQualfifyingBodies = "exemptionQualifyingBodies"
+
+  val AuditTypeGifts = "gifts"
+
+  val AuditTypeFinalEstateValue = "finalEstateValue"
 }
 
 object AssetDetails {

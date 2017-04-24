@@ -31,7 +31,7 @@ import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.Action
 import services.AuditService
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.ControllerHelper._
@@ -48,6 +48,8 @@ object ApplicationController extends ApplicationController {
   lazy val registrationHelper = RegistrationHelper
 
   def metrics: Metrics = Metrics
+
+  def auditService = AuditService
 }
 
 trait ApplicationController extends BaseController with SecureStorageController {
@@ -64,6 +66,8 @@ trait ApplicationController extends BaseController with SecureStorageController 
 
   def auditConnector: AuditConnector = MicroserviceAuditConnector
 
+  def auditService: AuditService
+
   /**
     * Save application details to secure storage using the IHT reference as the cache ID.
     */
@@ -76,9 +80,16 @@ trait ApplicationController extends BaseController with SecureStorageController 
           try {
             Logger.info("Updating secure storage")
             // Explicit auditing check
-            doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
+            val result: Future[Seq[AuditResult]] = doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
             secureStorage.update(ihtRef, acknowledgementReference, Json.toJson(applicationDetails))
-            Future.successful(Ok)
+            result.map { seqAuditResult =>
+              seqAuditResult.foreach {
+                case AuditResult.Failure(msg, throwable) =>
+                  Logger.warn("Audit failed. AuditResult is " + msg + ":-\n" + throwable.toString)
+                case _ =>
+              }
+              Ok
+            }
           } catch {
             case e: Exception => {
               Logger.info("Failed to get a return from Secure Storage")
@@ -86,7 +97,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
             }
           }
         }
-        case error: JsError => {
+        case _: JsError => {
           Future.successful(BadRequest)
         }
       }
@@ -230,18 +241,28 @@ trait ApplicationController extends BaseController with SecureStorageController 
                 val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
                 if (pr.isSuccess) {
                   Logger.info("DES Json successfully validated")
-                  desConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson).map {
+                  desConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson).flatMap {
                     httpResponse =>
                       httpResponse.status match {
                         case OK => {
                           Logger.info("Received response from DES")
                           Logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
                           metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
-                          processResponse(ad.ihtRef.get, httpResponse.body)
+                          val finalEstateValue = ad.estateValue
+                          val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString())
+                          auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap { auditResult =>
+                            auditResult match {
+                              case AuditResult.Failure(msg, throwable) =>
+                                Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+                              case _ =>
+                            }
+                            Logger.info(s"audit event sent for ${Constants.AuditTypeFinalEstateValue} of " + map)
+                            Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
+                          }
                         }
                         case _ => {
                           Logger.info("No valid response from DES")
-                          InternalServerError(httpResponse.status.toString)
+                          Future.successful(InternalServerError(httpResponse.status.toString))
                         }
                       }
                   }
@@ -405,60 +426,29 @@ trait ApplicationController extends BaseController with SecureStorageController 
     * @param appDetails
     */
   private def doExplicitAuditCheck(nino: String, acknowledgementReference: String, appDetails: ApplicationDetails)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AuditResult]] = {
 
     val securedStorageAppDetails: ApplicationDetails = getApplicationDetails(acknowledgementReference,
       CommonHelper.getOrException(appDetails.ihtRef))
 
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
-      val appMap: Map[String, Map[String, String]] = isApplicationChanged(acknowledgementReference, appDetails, securedStorageAppDetails)
-
+      val appMap: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if (appMap.nonEmpty) {
-        // Check for explicit auditing
-        if (appMap("debt").nonEmpty) {
-          AuditService.sendDebtDataChangeEvent(appMap("debt"))
+        val seqFutureAuditResult = appMap.keys.toSeq.map { current =>
+          auditService.sendEvent(Constants.AuditTypeCurrencyValueChange, appMap(current)).map { auditResult =>
+            Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
+            auditResult
+          }
         }
-      }
-    }
-  }
-
-  /**
-    * Checks whether application details has been changed from the last time the object was saved
-    *
-    * @param acknowledgementReference
-    * @param appDetails
-    * @return
-    */
-  private def isApplicationChanged(acknowledgementReference: String, appDetails:
-  ApplicationDetails, securedStorageAppDetails: ApplicationDetails): Map[String, Map[String, String]] = {
-
-    if (appDetails.allLiabilities.isDefined && securedStorageAppDetails.allLiabilities.isDefined) {
-
-      val newMortgageValue = appDetails.allLiabilities.fold(BigDecimal(0)) { allLiabilities => allLiabilities.mortgageValue }
-      val oldMortgageValue = securedStorageAppDetails.allLiabilities.fold(BigDecimal(0)) { allLiabilities => allLiabilities.mortgageValue }
-
-      if (newMortgageValue != oldMortgageValue) {
-        val debtMap = getDebtMap(newMortgageValue.toString, oldMortgageValue.toString)
-        Map("debt" -> debtMap)
+        Future.sequence(seqFutureAuditResult)
       } else {
-        Map()
+        Future.successful(Seq.empty)
       }
     } else {
-      Map()
+      Future.successful(Seq.empty)
     }
   }
 
-  /**
-    * Creates the debtMap for Auditing purpose
-    *
-    * @param newMortgageValue
-    * @param oldMortgageValue
-    * @return
-    */
-  private def getDebtMap(newMortgageValue: String, oldMortgageValue: String): Map[String, String] = {
-    Map("oldMortgageValue" -> oldMortgageValue,
-      "newMortgageValue" -> newMortgageValue)
-  }
 
   /**
     * Retrieves the application details object from secure storage
