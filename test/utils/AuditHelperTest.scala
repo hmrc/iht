@@ -25,6 +25,8 @@ import constants.Constants
 
 class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
+  private val expectedIhtReference = Some("1234567")
+
   "ModelHelper" must {
 
     "return an empty Map for two identical ApplicationDetails objects" in {
@@ -38,13 +40,16 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       "the currency values in two ApplicationDetails objects" in {
       def appDetails(moneyOwed: Int) = CommonBuilder.buildApplicationDetailsAllFields.copy(
         allAssets = Some(CommonBuilder.buildAllAssets.copy(
-          moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))))
+          moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))),
+        ihtRef = expectedIhtReference
+      )
 
       val beforeUpdate = appDetails(100)
       val afterUpdate = appDetails(1000)
 
       val differences: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+        Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
         Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"))
     }
@@ -63,15 +68,20 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
     "return a Map containing a changed currency field but not a changed non-currency field" in {
       def appDetails(moneyOwed: Int, date: LocalDate) = CommonBuilder.buildApplicationDetailsAllFields.copy(widowCheck = Some(WidowCheck(
         widowed = Some(true), dateOfPreDeceased = Some(date))), allAssets = Some(CommonBuilder.buildAllAssets.copy(
-        moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))))
+        moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))),
+        ihtRef = expectedIhtReference
+
+      )
 
       val beforeUpdate = appDetails(100, new LocalDate(2015, 10, 10))
       val afterUpdate = appDetails(1000, new LocalDate(2015, 11, 10))
 
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+        Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
-        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"))
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000")
+      )
     }
 
     "return a Map containing two changed currency fields" in {
@@ -80,7 +90,9 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
         moneyOwed = Some(BasicEstateElement(Some(moneyOwed), Some(true))))),
         allLiabilities = Some(CommonBuilder.buildAllLiabilities.copy(
           other = Some(BasicEstateElementLiabilities(Some(true), Some(BigDecimal(otherDebts))))
-        )))
+        )),
+        ihtRef = expectedIhtReference
+      )
 
       val beforeUpdate = appDetails(100, 1000)
       val afterUpdate = appDetails(1000, 100)
@@ -88,9 +100,11 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
+          Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
           Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
         Constants.AuditTypeOtherDebts -> Map(
+          Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
           Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "100")
       )
@@ -101,7 +115,8 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
         allAssets = Some(CommonBuilder.buildAllAssets.copy(
           moneyOwed = Some(BasicEstateElement(moneyOwed, Some(true))))),
         allLiabilities = Some(CommonBuilder.buildAllLiabilities.copy(
-          other = Some(BasicEstateElementLiabilities(Some(true), otherDebts))))
+          other = Some(BasicEstateElementLiabilities(Some(true), otherDebts)))),
+        ihtRef = expectedIhtReference
         )
 
       val beforeUpdate = appDetails(None, Some(BigDecimal(1000)))
@@ -110,9 +125,11 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
+          Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "",
           Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
         Constants.AuditTypeOtherDebts -> Map(
+          Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
           Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "")
       )
