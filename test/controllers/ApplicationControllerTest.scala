@@ -177,11 +177,13 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(OK)
     }
 
+    val expectedIhtReference = Some("IHT123")
+
     "call the audit service on save of single value" in {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
-      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("IHT123"))
+      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference)
       val moneyOwedAfter = BasicEstateElement(Some(BigDecimal(50)))
       val optionAllAssetsAfter = adBefore.allAssets.map( _ copy (moneyOwed = Some(moneyOwedAfter)))
       val adAfter = adBefore.copy(allAssets = optionAllAssetsAfter)
@@ -196,7 +198,9 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
       eventCaptorForString.getValue shouldBe Constants.AuditTypeCurrencyValueChange
-      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue->"15",
+      eventCaptorForMap.getValue shouldBe Map(
+        Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
+        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue->"15",
         Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue->"50")
   }
 
@@ -204,7 +208,8 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
       val beforeGiftsList = CommonBuilder.buildGiftsList
-      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("IHT123"), giftsList = Some(beforeGiftsList))
+      val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference,
+        giftsList = Some(beforeGiftsList))
       val optionAllGifts = Seq(
         PreviousYearsGifts(
           yearId=Some("1"),
@@ -267,7 +272,9 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture,eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
       eventCaptorForString.getValue shouldBe Constants.AuditTypeCurrencyValueChange
-      eventCaptorForMap.getValue shouldBe Map(Constants.AuditTypeGifts + " " + Constants.AuditTypePreviousValue->"27800",
+      eventCaptorForMap.getValue shouldBe Map(
+        Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
+        Constants.AuditTypeGifts + " " + Constants.AuditTypePreviousValue->"27800",
         Constants.AuditTypeGifts + " " + Constants.AuditTypeNewValue->"27790")
     }
 
@@ -337,10 +344,12 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
+      val expectedIhtReference = Some("12345678")
+
       val correctIhtSuccessJson = Json.parse(
         """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""" )
       val correctHttpResponse = HttpResponse(OK,Some(correctIhtSuccessJson),Map(),None)
-      val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
+      val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String,String]])
@@ -348,13 +357,15 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockDesConnector.submitApplication(any(), any(), any())).thenReturn(Future.successful(correctHttpResponse))
       when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
-      val result = applicationController.submit("IHT123", "")(request.withBody(jsonAD))
+      val result = applicationController.submit(expectedIhtReference.getOrElse(""), "")(request.withBody(jsonAD))
 
       status(result) shouldBe OK
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
-      eventCaptorForString.getValue shouldBe "finalEstateValue"
-      eventCaptorForMap.getValue shouldBe Map("value"->"28090")
+      eventCaptorForString.getValue shouldBe Constants.AuditTypeFinalEstateValue
+      eventCaptorForMap.getValue shouldBe Map(
+        Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
+        Constants.AuditTypeValue -> "28090")
     }
 
     "return no content response when valid front end JSON submitted to real time risking" in {

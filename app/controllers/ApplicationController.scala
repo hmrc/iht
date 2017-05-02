@@ -249,7 +249,8 @@ trait ApplicationController extends BaseController with SecureStorageController 
                           Logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
                           metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
                           val finalEstateValue = ad.estateValue
-                          val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString())
+                          val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString(),
+                            Constants.AuditTypeIHTReference -> ad.ihtRef.getOrElse(""))
                           auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap { auditResult =>
                             auditResult match {
                               case AuditResult.Failure(msg, throwable) =>
@@ -432,7 +433,8 @@ trait ApplicationController extends BaseController with SecureStorageController 
       CommonHelper.getOrException(appDetails.ihtRef))
 
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
-      val appMap: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
+      val appMap: Map[String, Map[String, String]] =
+        AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if (appMap.nonEmpty) {
         val seqFutureAuditResult = appMap.keys.toSeq.map { current =>
           auditService.sendEvent(Constants.AuditTypeCurrencyValueChange, appMap(current)).map { auditResult =>
