@@ -201,50 +201,50 @@ object CommonBuilder {
       yearId=Some("1"),
       value= Some(BigDecimal(1000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2004"),
-      endDate= Some("5 April 2005")
+      startDate= Some("2004-4-6"),
+      endDate= Some("2005-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("2"),
       value= Some(BigDecimal(2000)),
       exemptions = Some(BigDecimal(200)),
-      startDate= Some("6 April 2005"),
-      endDate= Some("5 April 2006")
+      startDate= Some("2005-4-6"),
+      endDate= Some("2006-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("3"),
       value= Some(BigDecimal(3000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2006"),
-      endDate= Some("5 April 2007")
+      startDate= Some("2006-4-6"),
+      endDate= Some("2007-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("4"),
       value= Some(BigDecimal(4000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2007"),
-      endDate= Some("5 April 2008")
+      startDate= Some("2007-4-5"),
+      endDate= Some("2008-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("5"),
       value= Some(BigDecimal(5000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2008"),
-      endDate= Some("5 April 2009")
+      startDate= Some("2008-4-6"),
+      endDate= Some("2009-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("6"),
       value= Some(BigDecimal(6000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2009"),
-      endDate= Some("5 April 2010")
+      startDate= Some("2009-4-6"),
+      endDate= Some("2010-4-5")
     ),
     PreviousYearsGifts(
       yearId=Some("7"),
       value= Some(BigDecimal(7000)),
       exemptions = Some(BigDecimal(0)),
-      startDate= Some("6 April 2010"),
-      endDate= Some("5 April 2011")
+      startDate= Some("2010-4-6"),
+      endDate= Some("2011-4-5")
     )
   )
 
