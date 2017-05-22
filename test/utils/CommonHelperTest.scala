@@ -33,17 +33,35 @@ class CommonHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar  {
     }
 
     "throw an exception if asked to convert an invalid date" in {
-      a [java.lang.RuntimeException] should be thrownBy {
+      a[java.lang.RuntimeException] should be thrownBy {
         CommonHelper.dateLongFormatToDesString("1 January")
       }
     }
 
     "throw an exception if asked to convert an invalid date (invalid month)" in {
-      a [java.lang.RuntimeException] should be thrownBy {
+      a[java.lang.RuntimeException] should be thrownBy {
         CommonHelper.dateLongFormatToDesString("1 Bloop 2025")
       }
     }
 
+  }
+
+  "dateFormatChangeToPadZeroInDayAndMonth" must {
+    "Pad 0 to month and day of a valid date" in {
+      val s = CommonHelper.dateFormatChangeToPadZeroToDayAndMonth("2015-1-2")
+      s shouldBe "2015-01-02"
+    }
+
+    "Dont pad 0 to month and day when valid date" in {
+      val s = CommonHelper.dateFormatChangeToPadZeroToDayAndMonth("2014-12-10")
+      s shouldBe "2014-12-10"
+    }
+
+    "throw an exception if asked to convert an invalid date" in {
+      a[java.lang.RuntimeException] should be thrownBy {
+        CommonHelper.dateFormatChangeToPadZeroToDayAndMonth("2014-1")
+      }
+    }
   }
 
   "a negative net estate value should not be negative" must {

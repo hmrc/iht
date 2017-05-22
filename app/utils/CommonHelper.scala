@@ -58,6 +58,29 @@ object CommonHelper {
     }
   }
 
+  /**
+    * Converts date from format "2015-4-5" to "2015-04-05"
+    *
+    * @param date
+    * @return
+    */
+  def dateFormatChangeToPadZeroToDayAndMonth(date: String): String = {
+    import java.util.StringTokenizer
+    val st = new StringTokenizer(date, "-")
+
+    if (st.countTokens() > 2) {
+      val year = st.nextToken()
+      val month = st.nextToken().toInt
+      val day = st.nextToken().toInt
+
+      val updatedMonthValue = if (month < 10) "0" + month else month
+      val updatedDayValue = if (day < 10) "0" + day else day
+
+      year + "-" + updatedMonthValue + "-" + updatedDayValue
+    } else {
+      throw new RuntimeException("Invalid date format: " + date)
+    }
+  }
 
   def last2(s:String):String = if (s.length > 1) s.substring(s.length - 2, s.length) else ""
 
