@@ -482,7 +482,7 @@ object IHTReturnHelper {
           percentageRetained = Some(BigDecimal(0)),
           howheld = Some("Standard"),
           lossToEstate = Some(totalGiftValue),
-          dateOfGift = Some(dateLongFormatToDesString(gift.endDate.getOrElse("")))
+          dateOfGift =  Some(dateFormatChangeToPadZeroToDayAndMonth(gift.endDate.getOrElse("")))
         )
       }
       gifts
