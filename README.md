@@ -30,6 +30,6 @@ The microservice faciliates the communication between the service and HMRC. This
 
 You will need to clone the project first then navigate to the main folder and run the following sbt command ```sbt "run 9071"```.
 
-## License
+### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
