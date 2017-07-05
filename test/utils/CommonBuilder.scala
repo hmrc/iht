@@ -19,8 +19,14 @@ package utils
 import models._
 
 import models.application._
+import models.application.assets._
+import models.application.basicElements.{BasicEstateElement, ShareableBasicEstateElement}
+import models.application.debts.{MortgageEstateElement, BasicEstateElementLiabilities, AllLiabilities, Mortgage}
+import models.application.exemptions._
+import models.application.gifts.{AllGifts, PreviousYearsGifts}
+import models.application.tnrb.{TnrbEligibiltyModel, WidowCheck}
 import models.registration._
-import org.joda.time.{LocalDateTime, DateTime, LocalDate}
+import org.joda.time.LocalDate
 import constants.Constants
 
 /**

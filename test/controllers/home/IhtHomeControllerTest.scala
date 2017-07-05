@@ -19,7 +19,7 @@ package controllers.home
 import connectors.IHTConnector
 import metrics.Metrics
 import models.registration.RegistrationDetails
-import models.IhtApplication
+import models.application.IhtApplication
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar

@@ -23,9 +23,11 @@ import connectors.securestorage.SecureStorage
 import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
-import models.ProbateDetails.probateDetailsReads
-import models._
-import models.application.ApplicationDetails
+import models.application.ProbateDetails.probateDetailsReads
+import models.application.{ProbateDetails, ApplicationDetails}
+import models.application.basicElements.BasicEstateElement
+import models.application.exemptions.{QualifyingBody, Charity}
+import models.application.gifts.PreviousYearsGifts
 import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._

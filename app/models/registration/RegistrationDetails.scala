@@ -33,7 +33,6 @@ Option[ApplicantDetails], deceasedDetails: Option[DeceasedDetails],
                                acknowledgmentReference:String = "",
                                 returns: Seq[ReturnDetails] = Seq())
 
-
 object RegistrationDetails {
 
   implicit val contactDetailsReads: Reads[ContactDetails] = (
