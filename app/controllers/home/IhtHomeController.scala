@@ -20,8 +20,9 @@ import com.github.fge.jsonschema.core.report.ProcessingReport
 import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
-import models.{RegistrationDetails, IhtApplication}
+import models.RegistrationDetails
 import connectors.IHTConnector
+import models.application.IhtApplication
 import org.joda.time.LocalDate
 import play.api.mvc.Action
 import uk.gov.hmrc.play.http.Upstream4xxResponse

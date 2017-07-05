@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package models
+package models.application.exemptions
 
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 /**
- *
- * Created by Vineet Tyagi on 19/06/15.
- *
- */
-case class IhtApplication(ihtRefNo: String,
-                          firstName:String,
-                          lastName:String,
-                          dateOfBirth: LocalDate,
-                          dateOfDeath: LocalDate,
-                          nino: String,
-                          entryType: String,
-                          role:String,
-                          registrationDate: LocalDate,
-                          currentStatus: String,
-                          acknowledgmentReference:String)
+  * Created by vineet on 05/07/17.
+  */
+case class PartnerExemption(
+                             isAssetForDeceasedPartner: Option[Boolean],
+                             isPartnerHomeInUK: Option[Boolean],
+                             firstName: Option[String],
+                             lastName: Option[String],
+                             dateOfBirth: Option[LocalDate],
+                             nino: Option[String],
+                             totalAssets: Option[BigDecimal])
 
-object IhtApplication {
-  implicit val formats = Json.format[IhtApplication]
+object PartnerExemption {
+  implicit val formats = Json.format[PartnerExemption]
 }

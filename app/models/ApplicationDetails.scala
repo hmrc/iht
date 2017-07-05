@@ -17,6 +17,7 @@
 package models
 
 import constants.Constants
+import models.application.assets.AllAssets
 import models.application.{TnrbEligibiltyModel, WidowCheck}
 import org.joda.time.LocalDate
 import play.api.libs.functional.syntax._
@@ -96,14 +97,6 @@ object InsurancePolicy {
   implicit val formats = Json.format[InsurancePolicy]
 }
 
-case class HeldInTrust(isMoreThanOne: Option[Boolean],
-                       value: Option[BigDecimal],
-                       isOwned: Option[Boolean] = None) extends EstateElement
-
-object HeldInTrust {
-  implicit val formats = Json.format[HeldInTrust]
-}
-
 case class Properties(isOwned: Option[Boolean])
 
 object Properties {
@@ -124,50 +117,6 @@ object MortgageEstateElement {
   implicit val formats = Json.format[MortgageEstateElement]
 }
 
-case class AllAssets(action: Option[String],
-                     money: Option[ShareableBasicEstateElement] = None,
-                     household: Option[ShareableBasicEstateElement] = None,
-                     vehicles: Option[ShareableBasicEstateElement] = None,
-                     privatePension: Option[PrivatePension] = None,
-                     stockAndShare: Option[StockAndShare] = None,
-                     insurancePolicy: Option[InsurancePolicy] = None,
-                     businessInterest: Option[BasicEstateElement] = None,
-                     nominated: Option[BasicEstateElement] = None,
-                     heldInTrust: Option[HeldInTrust] = None,
-                     foreign: Option[BasicEstateElement] = None,
-                     moneyOwed: Option[BasicEstateElement] = None,
-                     other: Option[BasicEstateElement] = None,
-                     properties: Option[Properties] = None) {
-
-  def totalValueWithoutProperties(): BigDecimal = {
-    val amountList = money.flatMap(_.value) ::
-      household.flatMap(_.value) ::
-      vehicles.flatMap(_.value) ::
-      privatePension.flatMap(_.value) ::
-      stockAndShare.flatMap(_.valueListed) ::
-      stockAndShare.flatMap(_.valueNotListed)::
-      insurancePolicy.flatMap(_.value) ::
-      businessInterest.flatMap(_.value) ::
-      moneyOwed.flatMap(_.value) ::
-      nominated.flatMap(_.value) ::
-      heldInTrust.flatMap(_.value) ::
-      foreign.flatMap(_.value) ::
-      other.flatMap(_.value) ::
-      money.flatMap(_.shareValue) :: household.flatMap(_.shareValue) ::
-      vehicles.flatMap(_.shareValue) ::
-      insurancePolicy.flatMap(_.shareValue) ::
-      Nil
-
-    amountList.flatten.foldLeft(BigDecimal(0))(_ + _)
-  }
-}
-
-
-object AllAssets {
-  implicit val formats = Json.format[AllAssets]
-
-}
-
 case class AllLiabilities(funeralExpenses: Option[BasicEstateElementLiabilities] = None,
                           trust: Option[BasicEstateElementLiabilities] = None,
                           debtsOutsideUk: Option[BasicEstateElementLiabilities] = None,
@@ -184,7 +133,6 @@ case class AllLiabilities(funeralExpenses: Option[BasicEstateElementLiabilities]
 
   def mortgageValue: BigDecimal = {
     val mort = mortgages.getOrElse(new MortgageEstateElement(Some(false), Nil)).mortgageList
-
     mort match {
       case x : List[Mortgage] if x.length > 0  => {
         x.flatMap(_.value).sum
