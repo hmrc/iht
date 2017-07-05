@@ -16,16 +16,14 @@
 
 package models.application
 
-import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 /**
- * Created by yusuf on 15/04/15.
- */
-case class WidowCheck(widowed: Option[Boolean], dateOfPreDeceased: Option[LocalDate]) {
+  * Created by vineet on 05/07/17.
+  */
+case class ClearanceRequest(acknowledgmentReference: String,
+                            confirmRequest: Boolean = true)
 
-}
-
-object WidowCheck {
-  implicit val formats = Json.format[WidowCheck]
+object ClearanceRequest {
+  implicit val formats = Json.format[ClearanceRequest]
 }

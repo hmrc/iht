@@ -22,8 +22,9 @@ import connectors.securestorage.SecureStorageController
 import constants.{AssetDetails, Constants}
 import json.JsonValidator
 import metrics.Metrics
-import models.ProbateDetails.probateDetailsReads
+import models.application.ProbateDetails.probateDetailsReads
 import models._
+import models.application.{ApplicationDetails, ClearanceRequest, ProbateDetails}
 import models.des.IHTReturn
 import models.des.realtimerisking.RiskInput
 import models.enums._

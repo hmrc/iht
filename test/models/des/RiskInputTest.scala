@@ -16,10 +16,10 @@
 
 package models.des.realtimerisking
 
+import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonBuilder
-import models.RegistrationDetails
 
 class RiskInputTest  extends UnitSpec {
   "RiskInput" should {

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package models
+package models.registration
 
 import constants.Constants
-import org.joda.time.{LocalDateTime, DateTime, LocalTime, LocalDate}
+import models.{ContactDetails, UkAddress}
+import org.joda.time.LocalDate
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, Json, Reads}
 

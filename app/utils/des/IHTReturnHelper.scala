@@ -17,7 +17,10 @@
 package utils.des
 
 import constants.{AssetDetails, Constants}
-import models.application.assets.{HeldInTrust, AllAssets}
+import models.application.ApplicationDetails
+import models.application.assets.{Property, HeldInTrust, AllAssets}
+import models.application.debts.Mortgage
+import models.application.exemptions.PartnerExemption
 import models.des._
 import models._
 import org.joda.time.{LocalDateTime, LocalDate}
@@ -40,7 +43,7 @@ object IHTReturnHelper {
    * @return
    */
   def buildDeceased(ad:ApplicationDetails, dateOfDeath:LocalDate) = {
-    val partnerExemption:Option[models.PartnerExemption] = getPartnerExemption(ad)
+    val partnerExemption:Option[PartnerExemption] = getPartnerExemption(ad)
     val spouse:Option[Spouse] = for( a<-ad.increaseIhtThreshold ) yield {
       Spouse(
         // Person

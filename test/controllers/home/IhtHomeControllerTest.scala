@@ -18,7 +18,8 @@ package controllers.home
 
 import connectors.IHTConnector
 import metrics.Metrics
-import models.{RegistrationDetails, IhtApplication}
+import models.registration.RegistrationDetails
+import models.IhtApplication
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -114,7 +115,7 @@ class IhtHomeControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
   "Check the Custom Read function while Json.fromJson" in {
 
     val json = Json.parse(TestHelper.JsSampleCaseDetailsString)
-    val jsResultAfterRead: JsResult[RegistrationDetails] = Json.fromJson[RegistrationDetails](json)(models.RegistrationDetails
+    val jsResultAfterRead: JsResult[RegistrationDetails] = Json.fromJson[RegistrationDetails](json)(RegistrationDetails
       .registrationDetailsReads)
 
     val optionRD = jsResultAfterRead.fold[Option[RegistrationDetails]](_=>None, xx=>Some(xx))

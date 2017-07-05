@@ -16,8 +16,9 @@
 
 package utils
 
+import models.registration.RegistrationDetails
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import models.RegistrationDetails
 import models.enums._
 
 trait RegistrationHelper {
@@ -32,7 +33,7 @@ object RegistrationHelper extends RegistrationHelper {
   override def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails] = {
     import connectors.IHTConnector
     import play.api.http.Status._
-    import models.RegistrationDetails.registrationDetailsReads
+    import RegistrationDetails.registrationDetailsReads
     import play.api.Logger
     import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 

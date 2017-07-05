@@ -19,6 +19,7 @@ package utils
 import models._
 
 import models.application._
+import models.registration._
 import org.joda.time.{LocalDateTime, DateTime, LocalDate}
 import constants.Constants
 

@@ -25,6 +25,7 @@ import json.JsonValidator
 import metrics.Metrics
 import models.ProbateDetails.probateDetailsReads
 import models._
+import models.application.ApplicationDetails
 import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
