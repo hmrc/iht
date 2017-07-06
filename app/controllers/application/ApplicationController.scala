@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.application
 
 import config.wiring.MicroserviceAuditConnector
 import connectors.IHTConnector
@@ -22,14 +22,13 @@ import connectors.securestorage.SecureStorageController
 import constants.{AssetDetails, Constants}
 import json.JsonValidator
 import metrics.Metrics
-import models.application.ProbateDetails.probateDetailsReads
-import models._
+import models.application.ProbateDetails._
 import models.application.{ApplicationDetails, ClearanceRequest, ProbateDetails}
 import models.des.IHTReturn
 import models.des.realtimerisking.RiskInput
-import models.enums._
+import models.enums.Api
 import play.api.Logger
-import play.api.libs.json._
+import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.Action
 import services.AuditService
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -37,11 +36,14 @@ import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.ControllerHelper._
 import utils._
-
 import scala.concurrent.ExecutionContext.Implicits.global
+
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
+/**
+  * Created by vineet on 06/07/17.
+  */
 
 object ApplicationController extends ApplicationController {
   lazy val desConnector = IHTConnector
@@ -49,7 +51,6 @@ object ApplicationController extends ApplicationController {
   lazy val registrationHelper = RegistrationHelper
 
   def metrics: Metrics = Metrics
-
   def auditService = AuditService
 }
 

@@ -1,20 +1,20 @@
 # microservice specific routes
 
-POST       /:nino/registration/submit                                                   controllers.RegistrationController.submit(nino:String)
+POST       /:nino/registration/submit                                                   controllers.registration.RegistrationController.submit(nino:String)
 
 GET        /:nino/home/listCases                                                        controllers.home.IhtHomeController.listCases(nino: String)
 GET        /:nino/home/caseDetails/:ihtReference                                        controllers.home.IhtHomeController.caseDetails(nino:String,ihtReference:String)
 
-GET        /:nino/application/get/:ihtRef/:acknowledgementReference                     controllers.ApplicationController.get(nino: String, ihtRef:String, acknowledgementReference:String)
-POST       /:nino/application/save/:acknowledgementReference                            controllers.ApplicationController.save(nino: String, acknowledgementReference:String)
-GET        /:nino/application/delete/:ihtRef                                            controllers.ApplicationController.deleteRecord(nino: String, ihtRef:String)
+GET        /:nino/application/get/:ihtRef/:acknowledgementReference                     controllers.application.ApplicationController.get(nino: String, ihtRef:String, acknowledgementReference:String)
+POST       /:nino/application/save/:acknowledgementReference                            controllers.application.ApplicationController.save(nino: String, acknowledgementReference:String)
+GET        /:nino/application/delete/:ihtRef                                            controllers.application.ApplicationController.deleteRecord(nino: String, ihtRef:String)
 
 
-POST        /:nino/:ihtAppReference/application/submit                                  controllers.ApplicationController.submit(ihtAppReference: String, nino: String)
+POST        /:nino/:ihtAppReference/application/submit                                  controllers.application.ApplicationController.submit(ihtAppReference: String, nino: String)
 
-GET         /:nino/application/getRealtimeRiskingMessage/:ihtAppReference               controllers.ApplicationController.getRealtimeRiskingMessage(ihtAppReference, nino)
+GET         /:nino/application/getRealtimeRiskingMessage/:ihtAppReference               controllers.application.ApplicationController.getRealtimeRiskingMessage(ihtAppReference, nino)
 
-GET        /:nino/:ihtReference/application/requestClearance                            controllers.ApplicationController.requestClearance(nino:String, ihtReference:String)
-GET        /:nino/application/probateDetails/:ihtReference/:ihtReturnId                 controllers.ApplicationController.getProbateDetails(nino:String, ihtReference:String, ihtReturnId:String)
+GET        /:nino/:ihtReference/application/requestClearance                            controllers.application.ApplicationController.requestClearance(nino:String, ihtReference:String)
+GET        /:nino/application/probateDetails/:ihtReference/:ihtReturnId                 controllers.application.ApplicationController.getProbateDetails(nino:String, ihtReference:String, ihtReturnId:String)
 
-GET        /:nino/:ihtReference/:returnId/application/getSubmittedApplicationDetails    controllers.ApplicationController.getSubmittedApplicationDetails(nino:String, ihtReference:String, returnId:String)
+GET        /:nino/:ihtReference/:returnId/application/getSubmittedApplicationDetails    controllers.application.ApplicationController.getSubmittedApplicationDetails(nino:String, ihtReference:String, returnId:String)

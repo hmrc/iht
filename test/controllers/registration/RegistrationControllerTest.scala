@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.registration
 
 import connectors.IHTConnector
 import metrics.Metrics
+import models.enums._
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import play.api.libs.json.{JsValue, Json}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.libs.json.Json
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http.{ConflictException, HttpResponse}
+import play.api.test.{FakeHeaders, FakeRequest}
+import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
-import utils.{AcknowledgeRefGenerator, NinoBuilder, FakeIhtApp}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-import json.JsonValidator
 import utils.CommonBuilder._
-import models.enums._
+import utils.{AcknowledgeRefGenerator, FakeIhtApp, NinoBuilder}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 

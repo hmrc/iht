@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.application
 
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.core.report.ProcessingReport
@@ -24,10 +24,10 @@ import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
 import models.application.ProbateDetails.probateDetailsReads
-import models.application.{ProbateDetails, ApplicationDetails}
 import models.application.basicElements.BasicEstateElement
-import models.application.exemptions.{QualifyingBody, Charity}
+import models.application.exemptions.{Charity, QualifyingBody}
 import models.application.gifts.PreviousYearsGifts
+import models.application.{ApplicationDetails, ProbateDetails}
 import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
