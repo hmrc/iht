@@ -20,9 +20,9 @@ import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.{CommonBuilder, FakeIhtApp}
 
-class ApplicationModelsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
+class ApplicationDetailsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
-  "ApplicationModels" when {
+  "ApplicationDetails" when {
 
     "totalGiftsValue is called" must {
 
@@ -62,6 +62,39 @@ class ApplicationModelsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
     }
 
-  }
+    "totalPropertyValue is called" must {
 
+      "return the correct value of property" in {
+        val ad = CommonBuilder.buildApplicationDetailsAllFields
+        ad.totalPropertyValue shouldBe BigDecimal(600)
+      }
+    }
+
+    "totalAssetsValue is called" must {
+
+      "return the correct value of total assets" in {
+        val ad = CommonBuilder.buildApplicationDetailsAllFields
+        ad.totalAssetsValue shouldBe BigDecimal(771)
+      }
+    }
+
+
+    "totalExemptionsValue is called" must {
+
+      "return the correct value of total exemptions" in {
+        val ad = CommonBuilder.buildApplicationDetailsAllFields
+        ad.totalExemptionsValue shouldBe BigDecimal(141)
+      }
+    }
+
+
+    "totalLiabilitiesValue is called" must {
+
+      "return the correct value of total liabilities" in {
+        val ad = CommonBuilder.buildApplicationDetailsAllFields
+        ad.totalLiabilitiesValue shouldBe BigDecimal(340)
+      }
+    }
+
+  }
 }

@@ -18,25 +18,22 @@ package controllers.home
 
 import connectors.IHTConnector
 import metrics.Metrics
+import models.enums._
 import models.registration.RegistrationDetails
-import models.application.IhtApplication
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import play.api.libs.json.{JsUndefined, JsError, JsSuccess, Json}
-import play.api.test.{FakeHeaders, FakeRequest}
+import play.api.libs.json.{JsResult, Json}
 import play.api.test.Helpers._
-import uk.gov.hmrc.play.http.HeaderCarrier
-import uk.gov.hmrc.play.http._
+import play.api.test.{FakeHeaders, FakeRequest}
+import uk.gov.hmrc.play.http.{HeaderCarrier, _}
 import uk.gov.hmrc.play.test.UnitSpec
-import utils.{TestHelper, FakeIhtApp}
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.Duration
-import scala.concurrent.{duration, Await, Future}
-import models.enums._
-import scala.concurrent.Future
 import utils.CommonHelper._
-import  play.api.libs.json.JsResult
+import utils.{FakeIhtApp, TestHelper}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 
 class IhtHomeControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
