@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controllers.registration
 
 import connectors.IHTConnector
 import constants.Constants

@@ -16,7 +16,7 @@
 
 package models.des
 
-import models.PartnerExemption
+import models.application.exemptions.PartnerExemption
 import org.joda.time.LocalDate
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.{CommonBuilder, CommonHelper}

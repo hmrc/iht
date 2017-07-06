@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package models.application
+package models.application.debts
 
-import org.joda.time.LocalDate
 import play.api.libs.json.Json
 
 /**
- * Created by yusuf on 15/04/15.
- */
-case class WidowCheck(widowed: Option[Boolean], dateOfPreDeceased: Option[LocalDate]) {
+  * Created by vineet on 05/07/17.
+  */
+case class Mortgage(id: String,
+                    value: Option[BigDecimal],
+                    isOwned: Option[Boolean] = None)
 
-}
-
-object WidowCheck {
-  implicit val formats = Json.format[WidowCheck]
+object Mortgage {
+  implicit val formats = Json.format[Mortgage]
 }

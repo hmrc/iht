@@ -15,6 +15,8 @@
  */
 
 package models.des.realtimerisking
+
+import models.registration.RegistrationDetails
 import play.api.libs.json.Json
 import org.joda.time.LocalDate
 import constants.{AssetDetails, Constants}

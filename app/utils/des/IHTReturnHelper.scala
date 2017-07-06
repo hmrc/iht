@@ -17,6 +17,10 @@
 package utils.des
 
 import constants.{AssetDetails, Constants}
+import models.application.ApplicationDetails
+import models.application.assets.{Property, HeldInTrust, AllAssets}
+import models.application.debts.Mortgage
+import models.application.exemptions.PartnerExemption
 import models.des._
 import models._
 import org.joda.time.{LocalDateTime, LocalDate}
@@ -33,12 +37,13 @@ object IHTReturnHelper {
 
   /**
    * Create Deceased details
-   * @param ad
+    *
+    * @param ad
    * @param dateOfDeath
    * @return
    */
   def buildDeceased(ad:ApplicationDetails, dateOfDeath:LocalDate) = {
-    val partnerExemption:Option[models.PartnerExemption] = getPartnerExemption(ad)
+    val partnerExemption:Option[PartnerExemption] = getPartnerExemption(ad)
     val spouse:Option[Spouse] = for( a<-ad.increaseIhtThreshold ) yield {
       Spouse(
         // Person
@@ -78,6 +83,7 @@ object IHTReturnHelper {
 
   /**
     * Create the Surviving Spouse to be send to Des
+    *
     * @param pe
     * @param dateOfDeath
     */
@@ -101,7 +107,8 @@ object IHTReturnHelper {
 
   /**
    * Create free state
-   * @param ad - ApplicationDetails
+    *
+    * @param ad - ApplicationDetails
    * @return
    */
   def buildFreeEstate(ad:ApplicationDetails):Option[FreeEstate] = {
@@ -120,7 +127,8 @@ object IHTReturnHelper {
 
   /**
    * Creates the assets for the application
-   * @param ad
+    *
+    * @param ad
    * @return
    */
   private def buildAssets(ad:ApplicationDetails) = {
@@ -186,7 +194,8 @@ object IHTReturnHelper {
   /**
    *
    * Creates individual asset
-   * @param appDetails
+    *
+    * @param appDetails
    * @param assets
    * @return
    */
@@ -293,7 +302,8 @@ object IHTReturnHelper {
 
   /**
    * Create joint assets for the supplied ApplicationDetails and Asset's listBuffer
-   * @param appDetails
+    *
+    * @param appDetails
    * @param assets
    * @return
    */
@@ -341,7 +351,8 @@ object IHTReturnHelper {
 
   /**
    * Creates AddressOrOtherLandLocation from Property
-   * @param prop
+    *
+    * @param prop
    * @return
    */
   private def buildAddressOrOtherLandLocation(prop:Property):Option[AddressOrOtherLandLocation]={
@@ -357,7 +368,8 @@ object IHTReturnHelper {
 
   /**
    * Create Liabilities model
-   * @param ad
+    *
+    * @param ad
    * @return
    */
   private def buildLiabilities(ad:ApplicationDetails):Seq[Liability] = {
@@ -403,7 +415,8 @@ object IHTReturnHelper {
 
   /**
    * Create exemption model
-   * @param ad
+    *
+    * @param ad
    * @return
    */
   private def buildExemptions(ad:ApplicationDetails):Seq[Exemption] = {
@@ -441,7 +454,8 @@ object IHTReturnHelper {
 
   /**
    * Returns None if Partner's home is not in UK
-   * @param ad - ApplicationDetails
+    *
+    * @param ad - ApplicationDetails
    * @return - Option[PartnerExemption]
    */
   private def getPartnerExemption(ad: ApplicationDetails): Option[PartnerExemption] = {
@@ -456,7 +470,8 @@ object IHTReturnHelper {
 
   /**
    * Create Gifts
-   * @param ad
+    *
+    * @param ad
    * @param dateOfDeath
    * @return
    */
@@ -498,7 +513,8 @@ object IHTReturnHelper {
 
   /**
    * Create the trust fir given applicationdetails
-   * @param ad - ApplicationDetails
+    *
+    * @param ad - ApplicationDetails
    * @return
    */
   def buildTrusts(ad:ApplicationDetails):Option[Set[Trust]] = {
@@ -518,7 +534,8 @@ object IHTReturnHelper {
 
   /**
    * Create the Declaration model
-   * @param ad
+    *
+    * @param ad
    * @param declarationDate
    * @return
    */

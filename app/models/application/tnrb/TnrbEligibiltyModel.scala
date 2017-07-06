@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models.application
+package models.application.tnrb
 
 import org.joda.time.LocalDate
 import play.api.libs.json.Json

@@ -20,8 +20,9 @@ import com.github.fge.jsonschema.core.report.ProcessingReport
 import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
-import models.{RegistrationDetails, IhtApplication}
 import connectors.IHTConnector
+import models.application.IhtApplication
+import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
 import play.api.mvc.Action
 import uk.gov.hmrc.play.http.Upstream4xxResponse
@@ -31,7 +32,7 @@ import utils.ControllerHelper._
 import utils._
 import play.api.{Logger, Play}
 import scala.concurrent.ExecutionContext.Implicits.global
-import models.RegistrationDetails.registrationDetailsReads
+import RegistrationDetails.registrationDetailsReads
 import models.enums._
 
 import scala.concurrent.Future

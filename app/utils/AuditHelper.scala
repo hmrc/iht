@@ -17,7 +17,7 @@
 package utils
 
 import constants.Constants
-import models.ApplicationDetails
+import models.application.ApplicationDetails
 
 object AuditHelper {
 

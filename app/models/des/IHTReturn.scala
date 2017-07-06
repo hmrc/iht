@@ -16,7 +16,7 @@
 
 package models.des
 
-import models.ApplicationDetails
+import models.application.ApplicationDetails
 import play.api.libs.json.Json
 import org.joda.time.LocalDate
 import constants.Constants
