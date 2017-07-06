@@ -50,9 +50,6 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
 
   def totalPropertyValue:BigDecimal = propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
 
-  def totalPropertyValueForPropertyType(propertyType:String):BigDecimal =
-    propertyList.filter(x => x.propertyType == propertyType).map(_.value.getOrElse(BigDecimal(0))).sum
-
   def totalAssetsValue:BigDecimal =
     allAssets.map(_.totalValueWithoutProperties).getOrElse(BigDecimal(0)) + propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
 
