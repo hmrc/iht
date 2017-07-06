@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package models.application
 
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
@@ -35,31 +35,6 @@ class ApplicationDetailsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
         val ad = CommonBuilder.buildApplicationDetailsEmpty
         ad.totalGiftsValue shouldBe Some(BigDecimal(0))
       }
-
-    }
-
-    "estateValue is called" must {
-
-      "return the correct value when there are exemptions" in {
-        val exemptions = CommonBuilder.buildAllExemptionsTotal3000
-        val debts = CommonBuilder.buildAllLiabilities
-        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
-          allExemptions = Some(exemptions), allLiabilities = Some(debts))
-        ad.estateValue shouldBe BigDecimal(121960 - 340)
-      }
-
-      "return the correct value when there are no exemptions and no debts in" in {
-        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate
-        ad.estateValue shouldBe BigDecimal(121960 + 3000)
-      }
-
-      "return the correct value when there are debts but no exemptions " in {
-        val debts = CommonBuilder.buildAllLiabilities
-        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
-          allLiabilities = Some(debts))
-        ad.estateValue shouldBe BigDecimal(121960 + 3000)
-      }
-
     }
 
     "totalPropertyValue is called" must {
@@ -93,6 +68,30 @@ class ApplicationDetailsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
       "return the correct value of total liabilities" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
         ad.totalLiabilitiesValue shouldBe BigDecimal(340)
+      }
+    }
+
+
+    "estateValue is called" must {
+
+      "return the correct value when there are exemptions" in {
+        val exemptions = CommonBuilder.buildAllExemptionsTotal3000
+        val debts = CommonBuilder.buildAllLiabilities
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
+          allExemptions = Some(exemptions), allLiabilities = Some(debts))
+        ad.estateValue shouldBe BigDecimal(121960 - 340)
+      }
+
+      "return the correct value when there are no exemptions and no debts in" in {
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
+      }
+
+      "return the correct value when there are debts but no exemptions " in {
+        val debts = CommonBuilder.buildAllLiabilities
+        val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
+          allLiabilities = Some(debts))
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
       }
     }
 
