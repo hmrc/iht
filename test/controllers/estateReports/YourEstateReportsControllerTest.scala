@@ -17,7 +17,7 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
-import controllers.estateReports.YourEstateReportsController$
+import controllers.estateReports.YourEstateReportsController
 import metrics.Metrics
 import models.enums._
 import models.registration.RegistrationDetails
