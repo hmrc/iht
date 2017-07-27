@@ -17,5 +17,4 @@ GET         /:nino/application/getRealtimeRiskingMessage/:ihtAppReference       
 GET        /:nino/:ihtReference/application/requestClearance                            controllers.application.ApplicationController.requestClearance(nino:String, ihtReference:String)
 GET        /:nino/application/probateDetails/:ihtReference/:ihtReturnId                 controllers.application.ApplicationController.getProbateDetails(nino:String, ihtReference:String, ihtReturnId:String)
 
-GET        /:nino/:ihtReference/:returnId/application/getSubmittedApplicationDetails    controllers.applicati
-on.ApplicationController.getSubmittedApplicationDetails(nino:String, ihtReference:String, returnId:String)
+GET        /:nino/:ihtReference/:returnId/application/getSubmittedApplicationDetails    controllers.application.ApplicationController.getSubmittedApplicationDetails(nino:String, ihtReference:String, returnId:String)
