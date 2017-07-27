@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers.home
+package controllers.estateReports
 
 import com.github.fge.jsonschema.core.report.ProcessingReport
 import constants.Constants
@@ -41,12 +41,12 @@ import scala.concurrent.Future
 /**
  * Created by jon on 19/06/15.
  */
-object IhtHomeController extends IhtHomeController {
+object YourEstateReportsController extends YourEstateReportsController {
   val ihtConnector = IhtConnector
   def metrics: Metrics = Metrics
 }
 
-trait IhtHomeController extends BaseController {
+trait YourEstateReportsController extends BaseController {
   val ihtConnector: IhtConnector
   def metrics: Metrics
 

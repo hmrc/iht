@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package controllers.home
+package controllers.estateReports
 
 import connectors.IhtConnector
+import controllers.estateReports.YourEstateReportsController$
 import metrics.Metrics
 import models.enums._
 import models.registration.RegistrationDetails
@@ -35,7 +36,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
 
-class IhtHomeControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
+class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
   val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR,None,Map(),None)
@@ -52,7 +53,7 @@ class IhtHomeControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
   implicit val request = FakeRequest()
   implicit val hc = new HeaderCarrier
 
-  def ihtHomeController = new IhtHomeController {
+  def ihtHomeController = new YourEstateReportsController {
     override val ihtConnector = mockDesConnector
     override def metrics: Metrics = Metrics
   }
