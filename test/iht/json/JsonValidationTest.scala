@@ -19,13 +19,13 @@ package json
 import com.github.fge.jackson.JsonLoader
 import uk.gov.hmrc.play.test.UnitSpec
 import play.api.libs.json.Json
-import utils.{AcknowledgeRefGenerator, NinoBuilder, CommonBuilder, TestHelper}
+import utils.{AcknowledgementRefGenerator, NinoBuilder, CommonBuilder, TestHelper}
 
 class JsonValidationTest  extends UnitSpec {
   "Validation" should {
     "be successful" in {
         val pr = JsonValidator.validate(Json.parse(
-          AcknowledgeRefGenerator.replacePlaceholderAckRefWithDefault(
+          AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
             NinoBuilder.replacePlaceholderNinoWithDefault(JsonLoader
           .fromResource("/json/validation/JsonTestValid.json").toString))),
           TestHelper.schemaPathRegistrationSubmission)

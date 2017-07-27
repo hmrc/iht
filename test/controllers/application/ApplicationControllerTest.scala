@@ -55,7 +55,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   val successHttpResponseForProbateDetails=HttpResponse(OK,Some(Json.parse(TestHelper.JsSampleProbateDetails)),Map())
   val noProbateDetailsHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)
 
-  val mockDesConnector: IhtConnector$ = mock[IhtConnector$]
+  val mockDesConnector: IhtConnector = mock[IhtConnector]
   val mockJsonValidator: JsonValidator = mock[JsonValidator]
   val mockRegistrationHelper: RegistrationHelper = mock[RegistrationHelper]
   val mockSecureStorage : SecureStorage = mock[SecureStorage]
@@ -112,13 +112,13 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
     )
   }
 
-  val acknowledgementReference = AcknowledgeRefGenerator.getUUID
+  val acknowledgementReference = AcknowledgementRefGenerator.getUUID
 
   val rd = CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails
   when(mockRegistrationHelper.getRegistrationDetails(any(),any()))
     .thenReturn(Some(rd))
 
-  val successHttpResponseForIhtReturn=HttpResponse(OK,Some(Json.parse(AcknowledgeRefGenerator.replacePlaceholderAckRefWithDefault(
+  val successHttpResponseForIhtReturn=HttpResponse(OK,Some(Json.parse(AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
   """
     {
     "acknowledgmentReference" : "<ACKREF>",

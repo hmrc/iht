@@ -16,7 +16,7 @@
 
 package controllers.registration
 
-import connectors.IhtConnector$
+import connectors.IhtConnector
 import metrics.Metrics
 import models.enums._
 import org.mockito.Matchers._
@@ -28,14 +28,14 @@ import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonBuilder._
-import utils.{AcknowledgeRefGenerator, FakeIhtApp, NinoBuilder}
+import utils.{AcknowledgementRefGenerator, FakeIhtApp, NinoBuilder}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
-  val mockDesConnector: IhtConnector$ = mock[IhtConnector$]
+  val mockDesConnector: IhtConnector = mock[IhtConnector]
 
   def testRegistrationController = new RegistrationController {
     override val desConnector = mockDesConnector
@@ -51,7 +51,7 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
     val correctIhtReferenceNoJs = Json.parse( """{"referenceNumber":"AAA111222"}""" )
     val invalidIhtReferenceNoJs = Json.parse( """{"bla":"bla"}""" )
     val ihtRegistrationDetails = Json.parse(
-      AcknowledgeRefGenerator.replacePlaceholderAckRefWithDefault(
+      AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
         NinoBuilder.replacePlaceholderNinoWithDefault(
           JsonLoader.fromResource("/json/validation/JsonTestValid.json").toString)))
 
