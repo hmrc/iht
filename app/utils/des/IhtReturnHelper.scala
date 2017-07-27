@@ -33,7 +33,7 @@ import scala.collection.mutable.ListBuffer
  * Created by Vineet Tyagi on 24/11/15.
  *
  */
-object IHTReturnHelper {
+object IhtReturnHelper {
 
   /**
    * Create Deceased details

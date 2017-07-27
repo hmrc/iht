@@ -16,16 +16,9 @@
 
 package utils
 
-import connectors.IHTConnector
-import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.play.test.UnitSpec
-import org.scalatest.Matchers._
+import java.util.UUID._
 
-
-class AcknowledgeRefGeneratorTest extends UnitSpec with FakeIhtApp with MockitoSugar  {
-  "AcknowledgeRefGenerator" must {
-    "Generate a valid length UUID" in {
-      AcknowledgeRefGenerator.getUUID should have length (32)
-    }
-  }
+object AcknowledgementRefGenerator {
+  def getUUID:String = randomUUID.toString().replaceAll("[^a-zA-Z0-9]", "")
+  def replacePlaceholderAckRefWithDefault(source:String, ackRef: String = getUUID) = source.replaceAll("<ACKREF>", ackRef)
 }

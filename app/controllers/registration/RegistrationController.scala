@@ -16,7 +16,7 @@
 
 package controllers.registration
 
-import connectors.IHTConnector
+import connectors.IhtConnector
 import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
@@ -36,13 +36,13 @@ import models.enums._
  * Created by yasar on 2/5/15.
  */
 object RegistrationController extends RegistrationController {
-  val desConnector = IHTConnector
+  val desConnector = IhtConnector
   override def metrics: Metrics = Metrics
 }
 
 
 trait RegistrationController extends BaseController {
-  val desConnector: IHTConnector
+  val desConnector: IhtConnector
   def metrics: Metrics = Metrics
 
   def submit(nino:String) = Action.async(parse.json) {

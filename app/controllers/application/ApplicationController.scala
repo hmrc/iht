@@ -17,7 +17,7 @@
 package controllers.application
 
 import config.wiring.MicroserviceAuditConnector
-import connectors.IHTConnector
+import connectors.IhtConnector
 import connectors.securestorage.SecureStorageController
 import constants.{AssetDetails, Constants}
 import json.JsonValidator
@@ -46,7 +46,7 @@ import scala.util.{Failure, Success, Try}
   */
 
 object ApplicationController extends ApplicationController {
-  lazy val desConnector = IHTConnector
+  lazy val desConnector = IhtConnector
   lazy val jsonValidator = JsonValidator
   lazy val registrationHelper = RegistrationHelper
 
@@ -58,7 +58,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
 
   import com.github.fge.jsonschema.core.report.ProcessingReport
 
-  def desConnector: IHTConnector
+  def desConnector: IhtConnector
 
   def jsonValidator: JsonValidator
 
@@ -327,7 +327,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
   def requestClearance(nino: String, ihtReference: String) = Action.async {
     implicit request =>
       ControllerHelper.exceptionCheckForResponses({
-        val desJson = Json.toJson(ClearanceRequest(AcknowledgeRefGenerator.getUUID))
+        val desJson = Json.toJson(ClearanceRequest(AcknowledgementRefGenerator.getUUID))
         val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
         Logger.info("Clearance Request Json for DES has been validated successfully")
 

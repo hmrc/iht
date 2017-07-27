@@ -71,7 +71,6 @@ object Constants {
     PropertyTypeNonResidential -> "0018")
 
   // Howheld values
-
   val howHeldStandard = "Standard"
   val howHeldNominated = "Nominated"
   val howHeldForeign = "Foreign"
@@ -85,7 +84,6 @@ object Constants {
   val ReasonForBeingBelowLimitExceptedEstate = "Excepted Estate"
   val ReasonForBeingBelowLimitTNRB = "Transferred Nil Rate Band"
   val ReasonForBeingBelowLimitSpouseCivilPartnerOrCharityExemption  = "Spouse, Civil Partner or Charity Exemption"
-
 
   val NilRateBand = BigDecimal(325000)
   val GrossEstateLimit = BigDecimal(1000000)
@@ -111,7 +109,6 @@ object Constants {
   val AppStatusKickOut="Kick Out"
 
   // Audit keys
-
   val RegSubmissionRequestKey="RegistrationSubmissionRequest"
   val RegSubmissionFailureResponseKey= "RegistrationSubmissionFailureResponse"
   val AppSubmissionRequestKey= "ApplicationSubmissionRequest"
@@ -175,7 +172,6 @@ object Constants {
   val AuditTypeExemptionQualfifyingBodies = "exemptionQualifyingBodies"
 
   val AuditTypeGifts = "gifts"
-
   val AuditTypeFinalEstateValue = "finalEstateValue"
 }
 
