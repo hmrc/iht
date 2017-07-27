@@ -16,7 +16,7 @@
 
 package utils
 
-import connectors.IHTConnector
+import connectors.IhtConnector$
 import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
 import org.scalatest.Matchers._

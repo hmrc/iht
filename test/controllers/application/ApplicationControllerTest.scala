@@ -55,7 +55,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   val successHttpResponseForProbateDetails=HttpResponse(OK,Some(Json.parse(TestHelper.JsSampleProbateDetails)),Map())
   val noProbateDetailsHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)
 
-  val mockDesConnector: IHTConnector = mock[IHTConnector]
+  val mockDesConnector: IhtConnector$ = mock[IhtConnector$]
   val mockJsonValidator: JsonValidator = mock[JsonValidator]
   val mockRegistrationHelper: RegistrationHelper = mock[RegistrationHelper]
   val mockSecureStorage : SecureStorage = mock[SecureStorage]

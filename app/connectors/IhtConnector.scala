@@ -33,8 +33,7 @@ import utils.CommonHelper._
 import scala.util.Failure
 import scala.util.Success
 
-trait IHTConnector {
-
+trait IhtConnector {
 
   val serviceURL: String
   val urlHeaderEnvironment: String
@@ -76,8 +75,6 @@ trait IHTConnector {
       }
     }
   }
-
-
 
   def submitApplication(nino:String, ihtRef: String, applicationJs: JsValue): Future[HttpResponse] = {
     implicit val hc = createHeaderCarrier
@@ -195,6 +192,7 @@ trait IHTConnector {
 
   /**
    * Audit the submission failure event
+ *
    * @param requestJs
    * @param responseToAudit
    */
@@ -212,7 +210,7 @@ trait IHTConnector {
 
 }
 
-object IHTConnector extends IHTConnector with ServicesConfig {
+object IhtConnector extends IhtConnector with ServicesConfig {
   override val serviceURL = baseUrl("iht")
   override val urlHeaderEnvironment = getOrException(config("iht").getString("des.environment"))
   override val urlHeaderAuthorization = s"Bearer ${getOrException(config("iht").getString("des.authorization-key"))}"

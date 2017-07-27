@@ -16,7 +16,7 @@
 
 package controllers.home
 
-import connectors.IHTConnector
+import connectors.IhtConnector$
 import metrics.Metrics
 import models.enums._
 import models.registration.RegistrationDetails
@@ -37,7 +37,7 @@ import scala.concurrent.duration.Duration
 
 class IhtHomeControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
-  val mockDesConnector: IHTConnector = mock[IHTConnector]
+  val mockDesConnector: IhtConnector$ = mock[IhtConnector$]
   val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR,None,Map(),None)
   val badRequestHttpResponse = HttpResponse(BAD_REQUEST,None,Map(),None)
   val noListHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)

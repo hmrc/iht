@@ -16,7 +16,7 @@
 
 package controllers.registration
 
-import connectors.IHTConnector
+import connectors.IhtConnector$
 import metrics.Metrics
 import models.enums._
 import org.mockito.Matchers._
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 
 class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
-  val mockDesConnector: IHTConnector = mock[IHTConnector]
+  val mockDesConnector: IhtConnector$ = mock[IhtConnector$]
 
   def testRegistrationController = new RegistrationController {
     override val desConnector = mockDesConnector

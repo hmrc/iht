@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import org.joda.time.LocalDate
 import constants.Constants
 import org.joda.time.LocalDateTime
-import utils.des.IHTReturnHelper
+import utils.des.IhtReturnHelper
 
 case class Address(addressLine1: Option[String]=None, addressLine2: Option[String]=None,
                    addressLine3: Option[String], addressLine4: Option[String],
@@ -348,10 +348,10 @@ object IHTReturn {
 
     IHTReturn(Some(acknowledgmentReference),
       submitter=Some(Submitter(submitterRole=Some(Constants.IHTReturnSubmitterRole))),
-      deceased=Some(IHTReturnHelper.buildDeceased(ad, dateOfDeath)),
-      freeEstate=IHTReturnHelper.buildFreeEstate(ad),
-      gifts=IHTReturnHelper.buildGifts(ad, dateOfDeath),
-      trusts=IHTReturnHelper.buildTrusts(ad),
-      declaration=Some(IHTReturnHelper.buildDeclaration(ad, declarationDate)))
+      deceased=Some(IhtReturnHelper.buildDeceased(ad, dateOfDeath)),
+      freeEstate=IhtReturnHelper.buildFreeEstate(ad),
+      gifts=IhtReturnHelper.buildGifts(ad, dateOfDeath),
+      trusts=IhtReturnHelper.buildTrusts(ad),
+      declaration=Some(IhtReturnHelper.buildDeclaration(ad, declarationDate)))
   }
 }

@@ -20,7 +20,7 @@ import com.github.fge.jsonschema.core.report.ProcessingReport
 import constants.Constants
 import json.JsonValidator
 import metrics.Metrics
-import connectors.IHTConnector
+import connectors.IhtConnector
 import models.application.IhtApplication
 import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
@@ -42,12 +42,12 @@ import scala.concurrent.Future
  * Created by jon on 19/06/15.
  */
 object IhtHomeController extends IhtHomeController {
-  val ihtConnector = IHTConnector
+  val ihtConnector = IhtConnector
   def metrics: Metrics = Metrics
 }
 
 trait IhtHomeController extends BaseController {
-  val ihtConnector: IHTConnector
+  val ihtConnector: IhtConnector
   def metrics: Metrics
 
   def listCases(nino: String) = Action.async {

@@ -31,7 +31,7 @@ object RegistrationHelper extends RegistrationHelper {
   * Fetch the registration Details from DES for the given nino and Iht Reference
   */
   override def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails] = {
-    import connectors.IHTConnector
+    import connectors.IhtConnector$
     import play.api.http.Status._
     import RegistrationDetails.registrationDetailsReads
     import play.api.Logger
@@ -40,7 +40,7 @@ object RegistrationHelper extends RegistrationHelper {
     import scala.concurrent.Await
     import scala.concurrent.duration._
 
-    lazy val ihtConnector = IHTConnector
+    lazy val ihtConnector = IhtConnector$
     val rd = ControllerHelper.exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
         httpResponse => httpResponse.status match {
