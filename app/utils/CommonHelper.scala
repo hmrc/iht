@@ -27,10 +27,8 @@ object CommonHelper {
   def generateAcknowledgeReference:String=
     randomUUID.toString().replaceAll("-", "").toUpperCase
 
-  def dateTimeToDesString(dt: LocalDateTime) = {
-    val s = dt.toString().substring(0,19)
-    s
-  }
+  // scalastyle:off magic.number
+  def dateTimeToDesString(dt: LocalDateTime) = dt.toString().substring(0,19)
 
   def dateToDesString( ld: LocalDate ) = {
     ld.toString(Constants.IHTReturnDateFormat)
