@@ -33,6 +33,7 @@ import play.api.mvc.Results._
  * Created by Vineet Tyagi on 16/09/15.
  *
  */
+//scalastyle:off magic.number
 object ControllerHelper {
     def metrics: Metrics = Metrics
 
