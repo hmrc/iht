@@ -30,16 +30,10 @@ private object AppDependencies {
   val compile = Seq(
     "uk.gov.hmrc" %% "play-reactivemongo" % "5.2.0",
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % "5.14.0",
-    "uk.gov.hmrc" %% "play-authorisation" % "4.3.0",
-    "uk.gov.hmrc" %% "play-config" % "4.3.0",
+    "uk.gov.hmrc" %% "microservice-bootstrap" % "6.10.0",
     "uk.gov.hmrc" %% "play-scheduling" % "4.1.0",
-    "uk.gov.hmrc" %% "play-health" % "2.1.0",
-    "uk.gov.hmrc" %% "logback-json-logger" % "3.1.0",
-//    "uk.gov.hmrc" %% "http-verbs" % "6.3.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "6.2.0",
-    "uk.gov.hmrc" %% "domain" % "4.1.0",
-    "uk.gov.hmrc" %% "play-graphite" % "3.2.0",
+    "uk.gov.hmrc" %% "http-caching-client" % "7.0.0",
+    "uk.gov.hmrc" %% "domain" % "5.0.0",
     "com.github.fge" % "json-schema-validator" % "2.2.6"
   )
 

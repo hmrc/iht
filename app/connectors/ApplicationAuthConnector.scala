@@ -16,9 +16,10 @@
 
 package connectors
 
+import config.wiring.WSHttp
 import uk.gov.hmrc.play.auth.microservice.connectors.AuthConnector
 import uk.gov.hmrc.play.config.ServicesConfig
 
-object ApplicationAuthConnector extends AuthConnector with ServicesConfig {
+object ApplicationAuthConnector extends AuthConnector with ServicesConfig with WSHttp{
   override val authBaseUrl = baseUrl("auth")
 }

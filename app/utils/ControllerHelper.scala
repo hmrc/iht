@@ -27,6 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import models.enums._
 import play.api.mvc.Results._
+import uk.gov.hmrc.http.{ BadRequestException, GatewayTimeoutException, NotFoundException, Upstream4xxResponse, Upstream5xxResponse }
 
 /**
  *
