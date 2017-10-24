@@ -31,7 +31,3 @@ trait Hooks extends HttpHooks with HttpAuditing {
 trait WSHttp extends HttpGet with WSGet with HttpPut with WSPut with HttpPost with WSPost with HttpDelete with WSDelete with Hooks with AppName
 object WSHttp extends WSHttp
 
-//object WSHttp extends WSGet with WSPut with WSPost with WSDelete with WSPatch with AppName with RunMode with HttpAuditing {
-//  override def auditConnector: AuditConnector = MicroserviceAuditConnector
-//  override val hooks = Seq()
-//}
