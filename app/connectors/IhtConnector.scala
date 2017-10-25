@@ -20,10 +20,8 @@ import config.wiring.WSHttp
 import metrics.Metrics
 import play.api.libs.json.{Json, Writes, JsValue}
 import services.AuditService
-import uk.gov.hmrc.play.http.HeaderCarrier
 import uk.gov.hmrc.play.config.{ServicesConfig}
 import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.http.logging.Authorization
 import play.api.Logger
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,6 +30,8 @@ import constants.Constants._
 import utils.CommonHelper._
 import scala.util.Failure
 import scala.util.Success
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpGet, HttpPost, HttpResponse }
+import uk.gov.hmrc.http.logging.Authorization
 
 trait IhtConnector {
 

@@ -17,11 +17,11 @@
 package services
 
 import config.wiring.MicroserviceAuditConnector
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.audit.http.{HeaderFieldsExtractor, HttpAuditing}
-import uk.gov.hmrc.play.audit.model.{DataCall, DataEvent, MergedDataEvent}
-import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.model.DataEvent
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.{ExecutionContext, Future}
 

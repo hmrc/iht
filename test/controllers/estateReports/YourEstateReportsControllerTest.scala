@@ -27,7 +27,7 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import uk.gov.hmrc.play.http.{HeaderCarrier, _}
+import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonHelper._
 import utils.{FakeIhtApp, TestHelper}
@@ -35,6 +35,7 @@ import utils.{FakeIhtApp, TestHelper}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
