@@ -153,4 +153,5 @@ trait SecureStorage {
 
   //scalastyle:off method.name
   def -(id : String) : Future[Any]
+  //scalastyle:on
 }

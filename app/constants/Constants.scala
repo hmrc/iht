@@ -174,7 +174,7 @@ object Constants {
 
   val AuditTypeGifts = "gifts"
   val AuditTypeFinalEstateValue = "finalEstateValue"
-}
+} // scalastyle: on
 
 object AssetDetails {
   val AssetCodeMoney = "9001"

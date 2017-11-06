@@ -99,4 +99,5 @@ class SecureStorageTypedActor(
       firstMatchOnly=false
     )
   }
+  //scalastyle:on
 }
