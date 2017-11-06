@@ -58,7 +58,8 @@ trait MicroService {
       routesGenerator := StaticRoutesGenerator)
     .settings(
       resolvers += Resolver.bintrayRepo("hmrc", "releases"),
-      resolvers += Resolver.jcenterRepo
+      resolvers += Resolver.jcenterRepo,
+      scalaVersion := "2.11.11"
     )
     .settings(wartremoverSettings : _*)
     .settings(

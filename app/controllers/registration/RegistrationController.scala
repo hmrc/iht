@@ -31,6 +31,7 @@ import utils.ControllerHelper._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.enums._
+import uk.gov.hmrc.http.{ BadRequestException, ConflictException, GatewayTimeoutException, NotFoundException, Upstream4xxResponse, Upstream5xxResponse }
 
 /**
  * Created by yasar on 2/5/15.

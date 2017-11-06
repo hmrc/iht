@@ -39,12 +39,12 @@ import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import services.AuditService
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import uk.gov.hmrc.play.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.test.UnitSpec
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfter {
 

@@ -18,23 +18,17 @@ package config
 
 import akka.actor._
 import com.typesafe.config.Config
+import connectors.{ApplicationAuditConnector, ApplicationAuthConnector}
 import connectors.securestorage._
-import net.ceedubs.ficus.Ficus.configValueReader
-import net.ceedubs.ficus.Ficus.toFicusConfig
+import net.ceedubs.ficus.Ficus.{configValueReader, toFicusConfig}
+import play.api.libs.concurrent.Execution.Implicits._
 import play.api.{Application, Configuration, Logger, Play}
 import play.libs.Akka
-import uk.gov.hmrc.play.audit.filters.AuditFilter
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
-import uk.gov.hmrc.play.config.AppName
-import uk.gov.hmrc.play.config.ControllerConfig
-import uk.gov.hmrc.play.config.RunMode
-import uk.gov.hmrc.play.http.logging.filters.LoggingFilter
-import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import connectors.ApplicationAuditConnector
-import connectors.ApplicationAuthConnector
-import play.api.libs.concurrent.Execution.Implicits._
-import uk.gov.hmrc.play.filters.MicroserviceFilterSupport
+import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
+import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
+import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
 
 import scala.concurrent.duration._
 

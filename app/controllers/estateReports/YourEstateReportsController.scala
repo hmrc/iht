@@ -25,7 +25,6 @@ import models.application.IhtApplication
 import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
 import play.api.mvc.Action
-import uk.gov.hmrc.play.http.Upstream4xxResponse
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.libs.json._
 import utils.ControllerHelper._
@@ -36,6 +35,7 @@ import RegistrationDetails.registrationDetailsReads
 import models.enums._
 
 import scala.concurrent.Future
+import uk.gov.hmrc.http.Upstream4xxResponse
 
 
 /**
