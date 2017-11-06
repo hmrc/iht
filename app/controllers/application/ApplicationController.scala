@@ -39,7 +39,7 @@ import utils._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 /**
   * Created by vineet on 06/07/17.
@@ -198,7 +198,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
   }
 
   def handleResponseFromDesSubmission(httpResponse: HttpResponse,
-                                      ad: ApplicationDetails)(implicit hc: HeaderCarrier): Future[Result] = {
+                                      ad: ApplicationDetails)(implicit hc: HeaderCarrier) = {
     httpResponse.status match {
       case OK =>
         Logger.info("Received response from DES")
@@ -327,7 +327,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
    * Get the Probate details for given nino, ihtReference and ihtReturnId
    */
   def getProbateDetails(nino: String, ihtReference: String,
-                        ihtReturnId: String): Action[AnyContent] = Action.async {
+                        ihtReturnId: String) = Action.async {
     implicit request =>
       ControllerHelper.exceptionCheckForResponses({
         desConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
