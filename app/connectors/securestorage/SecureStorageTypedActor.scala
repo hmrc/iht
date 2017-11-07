@@ -92,10 +92,12 @@ class SecureStorageTypedActor(
       firstMatchOnly=false)
   }
 
+  //scalastyle:off method.name
   def -(id : String) : Future[Any] = {
     collection.remove(
       BSONDocument("id" -> id),
       firstMatchOnly=false
     )
   }
+  //scalastyle:on
 }

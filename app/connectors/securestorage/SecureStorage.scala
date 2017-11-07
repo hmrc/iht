@@ -151,5 +151,7 @@ trait SecureStorage {
   def objectStorage[T](clazz : Class[T])(implicit f : Format[T], ec : ExecutionContext) =
     new SecureStorageObjectInterface[T](this, clazz)
 
+  //scalastyle:off method.name
   def -(id : String) : Future[Any]
+  //scalastyle:on
 }

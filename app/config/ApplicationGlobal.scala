@@ -69,7 +69,6 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
 
   override def onStart(app: Application) {
     super.onStart(app)
-
     val conf = app.configuration
 
     val secureStorage : SecureStorage = {
@@ -84,7 +83,6 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
 
       val host = conf.getString(s"$env.securestorage.host").getOrElse("localhost")
       val dbName = conf.getString(s"$env.securestorage.dbname").getOrElse("securestorage")
-
       val conn = driver.connection(host.split(","))
       val db = conn(dbName)
 
@@ -94,7 +92,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
       ), "securestorage")
     }
 
-    val cleanerActor = {
+    val cleanerActor: Cancellable = {
 
       val maxDuration : org.joda.time.Period =
         conf.getString(s"$env.securestorage.maxDuration").

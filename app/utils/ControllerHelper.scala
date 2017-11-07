@@ -34,6 +34,7 @@ import uk.gov.hmrc.http.{ BadRequestException, GatewayTimeoutException, NotFound
  * Created by Vineet Tyagi on 16/09/15.
  *
  */
+//scalastyle:off magic.number
 object ControllerHelper {
     def metrics: Metrics = Metrics
 
@@ -100,13 +101,12 @@ object ControllerHelper {
    * @param pr
    * @param desJson
    */
-  def processJsonValidationError(pr: ProcessingReport, desJson: JsValue): Result= {
+  def processJsonValidationError(pr: ProcessingReport, desJson: JsValue): Result = {
     Logger.error("JSON validation against schema failed")
-
     val sb = new StringBuilder("Validator messages:-\n")
-
     val it = pr.iterator
-    if (it != null) {
+
+    if (Some(it).isDefined) {
       while (it.hasNext) {
         val pm = it.next()
         Logger.error("Failure reasons  :::: " + jsonNodeByName(pm, "reports"))

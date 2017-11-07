@@ -33,6 +33,7 @@ import scala.collection.mutable.ListBuffer
  * Created by Vineet Tyagi on 24/11/15.
  *
  */
+// scalastyle:off magic.number
 object IhtReturnHelper {
 
   /**

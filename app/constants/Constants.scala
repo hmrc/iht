@@ -20,6 +20,7 @@ import scala.collection.immutable.ListMap
 /**
  * Created by xavierzanatta on 3/25/15.
  */
+//scalastyle:off magic.number
 object Constants {
   val monthNameToNumber = Map(
     "January"   -> 1,
@@ -173,7 +174,7 @@ object Constants {
 
   val AuditTypeGifts = "gifts"
   val AuditTypeFinalEstateValue = "finalEstateValue"
-}
+} // scalastyle:on
 
 object AssetDetails {
   val AssetCodeMoney = "9001"
