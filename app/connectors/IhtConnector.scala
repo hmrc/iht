@@ -18,19 +18,21 @@ package connectors
 
 import config.wiring.WSHttp
 import metrics.Metrics
-import play.api.libs.json.{Json, Writes, JsValue}
+import play.api.libs.json.{JsValue, Json, Writes}
 import services.AuditService
-import uk.gov.hmrc.play.config.{ServicesConfig}
+import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 import play.api.Logger
+
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import models.enums._
 import constants.Constants._
 import utils.CommonHelper._
+
 import scala.util.Failure
 import scala.util.Success
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpGet, HttpPost, HttpResponse }
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
 
 trait IhtConnector {
@@ -56,8 +58,9 @@ trait IhtConnector {
     val urlToRead = s"$serviceURL/inheritance-tax/individuals/$nino/cases/"
 
     Logger.info("Submitting registration to DES")
-    val futureResponse = http.POST(urlToRead, registrationJs)
-
+    val futureResponse: Future[HttpResponse] =
+//      http.POST(urlToRead, registrationJs)
+    Future.failed[HttpResponse](Upstream4xxResponse("test", 409, 409))
 
     futureResponse .map {
       response=> {
