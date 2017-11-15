@@ -17,12 +17,16 @@
 package services
 
 import config.wiring.MicroserviceAuditConnector
+import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.JsValue
+import play.api.mvc.Request
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.AuditExtensions
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.audit.model.DataEvent
-import scala.concurrent.ExecutionContext.Implicits.global
+import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
@@ -51,10 +55,23 @@ trait AuditService extends HttpAuditing {
     auditConnector.sendEvent(ihtEvent(auditType, detail))
   }
 
+  def sendEvent(auditType: String,
+                detail: JsValue,
+                transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+    val event = ExtendedDataEvent(
+      auditSource = appName,
+      auditType = auditType,
+      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      detail = detail,
+      generatedAt = DateTime.now(DateTimeZone.UTC)
+    )
+    auditConnector.sendExtendedEvent(event)
+  }
+
   //Creates iht event
   private def ihtEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier) =
     DataEvent(
-      auditSource = "iht",
+      auditSource = appName,
       auditType = auditType,
       tags = hc.headers.toMap,
       detail = detail)
