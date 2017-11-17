@@ -18,13 +18,13 @@ package services
 
 import config.wiring.MicroserviceAuditConnector
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.libs.json.JsValue
+import play.api.mvc.Request
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.AuditExtensions
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
-import play.api.libs.json.JsValue
-import play.api.mvc.Request
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -71,7 +71,7 @@ trait AuditService extends HttpAuditing {
   //Creates iht event
   private def ihtEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier) =
     DataEvent(
-      auditSource = "iht",
+      auditSource = appName,
       auditType = auditType,
       tags = hc.headers.toMap,
       detail = detail)

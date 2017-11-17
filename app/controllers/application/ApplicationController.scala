@@ -29,7 +29,7 @@ import models.des.realtimerisking.RiskInput
 import models.enums.Api
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.Action
+import play.api.mvc.{Action, Request, Result}
 import services.AuditService
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.microservice.controller.BaseController
@@ -51,6 +51,7 @@ object ApplicationController extends ApplicationController {
   lazy val registrationHelper = RegistrationHelper
 
   def metrics: Metrics = Metrics
+
   def auditService = AuditService
 }
 
@@ -197,8 +198,26 @@ trait ApplicationController extends BaseController with SecureStorageController 
     }
   }
 
+  private def logAuditResponse(auditResult: AuditResult, auditType: String, map: Map[String,String]) = {
+    auditResult match {
+      case AuditResult.Failure(msg, throwable) =>
+        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+      case _ =>
+    }
+    Logger.info(s"audit event sent for $auditType of " + map)
+  }
+
+  private def logAuditResponse(auditResult: AuditResult, auditType: String, value: JsValue) = {
+    auditResult match {
+      case AuditResult.Failure(msg, throwable) =>
+        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+      case _ =>
+    }
+    Logger.info(s"audit event sent for $auditType of " + value.toString)
+  }
+
   def handleResponseFromDesSubmission(httpResponse: HttpResponse,
-                                      ad: ApplicationDetails)(implicit hc: HeaderCarrier) = {
+                                      ad: ApplicationDetails)(implicit hc: HeaderCarrier, request: Request[_]) = {
     httpResponse.status match {
       case OK =>
         Logger.info("Received response from DES")
@@ -208,13 +227,14 @@ trait ApplicationController extends BaseController with SecureStorageController 
         val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString(),
           Constants.AuditTypeIHTReference -> ad.ihtRef.getOrElse(""))
         auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap { auditResult =>
-          auditResult match {
-            case AuditResult.Failure(msg, throwable) =>
-              Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
-            case _ =>
+          logAuditResponse(auditResult, Constants.AuditTypeFinalEstateValue, map)
+          val jsonValue = Json.toJson(ad)
+          auditService.sendEvent(Constants.AuditTypeIHTEstateReportSubmitted,
+            jsonValue,
+            Constants.AuditTypeIHTEstateReportSubmittedTransactionName).map { auditResult =>
+            logAuditResponse(auditResult, Constants.AuditTypeIHTEstateReportSubmitted, jsonValue)
+            processResponse(ad.ihtRef.get, httpResponse.body)
           }
-          Logger.info(s"audit event sent for ${Constants.AuditTypeFinalEstateValue} of " + map)
-          Future.successful(processResponse(ad.ihtRef.get, httpResponse.body))
         }
       case _ =>
         Logger.info("No valid response from DES")
