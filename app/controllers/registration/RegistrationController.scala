@@ -31,31 +31,27 @@ import utils.ControllerHelper._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import models.enums._
+import services.AuditService
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 
 /**
- * Created by yasar on 2/5/15.
- */
+  * Created by yasar on 2/5/15.
+  */
 object RegistrationController extends RegistrationController {
   val desConnector = IhtConnector
+
   override def metrics: Metrics = Metrics
+
+  override def auditService = AuditService
 }
 
 trait RegistrationController extends BaseController {
   val desConnector: IhtConnector
+
   def metrics: Metrics = Metrics
 
-  def parseIHTReferenceFromResponse(httpResponse: HttpResponse): Result = {
-    (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String] match {
-      case Some(ihtRef) =>
-        Logger.info("Parsed IHT Reference from response")
-        metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)
-        Ok(ihtRef)
-      case None =>
-        Logger.info("Failure to parse IHTREF from response")
-        InternalServerError("CAN NOT PARSE IHT REF FROM RESPONSE ")
-    }
-  }
+  def auditService: AuditService
 
   def recoverOnSubmit: PartialFunction[Throwable, Future[Result]] = {
     case Upstream4xxResponse(message, CONFLICT, _, _) =>
@@ -87,19 +83,50 @@ trait RegistrationController extends BaseController {
       Future.failed(new Exception(e.getMessage))
   }
 
-  def submit(nino:String): Action[JsValue] = Action.async(parse.json) {
+  private def logAuditResponse(auditResult: AuditResult, auditType: String, map: Map[String, String]) = {
+    auditResult match {
+      case AuditResult.Failure(msg, throwable) =>
+        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+      case _ =>
+    }
+    Logger.info(s"audit event sent for $auditType of " + map)
+  }
+
+  private def logAuditResponse(auditResult: AuditResult, auditType: String, value: JsValue) = {
+    auditResult match {
+      case AuditResult.Failure(msg, throwable) =>
+        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
+      case _ =>
+    }
+    Logger.info(s"audit event sent for $auditType of " + value.toString)
+  }
+
+  def submit(nino: String): Action[JsValue] = Action.async(parse.json) {
     implicit request => {
       Logger.debug("RegistrationController submit request initiated")
       val pr = JsonValidator.validate(request.body, Constants.schemaPathRegistrationSubmission)
       if (pr.isSuccess) {
         Logger.debug("DES Request Validated")
         Logger.info("Acknowledgment Ref: " + request.body.\("acknowledgmentReference"))
-        desConnector.submitRegistration(nino, request.body).map {
-          httpResponse => {
-            Logger.debug("http response status code " + httpResponse.status)
-            Logger.debug("Response " + Json.prettyPrint(httpResponse.json))
-            parseIHTReferenceFromResponse(httpResponse)
-          }
+        desConnector.submitRegistration(nino, request.body).flatMap {
+          httpResponse =>
+            (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String] match {
+              case Some(ihtRef) =>
+                Logger.info("Parsed IHT Reference from response")
+                metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)
+                val jsonValue = request.body
+                auditService.sendEvent(Constants.AuditTypeIHTRegistrationSubmitted,
+                  jsonValue,
+                  Constants.AuditTypeIHTRegistrationSubmittedTransactionName).map { auditResult =>
+                  logAuditResponse(auditResult, Constants.AuditTypeIHTRegistrationSubmitted, jsonValue)
+                  Logger.debug("http response status code " + httpResponse.status)
+                  Logger.debug("Response " + Json.prettyPrint(httpResponse.json))
+                  Ok(ihtRef)
+                }
+              case None =>
+                Logger.info("Failure to parse IHTREF from response")
+                Future.successful(InternalServerError("CAN NOT PARSE IHT REF FROM RESPONSE "))
+            }
         }
       } else {
         Future(processJsonValidationError(pr, request.body))
