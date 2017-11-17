@@ -25,20 +25,30 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.Json
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
+import services.AuditService
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonBuilder._
 import utils.{AcknowledgementRefGenerator, FakeIhtApp, NinoBuilder}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
 
 class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
 
-  def testRegistrationController = new RegistrationController {
-    override val desConnector = mockDesConnector
+  val mockAuditService: AuditService = mock[AuditService]
+
+  def testRegistrationController = {
+    when(mockAuditService.sendEvent(any(), any(), any())(any(), any(), any()))
+      .thenReturn(Future.successful(Success))
+
+    new RegistrationController {
+      override val desConnector = mockDesConnector
+      override val auditService = mockAuditService
+    }
   }
 
   "RegistrationController" must {
