@@ -34,6 +34,7 @@ import utils.{AcknowledgementRefGenerator, FakeIhtApp, NinoBuilder}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, Upstream4xxResponse}
 
 class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
@@ -86,6 +87,19 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
       when(mockDesConnector.submitRegistration(any(),any())).thenReturn(Future(invalidHttpResponse))
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(INTERNAL_SERVER_ERROR)
+    }
+
+    "respond with ACCEPTED if 409 exception thrown by DES" in {
+      when(mockDesConnector.submitRegistration(any(),any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
+      val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
+      status(result) should be(ACCEPTED)
+    }
+
+    "respond with Upstream4xxResponse if 404 exception thrown by DES" in {
+      when(mockDesConnector.submitRegistration(any(),any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
+      a[Upstream4xxResponse] shouldBe thrownBy {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+      }
     }
   }
 }

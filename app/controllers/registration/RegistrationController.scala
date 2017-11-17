@@ -56,8 +56,9 @@ trait RegistrationController extends BaseController {
   def recoverOnSubmit: PartialFunction[Throwable, Future[Result]] = {
     case Upstream4xxResponse(message, CONFLICT, _, _) =>
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(new ConflictException(message))
-    case e: GatewayTimeoutException =>
+      Logger.warn(s"Received 409 from DES - converting to 202. Details:- $message")
+      Future.successful(Accepted(message))
+    case e:GatewayTimeoutException =>
       Logger.warn("Gateway Timeout Response Returned ::: " + e.getMessage)
       Future.failed(new GatewayTimeoutException(e.message))
     case e: BadRequestException =>
