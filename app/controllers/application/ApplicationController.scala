@@ -428,7 +428,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
         AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if (appMap.nonEmpty) {
         val seqFutureAuditResult = appMap.keys.toSeq.map { current =>
-          auditService.sendEvent(Constants.AuditTypeCurrencyValueChange, appMap(current)).map { auditResult =>
+          auditService.sendEvent(Constants.AuditTypeMonetaryValueChange, appMap(current)).map { auditResult =>
             Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
             auditResult
           }

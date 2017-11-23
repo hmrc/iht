@@ -74,8 +74,8 @@ object AuditHelper {
           if (beforeValue != afterValue) {
             currentValues ++ Map(fieldExpr._2 -> Map(
               Constants.AuditTypeIHTReference -> ihtReference,
-              fieldExpr._2 + " " + Constants.AuditTypePreviousValue -> beforeValue.fold("")(_.toString),
-              fieldExpr._2 + " " + Constants.AuditTypeNewValue -> afterValue.fold("")(_.toString)))
+              fieldExpr._2 + Constants.AuditTypePreviousValue -> beforeValue.fold("")(_.toString),
+              fieldExpr._2 + Constants.AuditTypeNewValue -> afterValue.fold("")(_.toString)))
           } else {
             currentValues
           }

@@ -51,8 +51,8 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val differences: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
-        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"))
+        Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
+        Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000"))
     }
 
     "return an empty Map for two different ApplicationDetails objects when the differences relate" +
@@ -80,8 +80,8 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
       differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
-        Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000")
+        Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
+        Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000")
       )
     }
 
@@ -102,12 +102,12 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       differences shouldBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "100",
-          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
+          Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
+          Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000"),
         Constants.AuditTypeOtherDebts -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
-          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "100")
+          Constants.AuditTypeOtherDebts + Constants.AuditTypePreviousValue -> "1000",
+          Constants.AuditTypeOtherDebts + Constants.AuditTypeNewValue -> "100")
       )
     }
 
@@ -127,12 +127,12 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       differences shouldBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypePreviousValue -> "",
-          Constants.AuditTypeMoneyOwed + " " + Constants.AuditTypeNewValue -> "1000"),
+          Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "",
+          Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000"),
         Constants.AuditTypeOtherDebts -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
-          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypePreviousValue -> "1000",
-          Constants.AuditTypeOtherDebts + " " + Constants.AuditTypeNewValue -> "")
+          Constants.AuditTypeOtherDebts + Constants.AuditTypePreviousValue -> "1000",
+          Constants.AuditTypeOtherDebts + Constants.AuditTypeNewValue -> "")
       )
     }
 
