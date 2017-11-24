@@ -61,7 +61,6 @@ trait AuditService extends HttpAuditing {
       tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC))
-    println( "\n\n***sendEvent - DataEvent = " + event)
     auditConnector.sendEvent(event)
   }
 
@@ -75,7 +74,6 @@ trait AuditService extends HttpAuditing {
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
-    println( "\n\n***sendEvent - ExtendedDataEvent = " + event)
     auditConnector.sendExtendedEvent(event)
   }
 
