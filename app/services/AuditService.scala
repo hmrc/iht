@@ -18,6 +18,7 @@ package services
 
 import config.wiring.MicroserviceAuditConnector
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc.Request
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -42,8 +43,9 @@ trait AuditService extends HttpAuditing {
   override def auditConnector: AuditConnector = MicroserviceAuditConnector
   override def appName: String="iht"
 
-  def sendSubmissionFailureEvent(detail: Map[String, String]) (implicit hc: HeaderCarrier, ec: ExecutionContext) = {
-    sendEvent(AuditTypes.SUB_FAILURE, detail)
+  def sendSubmissionFailureEvent(detail: Map[String, String],
+                                 transactionName: String) (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]) = {
+    sendEvent(AuditTypes.SUB_FAILURE, detail, transactionName)
   }
 
   def auditRequestWithResponse(url: String, verb: String, body: Option[_], responseToAuditF: Future[HttpResponse])
@@ -51,8 +53,17 @@ trait AuditService extends HttpAuditing {
     AuditingHook(url, verb, body,responseToAuditF)
   }
 
-  def sendEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] = {
-    auditConnector.sendEvent(ihtEvent(auditType, detail))
+  def sendEvent(auditType: String,
+                detail: Map[String, String],
+                transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+    val event = DataEvent(
+      auditSource = appName,
+      auditType = auditType,
+      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      detail = detail,
+      generatedAt = DateTime.now(DateTimeZone.UTC))
+    Logger.info("Sending data event to audit: " + event)
+    auditConnector.sendEvent(event)
   }
 
   def sendEvent(auditType: String,
@@ -65,20 +76,12 @@ trait AuditService extends HttpAuditing {
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
+    Logger.info("Sending extended data event to audit: " + event)
     auditConnector.sendExtendedEvent(event)
   }
-
-  //Creates iht event
-  private def ihtEvent(auditType: String, detail: Map[String, String])(implicit hc: HeaderCarrier) =
-    DataEvent(
-      auditSource = appName,
-      auditType = auditType,
-      tags = hc.headers.toMap,
-      detail = detail)
 
   // Creates audit types
   object AuditTypes {
     val SUB_FAILURE = "OutboundCall"
   }
-
 }

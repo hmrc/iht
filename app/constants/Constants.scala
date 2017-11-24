@@ -145,6 +145,8 @@ object Constants {
 
   val AuditTypeIHTEstateReportSubmittedTransactionName = "Inheritance Tax estate report submitted"
 
+  val AuditTypeIHTEstateReportSaved = "Estate report saved"
+
   val AuditTypeIHTRegistrationSubmitted = "ihtRegistrationSubmitted"
 
   val AuditTypeIHTRegistrationSubmittedTransactionName = "Inheritance Tax registration submitted"
