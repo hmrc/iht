@@ -18,6 +18,7 @@ package services
 
 import config.wiring.MicroserviceAuditConnector
 import org.joda.time.{DateTime, DateTimeZone}
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc.Request
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -61,6 +62,7 @@ trait AuditService extends HttpAuditing {
       tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC))
+    Logger.info("Sending data event to audit: " + event)
     auditConnector.sendEvent(event)
   }
 
@@ -74,6 +76,7 @@ trait AuditService extends HttpAuditing {
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
+    Logger.info("Sending extended data event to audit: " + event)
     auditConnector.sendExtendedEvent(event)
   }
 
