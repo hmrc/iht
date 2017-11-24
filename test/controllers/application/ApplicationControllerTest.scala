@@ -196,14 +196,14 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val adAfter = adBefore.copy(allAssets = optionAllAssetsAfter)
 
       when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
-      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
-      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, exenapper.capture, any())
       eventCaptorForString.getValue shouldBe Constants.AuditTypeMonetaryValueChange
       eventCaptorForMap.getValue shouldBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
@@ -270,14 +270,14 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val adAfter = adBefore.copy(giftsList = Some(optionAllGifts))
 
       when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
-      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
-      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, exenapper.capture, any())
       eventCaptorForString.getValue shouldBe Constants.AuditTypeMonetaryValueChange
       eventCaptorForMap.getValue shouldBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
@@ -295,7 +295,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
-      when(mockDesConnector.submitApplication(any(), any(), any()))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(errorHttpResponse))
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
       status(result) should be(INTERNAL_SERVER_ERROR)
@@ -308,7 +308,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
-      when(mockDesConnector.submitApplication(any(), any(), any()))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(errorHttpResponse))
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
       status(result) should be(INTERNAL_SERVER_ERROR)
@@ -322,12 +322,11 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
-      when(mockDesConnector.submitApplication(any(), any(), any()))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(errorHttpResponse))
 
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
       status(result) should be(INTERNAL_SERVER_ERROR)
-      //contentAsString(result) should include("Neither success nor failure response received from DES")
     }
 
     "return success response when valid front end JSON submitted" in {
@@ -336,11 +335,14 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
 
-      when(mockAuditService.sendEvent(any(), any(), any())(any(), any(), any()))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
-      when(mockDesConnector.submitApplication(any(), any(), any()))
+      when(mockAuditService.sendEvent(any(), any(classOf[Map[String,String]]), any())(any(), any(), any()))
+        .thenReturn(Future.successful(Success))
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(correctHttpResponse))
-      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
 
       val result = applicationController.submit("", "")(request.withBody(jsonAD))
@@ -362,16 +364,18 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
-      when(mockAuditService.sendEvent(any(), any(), any())(any(), any(), any()))
+      when(mockAuditService.sendEvent(any(), any(classOf[Map[String,String]]), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
-      when(mockDesConnector.submitApplication(any(), any(), any())).thenReturn(Future.successful(correctHttpResponse))
-      when(mockAuditService.sendEvent(any(), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any()))
+        .thenReturn(Future.successful(Success))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any())).thenReturn(Future.successful(correctHttpResponse))
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = applicationController.submit(expectedIhtReference.getOrElse(""), "")(request.withBody(jsonAD))
 
       status(result) shouldBe OK
 
-      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture)(headnapper.capture, exenapper.capture)
+      verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, exenapper.capture, any())
       eventCaptorForString.getValue shouldBe Constants.AuditTypeFinalEstateValue
       eventCaptorForMap.getValue shouldBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
