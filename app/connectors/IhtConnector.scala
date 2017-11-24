@@ -17,12 +17,14 @@
 package connectors
 
 import config.wiring.WSHttp
+import constants.Constants
 import metrics.Metrics
 import play.api.libs.json.{JsValue, Json, Writes}
 import services.AuditService
 import uk.gov.hmrc.play.config.ServicesConfig
 import uk.gov.hmrc.play.http._
 import play.api.Logger
+import play.api.mvc.{Action, Request}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -47,7 +49,7 @@ trait IhtConnector {
   private def createHeaderCarrier = HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment),
     authorization = Some(Authorization(urlHeaderAuthorization)))
 
-  def submitRegistration(nino: String, registrationJs: JsValue): Future[HttpResponse] = {
+  def submitRegistration(nino: String, registrationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
     implicit val hc = createHeaderCarrier
     /*
    * Recover cases are written because of the framework design.
@@ -76,13 +78,13 @@ trait IhtConnector {
       case e: Exception => {
         Logger.info("Exception occured while registration submission ::: " + e.getMessage)
         val keyMap = Map("request" -> RegSubmissionRequestKey, "response" -> RegSubmissionFailureResponseKey)
-        auditSubmissionFailure(registrationJs, futureResponse, keyMap)
+        auditSubmissionFailure(registrationJs, futureResponse, keyMap, Constants.AuditTypeIHTRegistrationSubmitted)
         Future.failed(throw e)
       }
     }
   }
 
-  def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue): Future[HttpResponse] = {
+  def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
     implicit val hc = createHeaderCarrier
 
     Logger.info("Start Submitting application process, creating metrics ")
@@ -102,7 +104,7 @@ trait IhtConnector {
       case e: Exception => {
         Logger.info("Exception occured while application submission ::: " + e.getMessage)
         val keyMap = Map("request" -> AppSubmissionRequestKey, "response" -> AppSubmissionFailureResponseKey)
-        auditSubmissionFailure(applicationJs, futureResponse, keyMap)
+        auditSubmissionFailure(applicationJs, futureResponse, keyMap, Constants.AuditTypeIHTEstateReportSubmitted)
         Future.failed(throw e)
       }
     }
@@ -202,13 +204,13 @@ trait IhtConnector {
     * @param requestJs
     * @param responseToAudit
     */
-  private def auditSubmissionFailure(requestJs: JsValue, responseToAudit: Future[HttpResponse], keys: Map[String, String]) = {
+  private def auditSubmissionFailure(requestJs: JsValue, responseToAudit: Future[HttpResponse], keys: Map[String, String], transactionName:String)(implicit request:Request[_]) = {
     implicit val hc = createHeaderCarrier
 
     responseToAudit.onComplete[Any] {
       case Failure(t) => {
         AuditService.sendSubmissionFailureEvent(Map(keys("request") -> requestJs.toString(),
-          keys("response") -> t.getMessage))
+          keys("response") -> t.getMessage), transactionName)
       }
       case Success(_) =>
     }

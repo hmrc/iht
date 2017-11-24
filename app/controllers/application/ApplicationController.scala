@@ -29,8 +29,9 @@ import models.des.realtimerisking.RiskInput
 import models.enums.Api
 import play.api.Logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
-import play.api.mvc.{Action, Request, Result}
+import play.api.mvc.{Action, Request}
 import services.AuditService
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.microservice.controller.BaseController
 import utils.ControllerHelper._
@@ -39,7 +40,6 @@ import utils._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 /**
   * Created by vineet on 06/07/17.
@@ -226,7 +226,9 @@ trait ApplicationController extends BaseController with SecureStorageController 
         val finalEstateValue = ad.estateValue
         val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString(),
           Constants.AuditTypeIHTReference -> ad.ihtRef.getOrElse(""))
-        auditService.sendEvent(Constants.AuditTypeFinalEstateValue, map).flatMap { auditResult =>
+        auditService.sendEvent(Constants.AuditTypeFinalEstateValue,
+          map,
+          Constants.AuditTypeIHTEstateReportSubmittedTransactionName).flatMap { auditResult =>
           logAuditResponse(auditResult, Constants.AuditTypeFinalEstateValue, map)
           val jsonValue = Json.toJson(ad)
           auditService.sendEvent(Constants.AuditTypeIHTEstateReportSubmitted,
@@ -418,7 +420,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
     * @param appDetails
     */
   private def doExplicitAuditCheck(nino: String, acknowledgementReference: String, appDetails: ApplicationDetails)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Seq[AuditResult]] = {
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[AuditResult]] = {
 
     val securedStorageAppDetails: ApplicationDetails = getApplicationDetails(acknowledgementReference,
       CommonHelper.getOrException(appDetails.ihtRef))
@@ -428,7 +430,9 @@ trait ApplicationController extends BaseController with SecureStorageController 
         AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       if (appMap.nonEmpty) {
         val seqFutureAuditResult = appMap.keys.toSeq.map { current =>
-          auditService.sendEvent(Constants.AuditTypeMonetaryValueChange, appMap(current)).map { auditResult =>
+          auditService.sendEvent(Constants.AuditTypeMonetaryValueChange,
+            appMap(current),
+            Constants.AuditTypeIHTEstateReportSaved).map { auditResult =>
             Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
             auditResult
           }
