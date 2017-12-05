@@ -53,13 +53,20 @@ trait AuditService extends HttpAuditing {
     AuditingHook(url, verb, body,responseToAuditF)
   }
 
+  private def tags(transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    val currentTags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path)
+    request.headers.get("path").fold(currentTags) ( fePath =>
+      currentTags.map(t => if (t._1 == "path") (t._1, fePath) else t)
+    )
+  }
+
   def sendEvent(auditType: String,
                 detail: Map[String, String],
                 transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
     val event = DataEvent(
       auditSource = appName,
       auditType = auditType,
-      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      tags = tags(transactionName),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC))
     Logger.info("Sending data event to audit: " + event)
@@ -69,10 +76,11 @@ trait AuditService extends HttpAuditing {
   def sendEvent(auditType: String,
                 detail: JsValue,
                 transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+
     val event = ExtendedDataEvent(
       auditSource = appName,
       auditType = auditType,
-      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      tags = tags(transactionName),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
