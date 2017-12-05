@@ -57,9 +57,7 @@ trait AuditService extends HttpAuditing {
 
   private def tags(transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
     val currentTags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path)
-    request.headers.get(pathKey).fold(currentTags) ( fePath =>
-      currentTags.map(t => if (t._1 == pathKey) (t._1, fePath) else t)
-    )
+    request.headers.get(pathKey).fold(currentTags)(currentTags.updated(pathKey, _))
   }
 
   def sendEvent(auditType: String,
