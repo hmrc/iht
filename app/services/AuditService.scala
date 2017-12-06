@@ -36,11 +36,10 @@ import scala.concurrent.{ExecutionContext, Future}
  *
  */
 object AuditService extends AuditService{
-
+  override def auditConnector: AuditConnector = MicroserviceAuditConnector
 }
 
 trait AuditService extends HttpAuditing {
-  override def auditConnector: AuditConnector = MicroserviceAuditConnector
   override def appName: String="iht"
 
   private val pathKey = "path"
