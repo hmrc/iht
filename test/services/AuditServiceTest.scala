@@ -40,7 +40,7 @@ class AuditServiceTest extends UnitSpec with FakeIhtApp with MockitoSugar with B
   private val pathKey = "path"
 
   implicit val headerCarrier = FakeHeaders()
-  implicit val request = FakeRequest.apply("POST", path)
+  implicit val request = FakeRequest.apply("POST","",FakeHeaders(Seq(pathKey->path)),None)
   implicit val hc = new HeaderCarrier
 
   var mockedAuditConnector: AuditConnector = mock[AuditConnector]
