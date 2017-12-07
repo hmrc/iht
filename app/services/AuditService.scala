@@ -31,17 +31,18 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
- *
- * Created by Vineet Tyagi on 13/11/15.
- *
- */
+  *
+  * Created by Vineet Tyagi on 13/11/15.
+  *
+  */
 object AuditService extends AuditService{
-
+  override def auditConnector: AuditConnector = MicroserviceAuditConnector
 }
 
 trait AuditService extends HttpAuditing {
-  override def auditConnector: AuditConnector = MicroserviceAuditConnector
   override def appName: String="iht"
+
+  private val pathKey = "path"
 
   def sendSubmissionFailureEvent(detail: Map[String, String],
                                  transactionName: String) (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]) = {
@@ -49,8 +50,20 @@ trait AuditService extends HttpAuditing {
   }
 
   def auditRequestWithResponse(url: String, verb: String, body: Option[_], responseToAuditF: Future[HttpResponse])
-                               (implicit hc: HeaderCarrier): Unit = {
+                              (implicit hc: HeaderCarrier): Unit = {
     AuditingHook(url, verb, body,responseToAuditF)
+  }
+
+  private def tags(transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
+    AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, requestPath)
+  }
+
+  def requestPath(implicit request: Request[_]) = {
+    request.headers.get(pathKey) match {
+      case Some(path) => path
+      case None => Logger.warn(s"No path header supplied from IHT frontend on request to backend endpoint ${request.path}")
+        "<NO REQUEST PATH SUPPLIED>"
+    }
   }
 
   def sendEvent(auditType: String,
@@ -59,7 +72,7 @@ trait AuditService extends HttpAuditing {
     val event = DataEvent(
       auditSource = appName,
       auditType = auditType,
-      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      tags = tags(transactionName),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC))
     Logger.info("Sending data event to audit: " + event)
@@ -69,10 +82,11 @@ trait AuditService extends HttpAuditing {
   def sendEvent(auditType: String,
                 detail: JsValue,
                 transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+
     val event = ExtendedDataEvent(
       auditSource = appName,
       auditType = auditType,
-      tags = AuditExtensions.auditHeaderCarrier(hc).toAuditTags(transactionName, request.path),
+      tags = tags(transactionName),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
