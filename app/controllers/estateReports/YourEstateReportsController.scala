@@ -29,13 +29,13 @@ import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.libs.json._
 import utils.ControllerHelper._
 import utils._
-import play.api.{Logger, Play}
+import play.api.Logger
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import RegistrationDetails.registrationDetailsReads
 import models.enums._
 
-import scala.concurrent.Future
-import uk.gov.hmrc.http.Upstream4xxResponse
+import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse}
 
 
 /**
@@ -75,11 +75,18 @@ trait YourEstateReportsController extends BaseController {
             NoContent
           }
           case ( _ ) => {
-            Logger.info("List cases failured to work")
+            Logger.info("List cases failed to work")
             InternalServerError
           }
         }
       }
+    } recover {
+      case e: Upstream4xxResponse if e.upstreamResponseCode == NOT_FOUND =>
+        Logger.info("List cases returned Not Found")
+        NoContent
+      case _: NotFoundException =>
+        Logger.info("List cases returned Not Found")
+        NoContent
     },Api.GET_CASE_LIST)
   }
 

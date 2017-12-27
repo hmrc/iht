@@ -17,7 +17,6 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
-import controllers.estateReports.YourEstateReportsController
 import metrics.Metrics
 import models.enums._
 import models.registration.RegistrationDetails
@@ -27,15 +26,13 @@ import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
-import uk.gov.hmrc.play.http._
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonHelper._
 import utils.{FakeIhtApp, TestHelper}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import scala.concurrent.Future
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 
 class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
 
@@ -134,11 +131,14 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
   }
 
   "replies correctly when given an empty json response with a 200 return" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn((Future(successHttpResponseEmptyCaseList)))
+    when(mockDesConnector.getCaseList(any())).thenReturn(Future(successHttpResponseEmptyCaseList))
     val result = ihtHomeController.listCases("")(request)
+    status(await(result)) shouldBe NO_CONTENT
+  }
 
-    val xxx:Boolean = Await.ready(result, Duration.Inf).value.map(_.isFailure).getOrElse(false)
-
-    assert(xxx)
+  "replies correctly when receiving a 404 from DES" in {
+    when(mockDesConnector.getCaseList(any())).thenReturn(Future.failed(new NotFoundException("Cases not found")))
+    val result = ihtHomeController.listCases("")(request)
+    status(await(result)) shouldBe NO_CONTENT
   }
 }
