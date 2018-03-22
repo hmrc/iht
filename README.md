@@ -1,5 +1,5 @@
 # Inheritance Tax Microservice
-
+ 
 [![Build Status](https://travis-ci.org/hmrc/iht.svg?branch=master)](https://travis-ci.org/hmrc/iht) [![Download](https://api.bintray.com/packages/hmrc/releases/iht/images/download.svg)](https://bintray.com/hmrc/releases/iht/_latestVersion)
 
 This is the microservice for Inheritance Tax Service. The microservice acts a communication layer between the various HODS and Storage Layers. The microservice is based on the RESTful API structure, receives and sends data using JSON to either a HOD or Mongo Storage Layer.
