@@ -22,6 +22,7 @@ import connectors.{ApplicationAuditConnector, ApplicationAuthConnector}
 import connectors.securestorage._
 import net.ceedubs.ficus.Ficus.{configValueReader, toFicusConfig}
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.mvc.{RequestHeader, Result}
 import play.api.{Application, Configuration, Logger, Play}
 import play.libs.Akka
 import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
@@ -29,7 +30,10 @@ import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
+import utils.exception.{DESInternalServerError}
+import play.api.mvc.Results._
 
+import scala.concurrent.Future
 import scala.concurrent.duration._
 
 object ControllerConfiguration extends ControllerConfig {
@@ -66,6 +70,16 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
 
   override val authFilter = Some(MicroserviceAuthFilter)
   private val driver = new reactivemongo.api.MongoDriver
+
+  override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
+    ex match {
+      case DESInternalServerError(cause) =>
+        Logger.warn("500 response returned from DES", cause)
+        Future.successful(InternalServerError("500 response returned from DES"))
+      case _ => super.onError(request, ex)
+    }
+
+  }
 
   override def onStart(app: Application) {
     super.onStart(app)
