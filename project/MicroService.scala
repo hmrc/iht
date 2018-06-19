@@ -17,7 +17,9 @@
 import play.routes.compiler.StaticRoutesGenerator
 import play.sbt.routes.RoutesKeys.routesGenerator
 import sbt.Keys._
+import sbt.Tests.{Group, SubProcess}
 import sbt._
+import uk.gov.hmrc.DefaultBuildSettings.addTestReportOption
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
@@ -27,6 +29,7 @@ import wartremover._
 trait MicroService {
 
   import uk.gov.hmrc._
+  import TestPhases._
 
   val appName: String
 
@@ -61,6 +64,14 @@ trait MicroService {
       resolvers += Resolver.jcenterRepo,
       scalaVersion := "2.11.11"
     )
+    .configs(IntegrationTest)
+    .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
+    .settings(
+      Keys.fork in IntegrationTest := false,
+      unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+      addTestReportOption(IntegrationTest, "int-test-reports"),
+      testGrouping in IntegrationTest := oneForkedJvmPerTest((definedTests in IntegrationTest).value),
+      parallelExecution in IntegrationTest := false)
     .settings(wartremoverSettings : _*)
     .settings(
       wartremoverWarnings ++= Warts.unsafe,
@@ -92,3 +103,10 @@ private object WartRemoverConfig{
   }
 }
 
+private object TestPhases {
+
+  def oneForkedJvmPerTest(tests: Seq[TestDefinition]) =
+    tests map {
+      test => new Group(test.name, Seq(test), SubProcess(ForkOptions(runJVMOptions = Seq("-Dtest.name=" + test.name))))
+    }
+}
