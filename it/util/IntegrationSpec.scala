@@ -20,14 +20,14 @@ import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
-import org.scalatestplus.play.OneServerPerSuite
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.UnitSpec
 
 trait IntegrationSpec extends UnitSpec
-  with OneServerPerSuite with ScalaFutures with IntegrationPatience with Matchers
+  with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience with Matchers
   with WiremockHelper with BeforeAndAfterEach with BeforeAndAfterAll {
 
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
@@ -50,6 +50,26 @@ trait IntegrationSpec extends UnitSpec
   override def afterAll(): Unit = {
     stopWiremock()
     super.afterAll()
+  }
+
+  def mockAuth(nino: String, status: Int): Unit = {
+    val url = s"/authorise/write/iht/$nino"
+    stubGet(url, status, "")
+  }
+
+  def mockSubmission(nino: String, ihtRef: String, status: Int, body: String): Unit = {
+    val url = s"/iht/$nino/$ihtRef/application/submit"
+    stubPost(url, status, body)
+  }
+
+  def mockGetCaseDetails(nino: String, ihtRef: String, status: Int, body: String): Unit = {
+    val url = s"/inheritance-tax/individuals/$nino/cases/$ihtRef"
+    stubGet(url, status, body)
+  }
+
+  def mockIndividualsReturn(nino: String, ihtRef: String, status: Int, body: String): Unit = {
+    val url = s"/inheritance-tax/individuals/$nino/cases/$ihtRef/returns"
+    stubPost(url, status, body)
   }
 
   def mockCitizenDetails(nino: String, status: Int): Unit = {
