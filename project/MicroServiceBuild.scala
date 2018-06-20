@@ -52,7 +52,8 @@ private object AppDependencies {
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
-        "org.mockito" % "mockito-core" % "2.19.0" % scope
+        "org.mockito" % "mockito-core" % "2.19.0" % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope
       )
     }.test
   }
@@ -62,14 +63,14 @@ private object AppDependencies {
       override lazy val scope: String = "it"
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % "2.0.0" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "2.3.0" % scope,
-        "org.scalatest" %% "scalatest" % "2.2.2" % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "3.0.0" % scope,
+        "org.scalatest" %% "scalatest" % "3.0.0" % scope,
         "org.pegdown" % "pegdown" % "1.4.2" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
         "org.mockito" % "mockito-all" % "1.9.5" % scope,
-        "com.github.tomakehurst" % "wiremock" % "2.5.0" % scope
+        "com.github.tomakehurst" % "wiremock" % "2.9.0" % scope
       )
     }.test
   }

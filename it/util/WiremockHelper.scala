@@ -38,8 +38,8 @@ trait WiremockHelper extends FakeConfig {
   def resetWiremock(): Unit = WireMock.reset()
 
   def stubGet(url: String, status: Integer, body: String): StubMapping = {
-    removeStub(get(urlMatching(url)))
-    stubFor(get(urlMatching(url))
+    removeStub(get(urlPathMatching(url)))
+    stubFor(get(urlPathMatching(url))
       .willReturn(
         aResponse().
           withStatus(status).
@@ -91,6 +91,11 @@ trait FakeConfig {
     "microservice.services.iht.port" -> wiremockPort.toString,
     "microservice.services.auth.host" -> wiremockHost,
     "microservice.services.auth.port" -> wiremockPort.toString,
-    "auditing.enabled" -> "false"
+    "auditing.enabled" -> "false",
+    "auditing.traceRequests" -> "false",
+    "auditing.consumer.baseUri.host" -> wiremockHost,
+    "auditing.consumer.baseUri.port" -> wiremockPort.toString,
+    "microservice.services.iht.des.authorization-key" -> "DESKEY",
+    "microservice.services.iht.des.environment" -> "DES"
   ) ++ additionalConfig
 }
