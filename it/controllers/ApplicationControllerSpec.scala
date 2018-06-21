@@ -103,6 +103,27 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         result.status shouldBe 502
         result.body shouldBe TestData.invalidResultBodyIndividualReturn
       }
+
+      "individualReturn has a 500 status" in {
+        val reference = "A0000A0000A0000"
+        val nino = "AA123456A"
+
+        mockAuth(nino, 200)
+
+        mockGetCaseDetails(nino, reference, 200, TestData.validGetCaseDetails(nino, reference))
+
+        mockIndividualsReturn(nino, reference, 500, TestData.successfulSubmissionResponse)
+
+        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+
+        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
+        verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
+        verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
+          .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
+
+        result.status shouldBe 500
+        Json.parse(result.body) shouldBe Json.parse(TestData.invalidResultBodyForIndividualReturns(500, nino, reference))
+      }
     }
   }
 }

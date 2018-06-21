@@ -379,6 +379,15 @@ object TestData {
     """.stripMargin
   }
 
+  def invalidResultBodyForIndividualReturns(status: Int, nino: String, ihtRef: String): String = {
+    s"""
+       |{
+       |"statusCode" : $status,
+       |"message" : "uk.gov.hmrc.http.Upstream5xxResponse: POST of 'http://localhost:11111/inheritance-tax/individuals/$nino/cases/$ihtRef/returns' returned $status. Response body: 'Returned $status'"
+       |}
+    """.stripMargin
+  }
+
   val invalidResultBodyIndividualReturn = {
     "{\"statusCode\":502,\"message\":\"POST of 'http://localhost:11111/inheritance-tax/individuals/AA123456A/cases/A0000A0000A0000/returns' returned 503. Response body: '\\n{\\\"returnId\\\" : \\\"12\\\"}\\n    'des_error_code_503\"}"
   }
