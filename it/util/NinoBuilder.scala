@@ -20,9 +20,6 @@ import uk.gov.hmrc.domain.{Generator, Nino}
 
 import scala.util.Random
 
-/**
-  * Created by yasar on 24/10/16.
-  */
 object NinoBuilder {
   def randomNino: Nino = Nino(new Generator(new Random()).nextNino.nino)
   val defaultNino = randomNino.toString()

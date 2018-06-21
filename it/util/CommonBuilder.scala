@@ -28,11 +28,6 @@ import models.application.tnrb.{TnrbEligibiltyModel, WidowCheck}
 import models.registration._
 import org.joda.time.LocalDate
 
-/**
- *
- * Created by Vineet Tyagi on 26/05/15.
- *
- */
 object CommonBuilder {
   val DefaultId="1"
   val DefaultDeceasedDOD=new LocalDate(1987,12,12)
