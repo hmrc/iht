@@ -78,7 +78,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
         Future.successful(InternalServerError("500 response returned from DES"))
       case _ => super.onError(request, ex)
     }
-
+    
   }
 
   override def onStart(app: Application) {

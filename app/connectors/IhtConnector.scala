@@ -89,7 +89,7 @@ trait IhtConnector {
     def read(method: String, url: String, response: HttpResponse) = IhtResponseHandler.handleIhtResponse(method, url, response)
   }
 
-    def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
+  def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
     implicit val hc = createHeaderCarrier
 
     Logger.info("Start Submitting application process, creating metrics ")

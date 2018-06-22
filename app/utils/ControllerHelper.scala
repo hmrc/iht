@@ -18,16 +18,18 @@ package utils
 
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.github.fge.jsonschema.core.report.{ProcessingMessage, ProcessingReport}
-import play.api.libs.json.{Json, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import uk.gov.hmrc.play.http._
 import metrics.Metrics
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.Logger
 import models.enums._
 import play.api.mvc.Results._
-import uk.gov.hmrc.http.{ BadRequestException, GatewayTimeoutException, NotFoundException, Upstream4xxResponse, Upstream5xxResponse }
+import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
+import utils.exception.DESInternalServerError
 
 /**
  *
@@ -56,6 +58,11 @@ object ControllerHelper {
         Logger.warn("BadRequest Response Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
         Future.failed(new BadRequestException(e.message + "des_bad_request"))
+      }
+      case e: DESInternalServerError => {
+        Logger.info(" Upstream5xxResponse Returned ::: " + e.getMessage)
+        metrics.incrementFailedCounter(y)
+        Future.failed(e)
       }
       case e: Upstream4xxResponse => {
         Logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
