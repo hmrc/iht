@@ -16,7 +16,6 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
   val ad = CommonBuilder.buildApplicationDetailsAllFields
   val requestBody = Json.toJson(ad)
 
-
   "Calling the submit method" should {
     "return a successful response" when {
       "no errors occur" in {
@@ -58,8 +57,7 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
         result.status shouldBe 500
-         Json.parse(result.body) shouldBe Json.parse(TestData.invalidResultBodyForSubmission(500, nino, reference))
-
+        result.body shouldBe "500 response returned from DES"
       }
 
       "getCaseDetails has a 503 status" in {
@@ -122,7 +120,7 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
           .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
         result.status shouldBe 500
-        Json.parse(result.body) shouldBe Json.parse(TestData.invalidResultBodyForIndividualReturns(500, nino, reference))
+        result.body shouldBe "500 response returned from DES"
       }
     }
   }
