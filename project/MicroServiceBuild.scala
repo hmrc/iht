@@ -46,9 +46,9 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % "3.1.0" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "2.3.0" % scope,
-        "org.scalatest" %% "scalatest" % "2.2.2" % scope,
-        "org.scalacheck" %% "scalacheck" % "1.12.2" % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "3.0.0" % scope,
+        "org.scalatest" %% "scalatest" % "3.0.0" % scope,
+        "org.scalacheck" %% "scalacheck" % "1.13.4" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
