@@ -16,12 +16,11 @@
 
 package services
 
-import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.mock.MockitoSugar
-import play.api.libs.json.{JsString, JsValue}
+import play.api.libs.json.JsString
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
@@ -57,7 +56,7 @@ class AuditServiceTest extends UnitSpec with FakeIhtApp with MockitoSugar with B
     "respond correctly to sendEvent with a Map" in {
       val detail = Map("abc"->"dummy value 1", "def" -> "dummy value 2")
       implicit val dataEventNapper = ArgumentCaptor.forClass(classOf[DataEvent])
-      when(mockedAuditConnector.sendEvent(dataEventNapper.capture)(any(), any()))
+      when(mockedAuditConnector.sendEvent(dataEventNapper.capture)(ArgumentMatchers.any(), ArgumentMatchers.any()))
         .thenReturn(Future.successful(AuditResult.Success))
       val result = await(auditService.sendEvent(auditType, detail, transactionName))
       result shouldBe AuditResult.Success
@@ -70,7 +69,7 @@ class AuditServiceTest extends UnitSpec with FakeIhtApp with MockitoSugar with B
 
     "respond correctly to sendEvent with a JsValue" in {
       implicit val extendedDataEventNapper = ArgumentCaptor.forClass(classOf[ExtendedDataEvent])
-      when(mockedAuditConnector.sendExtendedEvent(extendedDataEventNapper.capture)(any(), any()))
+      when(mockedAuditConnector.sendExtendedEvent(extendedDataEventNapper.capture)(ArgumentMatchers.any(), ArgumentMatchers.any()))
         .thenReturn(Future.successful(AuditResult.Success))
       val jsValue = JsString( "dummy value")
       val result = await(auditService.sendEvent(auditType, jsValue, transactionName))
