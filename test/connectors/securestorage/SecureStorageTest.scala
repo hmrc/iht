@@ -19,7 +19,6 @@ package connectors.securestorage
 import org.scalatest._
 
 import play.api.libs.json._
-import akka.pattern._
 import akka.actor._
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalacheck._

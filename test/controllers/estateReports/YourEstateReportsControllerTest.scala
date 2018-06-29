@@ -20,7 +20,7 @@ import connectors.IhtConnector
 import metrics.Metrics
 import models.enums._
 import models.registration.RegistrationDetails
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
@@ -57,44 +57,44 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
   }
 
   "Respond appropriately to a failure response" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn((Future(errorHttpResponse)))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn((Future(errorHttpResponse)))
     val result = ihtHomeController.listCases("")(request)
     status(result) should be(INTERNAL_SERVER_ERROR)
   }
 
   "Respond with no content if a case list is not available" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn((Future(noListHttpResponse)))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn((Future(noListHttpResponse)))
     val result = ihtHomeController.listCases("")(request)
     status(result) should be(NO_CONTENT)
   }
 
   "Respond with OK on successful return of a list" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn((Future(successHttpResponse)))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn((Future(successHttpResponse)))
     val result = ihtHomeController.listCases("")(request)
     status(result) should be(OK)
     assert(Metrics.successCounters(Api.GET_CASE_LIST).getCount>0, "Success counter for Get Case List Api is more than one")
   }
 
   "Respond with OK on successful return of a list when no NINO passed back" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn((Future(successHttpResponseNoNINO)))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn((Future(successHttpResponseNoNINO)))
     val result = ihtHomeController.listCases("")(request)
     status(result) should be(OK)
   }
 
   "Respond appropriately to a failure response while fetching Case Details" in {
-    when(mockDesConnector.getCaseDetails(any(),any())).thenReturn((Future(errorHttpResponse)))
+    when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn((Future(errorHttpResponse)))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(INTERNAL_SERVER_ERROR)
   }
 
   "Respond with no content if a Case Details is not available" in {
-    when(mockDesConnector.getCaseDetails(any(),any())).thenReturn((Future(noListHttpResponse)))
+    when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn((Future(noListHttpResponse)))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(NO_CONTENT)
   }
 
   "Respond with OK on successful return of Case Details" in {
-    when(mockDesConnector.getCaseDetails(any(),any())).thenReturn(Future(successHttpResponseForCaseDetails))
+    when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn(Future(successHttpResponseForCaseDetails))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(OK)
     assert(Metrics.successCounters(Api.GET_CASE_DETAILS).getCount>0, "Success counter for Get Case Details Api is more than one")
@@ -102,7 +102,7 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
 
   "Respond with OK on successful return of Case Details when post code" +
     " is null/blank for foreign country address" in {
-    when(mockDesConnector.getCaseDetails(any(),any())).thenReturn(Future(successHttpResponseForCaseDetailsWithPostCodeNull))
+    when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn(Future(successHttpResponseForCaseDetailsWithPostCodeNull))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(OK)
     assert(Metrics.successCounters(Api.GET_CASE_DETAILS).getCount>0, "Success counter for Get Case Details Api is more than one")
@@ -125,19 +125,19 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
   }
 
   "Respond with exception to a failure response while fetching Case Details" in {
-    when(mockDesConnector.getCaseDetails(any(),any())).thenReturn((Future(badRequestHttpResponse)))
+    when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn((Future(badRequestHttpResponse)))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(INTERNAL_SERVER_ERROR)
   }
 
   "replies correctly when given an empty json response with a 200 return" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn(Future(successHttpResponseEmptyCaseList))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future(successHttpResponseEmptyCaseList))
     val result = ihtHomeController.listCases("")(request)
     status(await(result)) shouldBe NO_CONTENT
   }
 
   "replies correctly when receiving a 404 from DES" in {
-    when(mockDesConnector.getCaseList(any())).thenReturn(Future.failed(new NotFoundException("Cases not found")))
+    when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future.failed(new NotFoundException("Cases not found")))
     val result = ihtHomeController.listCases("")(request)
     status(await(result)) shouldBe NO_CONTENT
   }

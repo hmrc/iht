@@ -16,17 +16,17 @@
 
 package connectors.securestorage
 
-import akka.actor.{ ActorContext, TypedActor, TypedProps }
-import akka.dispatch._
-import org.joda.time.DateTime
-import play.api.Logger
-import play.api.libs.json.Json.{parse,prettyPrint}
-import play.api.libs.json._
-import reactivemongo.api._
-import reactivemongo.bson._
-import reactivemongo.json.BSONFormats._
+import akka.actor.TypedActor
 import scala.concurrent._
-import scala.concurrent.duration._
+
+
+import org.joda.time.DateTime
+import play.api.libs.json.{JsValue, Json}
+import reactivemongo.api.DefaultDB
+import reactivemongo.bson._
+import play.api.libs.json._
+import reactivemongo.bson.BSONDocument
+import reactivemongo.play.json.ImplicitBSONHandlers._
 
 /**
   * Stores to MongoDB with data encoded in a single field

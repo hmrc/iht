@@ -30,7 +30,7 @@ import models.application.gifts.PreviousYearsGifts
 import models.application.{ApplicationDetails, ProbateDetails}
 import models.enums.Api
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfter
 import org.scalatest.mock.MockitoSugar

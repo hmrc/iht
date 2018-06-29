@@ -19,14 +19,13 @@ package controllers.registration
 import connectors.IhtConnector
 import metrics.Metrics
 import models.enums._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import services.AuditService
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonBuilder._
@@ -43,7 +42,7 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
   val mockAuditService: AuditService = mock[AuditService]
 
   def testRegistrationController = {
-    when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any()))
+    when(mockAuditService.sendEvent(ArgumentMatchers.any(), ArgumentMatchers.any[JsValue](), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
       .thenReturn(Future.successful(Success))
 
     new RegistrationController {
@@ -70,13 +69,13 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
     val invalidHttpResponse = HttpResponse(OK,Some(invalidIhtReferenceNoJs),Map(),None)
 
     "respond with OK if HttpResponse is correct" in {
-      when(mockDesConnector.submitRegistration(any(),any())(any())).thenReturn(Future(correctHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(OK)
     }
 
     "allow a submission to the connector and return reference number as text if HttpResponse is correct" in {
-      when(mockDesConnector.submitRegistration(any(),any())(any())).thenReturn(Future(correctHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
       val result = testRegistrationController
         .submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       contentAsString(result) should be("AAA111222")
@@ -84,19 +83,19 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
     }
 
     "respond appropriately to a failure response" in {
-      when(mockDesConnector.submitRegistration(any(),any())(any())).thenReturn(Future(invalidHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(invalidHttpResponse))
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
     "respond with ACCEPTED if 409 exception thrown by DES" in {
-      when(mockDesConnector.submitRegistration(any(),any())(any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(ACCEPTED)
     }
 
     "respond with Upstream4xxResponse if 404 exception thrown by DES" in {
-      when(mockDesConnector.submitRegistration(any(),any())(any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
       a[Upstream4xxResponse] shouldBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
