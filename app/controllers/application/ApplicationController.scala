@@ -198,24 +198,6 @@ trait ApplicationController extends BaseController with SecureStorageController 
     }
   }
 
-  private def logAuditResponse(auditResult: AuditResult, auditType: String, map: Map[String,String]) = {
-    auditResult match {
-      case AuditResult.Failure(msg, throwable) =>
-        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
-      case _ =>
-    }
-    Logger.info(s"audit event sent for $auditType of " + map)
-  }
-
-  private def logAuditResponse(auditResult: AuditResult, auditType: String, value: JsValue) = {
-    auditResult match {
-      case AuditResult.Failure(msg, throwable) =>
-        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
-      case _ =>
-    }
-    Logger.info(s"audit event sent for $auditType of " + value.toString)
-  }
-
   def handleResponseFromDesSubmission(httpResponse: HttpResponse,
                                       ad: ApplicationDetails)(implicit hc: HeaderCarrier, request: Request[_]) = {
     httpResponse.status match {
@@ -228,13 +210,10 @@ trait ApplicationController extends BaseController with SecureStorageController 
           Constants.AuditTypeIHTReference -> ad.ihtRef.getOrElse(""))
         auditService.sendEvent(Constants.AuditTypeFinalEstateValue,
           map,
-          Constants.AuditTypeIHTEstateReportSubmittedTransactionName).flatMap { auditResult =>
-          logAuditResponse(auditResult, Constants.AuditTypeFinalEstateValue, map)
-          val jsonValue = Json.toJson(ad)
+          Constants.AuditTypeIHTEstateReportSubmittedTransactionName).flatMap { auditResult =>val jsonValue = Json.toJson(ad)
           auditService.sendEvent(Constants.AuditTypeIHTEstateReportSubmitted,
             jsonValue,
             Constants.AuditTypeIHTEstateReportSubmittedTransactionName).map { auditResult =>
-            logAuditResponse(auditResult, Constants.AuditTypeIHTEstateReportSubmitted, jsonValue)
             processResponse(ad.ihtRef.get, httpResponse.body)
           }
         }

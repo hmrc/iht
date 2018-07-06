@@ -83,4 +83,9 @@ trait IntegrationSpec extends UnitSpec
     stubPost(url + "/merged", status, "audit-response")
   }
 
+  def mockGetCase(nino: String, status: Int, body: String): Unit = {
+    val url = s"/inheritance-tax/individuals/$nino/cases/"
+    stubPost(url,status, body)
+  }
+
 }

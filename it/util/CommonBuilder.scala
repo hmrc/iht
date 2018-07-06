@@ -27,6 +27,10 @@ import models.application.gifts.{AllGifts, PreviousYearsGifts}
 import models.application.tnrb.{TnrbEligibiltyModel, WidowCheck}
 import models.registration._
 import org.joda.time.LocalDate
+import uk.gov.hmrc.domain.{Generator, Nino}
+import utils.{AcknowledgementRefGenerator}
+
+import scala.util.Random
 
 object CommonBuilder {
   val DefaultId="1"
@@ -267,6 +271,81 @@ object CommonBuilder {
   )
 
   val buildWidowCheck = WidowCheck(widowed=Some(true), dateOfPreDeceased=Some(new LocalDate(2010,10,12)))
+
+  def randomNino: Nino = Nino(new Generator(new Random()).nextNino.nino)
+  val defaultNino = randomNino.toString()
+  def addSpacesToNino(nino:String) = nino.substring(0,2) + " " + nino.substring(2)
+  def replacePlaceholderNinoWithDefault(source:String) = source.replaceAll("<NINO>",CommonBuilder.DefaultNino)
+
+  val JsSampleCaseDetailsString=replacePlaceholderNinoWithDefault(AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault("""{
+                                    "acknowledgmentReference": "<ACKREF>",
+                                    "event": {
+                                      "eventType": "death",
+                                      "entryType": "Free Estate"
+                                    },
+                                    "leadExecutor": {
+                                      "firstName": "VVVTTT",
+                                      "lastName": "TTTRRR",
+                                      "gender": "Male",
+                                      "dateOfBirth": "1995-01-01",
+                                      "mainAddress": {
+                                      "addressLine1": "100, Testaddress Street",
+                                      "addressLine2": "Testline2",
+                                      "addressLine3": "Testline3",
+                                      "addressLine4": null,
+                                      "postalCode": "AA1 1AA",
+                                      "countryCode": "GB"
+                                    }
+                                    },
+                                    "deceased": {
+                                      "firstName": "Abc",
+                                      "lastName": "Xyz",
+                                      "nino": "<NINO>",
+                                      "gender": "Male",
+                                      "dateOfBirth": "1995-01-01",
+                                      "dateOfDeath": "2015-01-01",
+                                      "mainAddress": {
+                                      "addressLine1": "100, Testaddress Street",
+                                      "addressLine2": "Testline2",
+                                      "addressLine3": "Testline3",
+                                      "addressLine4": null,
+                                      "postalCode": "AA1 1AA",
+                                      "countryCode": "GB"
+                                    },
+                                      "maritalStatus": "Married or in Civil Partnership",
+                                      "domicile": "England or Wales"
+                                    },
+                                    "coExecutors": [
+                                    {
+                                      "firstName": "Aaa",
+                                      "lastName": "Bbb",
+                                      "gender": "Male",
+                                      "dateOfBirth": "1995-01-01",
+                                      "mainAddress": {
+                                        "addressLine1": "100, Testaddress Street",
+                                        "addressLine2": "Testline2",
+                                        "addressLine3": "Testline3",
+                                        "addressLine4": null,
+                                        "postalCode": "AA1 1AA",
+                                        "countryCode": "GB"
+                                      }
+                                    },
+                                    {
+                                      "firstName": "Xxx",
+                                      "lastName": "Yyy",
+                                      "gender": "Male",
+                                      "dateOfBirth": "1995-01-01",
+                                      "mainAddress": {
+                                        "addressLine1": "100, Testaddress Street",
+                                        "addressLine2": "Testline2",
+                                        "addressLine3": "Testline3",
+                                        "addressLine4": null,
+                                        "postalCode": "AA1 1AA",
+                                        "countryCode": "GB"
+                                      }
+                                    }
+                                    ]
+                                 }"""))
 
   val buildIncreaseIhtThreshold = TnrbEligibiltyModel(
     isPartnerLivingInUk= Some(true),

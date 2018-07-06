@@ -34,6 +34,7 @@ import models.enums._
 import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import utils.exception.DESInternalServerError
 
 /**
   * Created by yasar on 2/5/15.
@@ -77,28 +78,13 @@ trait RegistrationController extends BaseController {
       Logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       Future.failed(new Upstream4xxResponse(e.message, NOT_FOUND, NOT_FOUND))
+    case e: DESInternalServerError =>
+      metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
+      throw e
     case e: Exception =>
       Logger.info("Exception Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       Future.failed(new Exception(e.getMessage))
-  }
-
-  private def logAuditResponse(auditResult: AuditResult, auditType: String, map: Map[String, String]) = {
-    auditResult match {
-      case AuditResult.Failure(msg, throwable) =>
-        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
-      case _ =>
-    }
-    Logger.info(s"audit event sent for $auditType of " + map)
-  }
-
-  private def logAuditResponse(auditResult: AuditResult, auditType: String, value: JsValue) = {
-    auditResult match {
-      case AuditResult.Failure(msg, throwable) =>
-        Logger.warn("AuditResult is " + msg + ":-\n" + throwable.toString)
-      case _ =>
-    }
-    Logger.info(s"audit event sent for $auditType of " + value.toString)
   }
 
   def submit(nino: String): Action[JsValue] = Action.async(parse.json) {
@@ -118,7 +104,6 @@ trait RegistrationController extends BaseController {
                 auditService.sendEvent(Constants.AuditTypeIHTRegistrationSubmitted,
                   jsonValue,
                   Constants.AuditTypeIHTRegistrationSubmittedTransactionName).map { auditResult =>
-                  logAuditResponse(auditResult, Constants.AuditTypeIHTRegistrationSubmitted, jsonValue)
                   Logger.debug("http response status code " + httpResponse.status)
                   Logger.debug("Response " + Json.prettyPrint(httpResponse.json))
                   Ok(ihtRef)

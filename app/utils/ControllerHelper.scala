@@ -121,6 +121,8 @@ object ControllerHelper {
       }
     }
 
+    Logger.error(pr.toString)
+
     sb.append("JSON:-\n")
     sb.append(Json.prettyPrint(desJson))
     InternalServerError("JSON validation against schema failed")
