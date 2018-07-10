@@ -31,7 +31,7 @@ class ApplicationGlobalTest extends UnitSpec with WithFakeApplication with Mocki
       val exception = DESInternalServerError(new Exception("a generic application exception"))
       val result = ApplicationGlobal.onError(requestHeader, exception)
 
-      status(result) shouldBe 500
+      status(result) shouldBe 502
     }
   }
 }

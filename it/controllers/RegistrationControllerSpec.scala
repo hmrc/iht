@@ -1,6 +1,6 @@
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{getRequestedFor, urlPathMatching, verify}
+import com.github.tomakehurst.wiremock.client.WireMock.{getRequestedFor, postRequestedFor, urlPathMatching, verify}
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
@@ -24,7 +24,6 @@ class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient 
         mockGetCase(nino,  200, """{"referenceNumber":"AAA111222"}""")
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
-        //verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
 
         result.status shouldBe 200
         result.body shouldBe "AAA111222"
@@ -40,9 +39,8 @@ class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient 
         mockGetCase(nino,  500, """{"referenceNumber":"AAA111222"}""")
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
-        //verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
 
-        result.status shouldBe 500
+        result.status shouldBe 502
         result.body shouldBe "500 response returned from DES"
       }
 
@@ -55,7 +53,6 @@ class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient 
         mockGetCase(nino,  503, """{"referenceNumber":"AAA111222"}""")
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
-        //verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
 
         result.status shouldBe 502
         result.body shouldBe "{\"statusCode\":502,\"message\":\"POST of 'http://localhost:11111/inheritance-tax/individuals/AA123456A/cases/' returned 503. Response body: '{\\\"referenceNumber\\\":\\\"AAA111222\\\"}'\"}"

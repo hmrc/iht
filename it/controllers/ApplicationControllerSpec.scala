@@ -56,7 +56,7 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
-        result.status shouldBe 500
+        result.status shouldBe 502
         result.body shouldBe "500 response returned from DES"
       }
 
@@ -119,7 +119,7 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
           .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
-        result.status shouldBe 500
+        result.status shouldBe 502
         result.body shouldBe "500 response returned from DES"
       }
     }

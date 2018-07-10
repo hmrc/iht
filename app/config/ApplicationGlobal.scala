@@ -75,7 +75,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
     ex match {
       case DESInternalServerError(cause) =>
         Logger.warn("500 response returned from DES", cause)
-        Future.successful(InternalServerError("500 response returned from DES"))
+        Future.successful(BadGateway("500 response returned from DES"))
       case _ => super.onError(request, ex)
     }
     
