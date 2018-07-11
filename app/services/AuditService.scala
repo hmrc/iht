@@ -75,7 +75,6 @@ trait AuditService extends HttpAuditing {
       tags = tags(transactionName),
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC))
-    Logger.info("Sending data event to audit: " + event)
     auditConnector.sendEvent(event)
   }
 
@@ -90,7 +89,6 @@ trait AuditService extends HttpAuditing {
       detail = detail,
       generatedAt = DateTime.now(DateTimeZone.UTC)
     )
-    Logger.info("Sending extended data event to audit: " + event)
     auditConnector.sendExtendedEvent(event)
   }
 

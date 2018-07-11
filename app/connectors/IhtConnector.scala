@@ -36,6 +36,7 @@ import scala.util.Failure
 import scala.util.Success
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
+import utils.exception.{DESInternalServerError}
 
 trait IhtConnector {
 
@@ -82,6 +83,10 @@ trait IhtConnector {
         Future.failed(throw e)
       }
     }
+  }
+
+  implicit val readApiResponse: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
+    def read(method: String, url: String, response: HttpResponse) = IhtResponseHandler.handleIhtResponse(method, url, response)
   }
 
   def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
@@ -224,4 +229,15 @@ object IhtConnector extends IhtConnector with ServicesConfig {
   override val urlHeaderAuthorization = s"Bearer ${getOrException(config("iht").getString("des.authorization-key"))}"
 
   override def metrics: Metrics = Metrics
+}
+
+object IhtResponseHandler extends IhtResponseHandler
+
+trait IhtResponseHandler extends HttpErrorFunctions {
+  def handleIhtResponse(method: String, url: String, response: HttpResponse): HttpResponse = {
+    response.status match {
+      case 500 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, "Returned 500"), response.status, 502))
+      case _ => handleResponse(method, url)(response)
+    }
+  }
 }
