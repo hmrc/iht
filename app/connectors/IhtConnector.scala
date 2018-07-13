@@ -236,7 +236,7 @@ object IhtResponseHandler extends IhtResponseHandler
 trait IhtResponseHandler extends HttpErrorFunctions {
   def handleIhtResponse(method: String, url: String, response: HttpResponse): HttpResponse = {
     response.status match {
-      case 500 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, "Returned 500"), response.status, 502))
+      case 500 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
       case _ => handleResponse(method, url)(response)
     }
   }
