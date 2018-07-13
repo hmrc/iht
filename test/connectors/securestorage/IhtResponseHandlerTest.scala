@@ -34,7 +34,7 @@ class IhtResponseHandlerTest extends UnitSpec with MockitoSugar {
     "return DESInternalServerError when status is 500" in {
       val response = HttpResponse(500)
       def result(): HttpResponse = IhtResponseHandler.handleIhtResponse("test method", "test url", response)
-      val expectedException = DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage("test method", "test url", response.status, "Returned 500"), response.status, 502))
+      val expectedException = DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage("test method", "test url", response.status, response.body), response.status, 502))
 
       the[DESInternalServerError] thrownBy result shouldBe expectedException
     }
