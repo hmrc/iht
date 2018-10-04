@@ -62,7 +62,7 @@ object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilte
 object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
   override val auditConnector = ApplicationAuditConnector
 
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig(s"$env.microservice.metrics")
+  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
 
   override val loggingFilter = MicroserviceLoggingFilter
 
@@ -86,8 +86,8 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
     val conf = app.configuration
 
     val secureStorage : SecureStorage = {
-      val platformKey = conf.getString(s"$env.securestorage.platformkey").getOrElse {
-        throw new RuntimeException(s"$env.securestorage.platformkey is not defined")
+      val platformKey = conf.getString("securestorage.platformkey").getOrElse {
+        throw new RuntimeException("securestorage.platformkey is not defined")
       }
       if (platformKey == "LOCALKEY") {
         Logger.info("Secure storage key is LOCALKEY")
@@ -95,8 +95,8 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
         Logger.info("Secure storage key is NOT LOCALKEY")
       }
 
-      val host = conf.getString(s"$env.securestorage.host").getOrElse("localhost")
-      val dbName = conf.getString(s"$env.securestorage.dbname").getOrElse("securestorage")
+      val host = conf.getString("securestorage.host").getOrElse("localhost")
+      val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
       val conn = driver.connection(host.split(","))
       val db = conn(dbName)
 
@@ -109,7 +109,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
     val cleanerActor: Cancellable = {
 
       val maxDuration : org.joda.time.Period =
-        conf.getString(s"$env.securestorage.maxDuration").
+        conf.getString("securestorage.maxDuration").
           map{
           stringToPeriod
         }.getOrElse{
@@ -118,7 +118,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
         }
 
       val cleanerRunInterval : FiniteDuration =
-        conf.getString(s"$env.securestorage.cleanerRunInterval").
+        conf.getString("securestorage.cleanerRunInterval").
           map{stringToFDuration}.getOrElse(1 hour)
 
       val cleaner = Akka.system.actorOf(Props{
