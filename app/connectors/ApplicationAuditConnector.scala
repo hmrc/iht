@@ -21,5 +21,5 @@ import uk.gov.hmrc.play.config.RunMode
 import uk.gov.hmrc.play.microservice.config.LoadAuditingConfig
 
 object ApplicationAuditConnector extends AuditConnector with RunMode {
-  override lazy val auditingConfig = LoadAuditingConfig(s"$env.auditing")
+  override lazy val auditingConfig = LoadAuditingConfig("auditing")
 }
