@@ -30,8 +30,9 @@ import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
 import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
-import utils.exception.{DESInternalServerError}
+import utils.exception.DESInternalServerError
 import play.api.mvc.Results._
+import reactivemongo.api.MongoConnectionOptions
 
 import scala.concurrent.Future
 import scala.concurrent.duration._
@@ -97,7 +98,7 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
 
       val host = conf.getString("securestorage.host").getOrElse("localhost")
       val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
-      val conn = driver.connection(host.split(","))
+      val conn = driver.connection(host.split(","), MongoConnectionOptions(sslEnabled = true))
       val db = conn(dbName)
 
       TypedActor(Akka.system).typedActorOf(TypedProps(
