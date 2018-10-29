@@ -87,18 +87,17 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
     val conf = app.configuration
 
     val secureStorage : SecureStorage = {
-      val platformKey = conf.getString("securestorage.platformkey").getOrElse {
-        throw new RuntimeException("securestorage.platformkey is not defined")
-      }
-      if (platformKey == "LOCALKEY") {
-        Logger.info("Secure storage key is LOCALKEY")
-      }else {
-        Logger.info("Secure storage key is NOT LOCALKEY")
-      }
+      val platformKey = conf.getString("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
+
+      if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
 
       val host = conf.getString("securestorage.host").getOrElse("localhost")
       val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
-      val conn = driver.connection(host.split(","), MongoConnectionOptions(sslEnabled = true))
+      val (nodes, ssl) = host.split('?').toList match {
+        case h :: t   => h -> t.contains("sslEnabled=true")
+        case h :: Nil => h -> false
+      }
+      val conn = driver.connection(nodes.split(","), MongoConnectionOptions(sslEnabled = ssl))
       val db = conn(dbName)
 
       TypedActor(Akka.system).typedActorOf(TypedProps(
