@@ -28,12 +28,12 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "uk.gov.hmrc" %% "play-reactivemongo" % "6.2.0",
+    "org.reactivemongo" %% "reactivemongo" % "0.15.1" force(),
     ws,
-    "uk.gov.hmrc" %% "microservice-bootstrap" % "8.3.0",
-    "uk.gov.hmrc" %% "play-scheduling" % "4.1.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "7.1.0",
-    "uk.gov.hmrc" %% "domain" % "5.2.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.7.0",
+    "uk.gov.hmrc" %% "play-scheduling" % "5.4.0",
+    "uk.gov.hmrc" %% "http-caching-client" % "8.0.0",
+    "uk.gov.hmrc" %% "domain" % "5.3.0",
     "com.github.fge" % "json-schema-validator" % "2.2.6"
   )
 
@@ -45,8 +45,8 @@ private object AppDependencies {
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % "3.1.0" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "3.1.0" % scope,
+        "uk.gov.hmrc" %% "reactivemongo-test" % "4.4.0-play-25" % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "3.4.0-play-25" % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
         "org.scalacheck" %% "scalacheck" % "1.13.4" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
@@ -62,8 +62,8 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val scope: String = "it"
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % "2.0.0" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "3.0.0" % scope,
+        "uk.gov.hmrc" %% "reactivemongo-test" % "4.4.0-play-25" % scope,
+        "uk.gov.hmrc" %% "hmrctest" % "3.4.0-play-25" % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
         "org.pegdown" % "pegdown" % "1.4.2" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope,

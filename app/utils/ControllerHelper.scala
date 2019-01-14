@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ package utils
 
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.github.fge.jsonschema.core.report.{ProcessingMessage, ProcessingReport}
+import metrics.MicroserviceMetrics
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import uk.gov.hmrc.play.http._
-import metrics.Metrics
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -37,8 +37,8 @@ import utils.exception.DESInternalServerError
  *
  */
 //scalastyle:off magic.number
-object ControllerHelper {
-    def metrics: Metrics = Metrics
+trait ControllerHelper {
+    def metrics: MicroserviceMetrics
 
     val desErrorCode502 = "des_error_code_502"
     val desErrorCode503 = "des_error_code_503"

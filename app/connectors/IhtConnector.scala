@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,35 @@
 
 package connectors
 
-import config.wiring.WSHttp
 import constants.Constants
-import metrics.Metrics
-import play.api.libs.json.{JsValue, Json, Writes}
-import services.AuditService
-import uk.gov.hmrc.play.config.ServicesConfig
-import uk.gov.hmrc.play.http._
-import play.api.Logger
-import play.api.mvc.{Action, Request}
-
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import models.enums._
 import constants.Constants._
-import utils.CommonHelper._
-
-import scala.util.Failure
-import scala.util.Success
+import javax.inject.Inject
+import metrics.MicroserviceMetrics
+import models.enums._
+import play.api.libs.json.JsValue
+import play.api.mvc.Request
+import play.api.{Configuration, Environment, Logger, Play}
+import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
-import utils.exception.{DESInternalServerError}
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.play.config.ServicesConfig
+import utils.CommonHelper._
+import utils.exception.DESInternalServerError
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 trait IhtConnector {
 
   val serviceURL: String
   val urlHeaderEnvironment: String
   val urlHeaderAuthorization: String
-  val http: HttpGet with HttpPost = WSHttp
+  val http: HttpClient
+  val auditService: AuditService
 
-  def metrics: Metrics
+  def metrics: MicroserviceMetrics
 
   private def createHeaderCarrier = HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment),
     authorization = Some(Authorization(urlHeaderAuthorization)))
@@ -71,7 +70,7 @@ trait IhtConnector {
     futureResponse.map {
       response => {
         Logger.info("Received response from DES")
-        AuditService.auditRequestWithResponse(urlToRead, "POST", Some(registrationJs), futureResponse)
+        auditService.auditRequestWithResponse(urlToRead, "POST", Some(registrationJs), futureResponse)
         timerContext.stop()
         response
       }
@@ -101,7 +100,7 @@ trait IhtConnector {
     futureResponse map {
       response => {
         Logger.info("Received response from DES")
-        AuditService.auditRequestWithResponse(urlToRead, "POST", Some(applicationJs), futureResponse)
+        auditService.auditRequestWithResponse(urlToRead, "POST", Some(applicationJs), futureResponse)
         timerContext.stop()
         response
       }
@@ -214,7 +213,7 @@ trait IhtConnector {
 
     responseToAudit.onComplete[Any] {
       case Failure(t) => {
-        AuditService.sendSubmissionFailureEvent(Map(keys("request") -> requestJs.toString(),
+        auditService.sendSubmissionFailureEvent(Map(keys("request") -> requestJs.toString(),
           keys("response") -> t.getMessage), transactionName)
       }
       case Success(_) =>
@@ -223,12 +222,15 @@ trait IhtConnector {
 
 }
 
-object IhtConnector extends IhtConnector with ServicesConfig {
+class IhtConnectorImpl @Inject()(val metrics: MicroserviceMetrics,
+                                 val http: HttpClient,
+                                 val auditService: AuditService,
+                                 env: Environment,
+                                 val runModeConfiguration: Configuration) extends IhtConnector with ServicesConfig {
+  override val mode = env.mode
   override val serviceURL = baseUrl("iht")
   override val urlHeaderEnvironment = getOrException(config("iht").getString("des.environment"))
   override val urlHeaderAuthorization = s"Bearer ${getOrException(config("iht").getString("des.authorization-key"))}"
-
-  override def metrics: Metrics = Metrics
 }
 
 object IhtResponseHandler extends IhtResponseHandler
@@ -236,7 +238,7 @@ object IhtResponseHandler extends IhtResponseHandler
 trait IhtResponseHandler extends HttpErrorFunctions {
   def handleIhtResponse(method: String, url: String, response: HttpResponse): HttpResponse = {
     response.status match {
-      case 500 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
+      case 500 | 503 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
       case _ => handleResponse(method, url)(response)
     }
   }

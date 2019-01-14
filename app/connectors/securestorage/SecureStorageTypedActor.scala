@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 package connectors.securestorage
 
 import akka.actor.TypedActor
+
 import scala.concurrent._
-
-
 import org.joda.time.DateTime
 import play.api.libs.json.{JsValue, Json}
 import reactivemongo.api.DefaultDB
 import reactivemongo.bson._
 import play.api.libs.json._
+import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.BSONDocument
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
@@ -40,15 +40,13 @@ class SecureStorageTypedActor(
   @transient val platformKey : String,
   val db : DefaultDB
 ) extends SecureStorage with AESEncryption {
-  implicit val ec : ExecutionContext = TypedActor.dispatcher
+//  implicit val ec : ExecutionContext = TypedActor.dispatcher
 
-  val collection = db(this.getClass.getSimpleName)
+  val collection: BSONCollection = db.collection(this.getClass.getSimpleName)
 
-  private def getBson(id: String) = collection.find(
-    BSONDocument("id" -> id)
-  ).cursor[BSONDocument].headOption
+  private def getBson(id: String)(implicit ec: ExecutionContext) = collection.find(BSONDocument("id" -> id)).one[BSONDocument]
 
-  def getAsync(id: String, key: String): Future[JsValue] = {
+  def getAsync(id: String, key: String)(implicit ec: ExecutionContext): Future[JsValue] = {
     getBson(id).flatMap {
       _ match {
         case Some(bson) => Future{
@@ -66,7 +64,7 @@ class SecureStorageTypedActor(
     }
   }
 
-  def updateAsync(id: String, key: String, v: JsValue) : Future[Any] = {
+  def updateAsync(id: String, key: String, v: JsValue)(implicit ec: ExecutionContext) : Future[Any] = {
     val date = new org.joda.time.DateTime
     collection.update(
       selector = BSONDocument("id" -> id),
@@ -84,7 +82,7 @@ class SecureStorageTypedActor(
     )
   }
 
-  def clean(olderThan : DateTime) {
+  def clean(olderThan : DateTime)(implicit ec: ExecutionContext) {
     collection.remove(
       BSONDocument("createdOn" -> BSONDocument(
         "$lt" -> BSONDateTime(olderThan.getMillis)
@@ -93,7 +91,7 @@ class SecureStorageTypedActor(
   }
 
   //scalastyle:off method.name
-  def -(id : String) : Future[Any] = {
+  def -(id : String)(implicit ec: ExecutionContext) : Future[Any] = {
     collection.remove(
       BSONDocument("id" -> id),
       firstMatchOnly=false

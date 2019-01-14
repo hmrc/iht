@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,39 +19,36 @@ package controllers.estateReports
 import com.github.fge.jsonschema.core.report.ProcessingReport
 import constants.Constants
 import json.JsonValidator
-import metrics.Metrics
+import metrics.MicroserviceMetrics
 import connectors.IhtConnector
 import models.application.IhtApplication
 import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
 import play.api.mvc.Action
-import uk.gov.hmrc.play.microservice.controller.BaseController
 import play.api.libs.json._
-import utils.ControllerHelper._
-import utils._
+import utils.ControllerHelper
 import play.api.Logger
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import RegistrationDetails.registrationDetailsReads
+import javax.inject.Inject
 import models.enums._
-
 import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse}
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
 
 /**
  * Created by jon on 19/06/15.
  */
-object YourEstateReportsController extends YourEstateReportsController {
-  val ihtConnector = IhtConnector
-  def metrics: Metrics = Metrics
-}
+class YourEstateReportsControllerImpl @Inject()(val metrics: MicroserviceMetrics,
+                                                val ihtConnector: IhtConnector) extends YourEstateReportsController
 
-trait YourEstateReportsController extends BaseController {
+trait YourEstateReportsController extends BaseController with ControllerHelper {
   val ihtConnector: IhtConnector
-  def metrics: Metrics
+  val metrics: MicroserviceMetrics
 
   def listCases(nino: String) = Action.async {
-    implicit request => ControllerHelper.exceptionCheckForResponses ({
+    implicit request => exceptionCheckForResponses ({
       ihtConnector.getCaseList(nino).map {
         httpResponse => httpResponse.status match {
           case OK => {
@@ -138,7 +135,7 @@ trait YourEstateReportsController extends BaseController {
   */
   def caseDetails(nino:String,ihtReference:String) = Action.async {
 
-    implicit request => ControllerHelper.exceptionCheckForResponses ({
+    implicit request => exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
       httpResponse => httpResponse.status match {
         case OK => {

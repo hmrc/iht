@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,28 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
-import metrics.Metrics
+import metrics.MicroserviceMetrics
 import models.enums._
 import models.registration.RegistrationDetails
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonHelper._
-import utils.{FakeIhtApp, TestHelper}
+import utils.TestHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
 
-class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
+class YourEstateReportsControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
+  val mockMetrics: MicroserviceMetrics = mock[MicroserviceMetrics]
   val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR,None,Map(),None)
   val badRequestHttpResponse = HttpResponse(BAD_REQUEST,None,Map(),None)
   val noListHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)
@@ -51,9 +53,15 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
   implicit val request = FakeRequest()
   implicit val hc = new HeaderCarrier
 
+  override def beforeEach(): Unit = {
+    reset(mockDesConnector)
+    reset(mockMetrics)
+    super.beforeEach()
+  }
+
   def ihtHomeController = new YourEstateReportsController {
     override val ihtConnector = mockDesConnector
-    override def metrics: Metrics = Metrics
+    override val metrics: MicroserviceMetrics = mockMetrics
   }
 
   "Respond appropriately to a failure response" in {
@@ -72,7 +80,7 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
     when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn((Future(successHttpResponse)))
     val result = ihtHomeController.listCases("")(request)
     status(result) should be(OK)
-    assert(Metrics.successCounters(Api.GET_CASE_LIST).getCount>0, "Success counter for Get Case List Api is more than one")
+    verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_CASE_LIST)
   }
 
   "Respond with OK on successful return of a list when no NINO passed back" in {
@@ -97,7 +105,7 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
     when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn(Future(successHttpResponseForCaseDetails))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(OK)
-    assert(Metrics.successCounters(Api.GET_CASE_DETAILS).getCount>0, "Success counter for Get Case Details Api is more than one")
+    verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_CASE_DETAILS)
   }
 
   "Respond with OK on successful return of Case Details when post code" +
@@ -105,7 +113,7 @@ class YourEstateReportsControllerTest extends UnitSpec with FakeIhtApp with Mock
     when(mockDesConnector.getCaseDetails(ArgumentMatchers.any(),ArgumentMatchers.any())).thenReturn(Future(successHttpResponseForCaseDetailsWithPostCodeNull))
     val result = ihtHomeController.caseDetails("","")(request)
     status(result) should be(OK)
-    assert(Metrics.successCounters(Api.GET_CASE_DETAILS).getCount>0, "Success counter for Get Case Details Api is more than one")
+    verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_CASE_DETAILS)
   }
 
   "Check the Custom Read function while Json.fromJson" in {

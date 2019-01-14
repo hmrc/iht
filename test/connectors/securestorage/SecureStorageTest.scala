@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,19 @@
 package connectors.securestorage
 
 import org.scalatest._
-
 import play.api.libs.json._
 import akka.actor._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalacheck._
 import org.scalacheck.Shrink._
 import com.typesafe.config._
+import org.scalatest.concurrent.ScalaFutures
+
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
-trait SecureStorageBehaviours extends org.scalatest.prop.Checkers {
+trait SecureStorageBehaviours extends org.scalatest.prop.Checkers with ScalaFutures {
   this: FlatSpec =>
 
   import org.scalacheck.Prop
@@ -160,7 +163,7 @@ with SecureStorageBehaviours with BeforeAndAfter {
 
   val driver = new reactivemongo.api.MongoDriver
   val conn = driver.connection(Seq("localhost"))
-  val db = conn("securestoragetest")
+  val db = Await.result(conn.database("securestoragetest"), 5 seconds)
 
   val actor: SecureStorage =
     TypedActor(system).typedActorOf(TypedProps(classOf[SecureStorage],

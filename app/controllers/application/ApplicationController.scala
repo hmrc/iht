@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package controllers.application
 
-import config.wiring.MicroserviceAuditConnector
+import config.ApplicationGlobal
 import connectors.IhtConnector
 import connectors.securestorage.SecureStorageController
 import constants.{AssetDetails, Constants}
+import javax.inject.Inject
 import json.JsonValidator
-import metrics.Metrics
+import metrics.MicroserviceMetrics
 import models.application.ProbateDetails._
 import models.application.{ApplicationDetails, ClearanceRequest, ProbateDetails}
 import models.des.IHTReturn
@@ -32,9 +33,8 @@ import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc.{Action, Request}
 import services.AuditService
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import utils.ControllerHelper._
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -45,31 +45,26 @@ import scala.util.{Failure, Success, Try}
   * Created by vineet on 06/07/17.
   */
 
-object ApplicationController extends ApplicationController {
-  lazy val desConnector = IhtConnector
+class ApplicationControllerImpl @Inject()(val ihtConnector: IhtConnector,
+                                          val metrics: MicroserviceMetrics,
+                                          val registrationHelper: RegistrationHelper,
+                                          val auditService: AuditService,
+                                          val appGlobal: ApplicationGlobal) extends ApplicationController {
   lazy val jsonValidator = JsonValidator
-  lazy val registrationHelper = RegistrationHelper
-
-  def metrics: Metrics = Metrics
-
-  def auditService = AuditService
 }
 
-trait ApplicationController extends BaseController with SecureStorageController {
+trait ApplicationController extends BaseController with SecureStorageController with ControllerHelper {
 
   import com.github.fge.jsonschema.core.report.ProcessingReport
-
-  def desConnector: IhtConnector
 
   def jsonValidator: JsonValidator
 
   def registrationHelper: RegistrationHelper
 
-  def metrics: Metrics
-
-  def auditConnector: AuditConnector = MicroserviceAuditConnector
-
   def auditService: AuditService
+
+  val ihtConnector: IhtConnector
+  val metrics: MicroserviceMetrics
 
   /**
     * Save application details to secure storage using the IHT reference as the cache ID.
@@ -95,6 +90,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
             }
           } catch {
             case e: Exception => {
+              println(e.getMessage)
               Logger.info("Failed to get a return from Secure Storage")
               Future.successful(InternalServerError)
             }
@@ -130,7 +126,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
     */
   def getRealtimeRiskingMessage(ihtAppReference: String, nino: String) = Action.async {
     implicit request =>
-      ControllerHelper.exceptionCheckForResponses({
+      exceptionCheckForResponses({
         registrationHelper.getRegistrationDetails(nino, ihtAppReference) match {
           case None =>
             Future.successful(InternalServerError("No registration details found"))
@@ -143,7 +139,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
             val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathRealTimeRisking)
             if (pr.isSuccess) {
               Logger.info("Request Validated")
-              desConnector.submitRealtimeRisking(rd.ihtReference.getOrElse(""),
+              ihtConnector.submitRealtimeRisking(rd.ihtReference.getOrElse(""),
                 ri.acknowledgementReference.getOrElse(""),
                 desJson).map {
                 httpResponse =>
@@ -210,10 +206,10 @@ trait ApplicationController extends BaseController with SecureStorageController 
           Constants.AuditTypeIHTReference -> ad.ihtRef.getOrElse(""))
         auditService.sendEvent(Constants.AuditTypeFinalEstateValue,
           map,
-          Constants.AuditTypeIHTEstateReportSubmittedTransactionName).flatMap { auditResult =>val jsonValue = Json.toJson(ad)
+          Constants.AuditTypeIHTEstateReportSubmittedTransactionName).flatMap { _ => val jsonValue = Json.toJson(ad)
           auditService.sendEvent(Constants.AuditTypeIHTEstateReportSubmitted,
             jsonValue,
-            Constants.AuditTypeIHTEstateReportSubmittedTransactionName).map { auditResult =>
+            Constants.AuditTypeIHTEstateReportSubmittedTransactionName).map { _ =>
             processResponse(ad.ihtRef.get, httpResponse.body)
           }
         }
@@ -225,7 +221,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
 
   def submit(ihtAppReference: String, nino: String) = Action.async(parse.json) {
     implicit request =>
-      ControllerHelper.exceptionCheckForResponses({
+      exceptionCheckForResponses({
         Try(request.body.as[ApplicationDetails]) match {
           case Success(ad) =>
             import org.joda.time.LocalDateTime
@@ -251,9 +247,10 @@ trait ApplicationController extends BaseController with SecureStorageController 
                 val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
                 if (pr.isSuccess) {
                   Logger.info("DES Json successfully validated")
-                  desConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson).flatMap {
-                    httpResponse => handleResponseFromDesSubmission(httpResponse, ad)
-                  }
+                  for {
+                    httpResponse <- ihtConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson)
+                    result <- handleResponseFromDesSubmission(httpResponse, ad)
+                  } yield result
                 } else {
                   Future(processJsonValidationError(pr, desJson))
                 }
@@ -300,14 +297,14 @@ trait ApplicationController extends BaseController with SecureStorageController 
 
   def requestClearance(nino: String, ihtReference: String) = Action.async {
     implicit request =>
-      ControllerHelper.exceptionCheckForResponses({
+      exceptionCheckForResponses({
         val desJson = Json.toJson(ClearanceRequest(AcknowledgementRefGenerator.getUUID))
         val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
         Logger.info("Clearance Request Json for DES has been validated successfully")
 
         if (pr.isSuccess) {
           Logger.debug("Request Clearance Validated")
-          desConnector.requestClearance(nino, ihtReference, desJson).map {
+          ihtConnector.requestClearance(nino, ihtReference, desJson).map {
             httpResponse =>
               httpResponse.status match {
                 case OK =>
@@ -330,8 +327,8 @@ trait ApplicationController extends BaseController with SecureStorageController 
   def getProbateDetails(nino: String, ihtReference: String,
                         ihtReturnId: String) = Action.async {
     implicit request =>
-      ControllerHelper.exceptionCheckForResponses({
-        desConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
+      exceptionCheckForResponses({
+        ihtConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
           httpResponse =>
             httpResponse.status match {
               case OK =>
@@ -373,7 +370,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
 
   def getSubmittedApplicationDetails(nino: String, ihtReference: String, returnId: String) = Action.async {
     implicit request =>
-      desConnector.getSubmittedApplicationDetails(nino, ihtReference, returnId).map {
+      ihtConnector.getSubmittedApplicationDetails(nino, ihtReference, returnId).map {
         httpResponse =>
           httpResponse.status match {
             case OK =>

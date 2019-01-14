@@ -23,6 +23,7 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
+import reactivemongo.api.{AuthenticationMode, MongoConnectionOptions}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.test.UnitSpec
 

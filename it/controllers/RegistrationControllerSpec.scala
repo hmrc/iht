@@ -41,7 +41,7 @@ class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
 
         result.status shouldBe 502
-        result.body shouldBe "500 response returned from DES"
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "getCase has a 503 status" in {
@@ -55,7 +55,7 @@ class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
 
         result.status shouldBe 502
-        result.body shouldBe "{\"statusCode\":502,\"message\":\"POST of 'http://localhost:11111/inheritance-tax/individuals/AA123456A/cases/' returned 503. Response body: '{\\\"referenceNumber\\\":\\\"AAA111222\\\"}'\"}"
+        result.body shouldBe "500 or 503 response returned from DES"
       }
     }
   }

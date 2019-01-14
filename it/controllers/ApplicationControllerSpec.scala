@@ -1,13 +1,10 @@
 package controllers
 
-import models.application.ApplicationDetails
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import util.{IntegrationSpec, TestData}
-import util.CommonBuilder
-import com.github.tomakehurst.wiremock.client.WireMock._
-import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import util.{CommonBuilder, IntegrationSpec, TestData}
 
 class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
 
@@ -22,15 +19,11 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val reference = "A0000A0000A0000"
         val nino = "AA123456A"
 
-        mockAuth(nino, 200)
-
         mockGetCaseDetails(nino, reference, 200, TestData.validGetCaseDetails(nino, reference))
-
         mockIndividualsReturn(nino, reference, 200, TestData.successfulSubmissionResponse)
 
-        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+        val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
-        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
           .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
@@ -44,40 +37,32 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val reference = "A0000A0000A0000"
         val nino = "AA123456A"
 
-        mockAuth(nino, 200)
-
         mockGetCaseDetails(nino, reference, 500, TestData.validGetCaseDetails(nino, reference))
-
         mockIndividualsReturn(nino, reference, 200, TestData.successfulSubmissionResponse)
 
-        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+        val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
-        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
         result.status shouldBe 502
-        result.body shouldBe "500 response returned from DES"
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "getCaseDetails has a 503 status" in {
         val reference = "A0000A0000A0000"
         val nino = "AA123456A"
 
-        mockAuth(nino, 200)
-
         mockGetCaseDetails(nino, reference, 503, TestData.validGetCaseDetails(nino, reference))
-
         mockIndividualsReturn(nino, reference, 200, TestData.successfulSubmissionResponse)
 
-        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+        val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
-        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
         result.status shouldBe 502
-        result.body shouldBe TestData.invalidResultBodyGetCase
+        result.body shouldBe "500 or 503 response returned from DES"
 
       }
 
@@ -85,42 +70,34 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val reference = "A0000A0000A0000"
         val nino = "AA123456A"
 
-        mockAuth(nino, 200)
-
         mockGetCaseDetails(nino, reference, 200, TestData.validGetCaseDetails(nino, reference))
-
         mockIndividualsReturn(nino, reference, 503, TestData.successfulSubmissionResponse)
 
-        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+        val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
-        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
           .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
         result.status shouldBe 502
-        result.body shouldBe TestData.invalidResultBodyIndividualReturn
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "individualReturn has a 500 status" in {
         val reference = "A0000A0000A0000"
         val nino = "AA123456A"
 
-        mockAuth(nino, 200)
-
         mockGetCaseDetails(nino, reference, 200, TestData.validGetCaseDetails(nino, reference))
-
         mockIndividualsReturn(nino, reference, 500, TestData.successfulSubmissionResponse)
 
-        val result = await(wsCall(controllers.application.routes.ApplicationController.submit(reference, nino)).post(requestBody))
+        val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
-        verify(getRequestedFor(urlPathMatching(s"/authorise/write/iht/$nino")))
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
           .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
         result.status shouldBe 502
-        result.body shouldBe "500 response returned from DES"
+        result.body shouldBe "500 or 503 response returned from DES"
       }
     }
   }

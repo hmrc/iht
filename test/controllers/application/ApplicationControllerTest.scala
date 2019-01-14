@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,12 @@ package controllers.application
 
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.core.report.ProcessingReport
+import config.ApplicationGlobal
 import connectors._
 import connectors.securestorage.SecureStorage
 import constants.Constants
 import json.JsonValidator
-import metrics.Metrics
+import metrics.MicroserviceMetrics
 import models.application.ProbateDetails.probateDetailsReads
 import models.application.basicElements.BasicEstateElement
 import models.application.exemptions.{Charity, QualifyingBody}
@@ -32,8 +33,8 @@ import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.BeforeAndAfter
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
@@ -42,11 +43,12 @@ import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.test.UnitSpec
 import utils._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
-class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfter {
+class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfterEach {
 
   implicit val headerCarrier = FakeHeaders()
   implicit val request = FakeRequest()
@@ -60,32 +62,41 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   val mockRegistrationHelper: RegistrationHelper = mock[RegistrationHelper]
   val mockSecureStorage: SecureStorage = mock[SecureStorage]
   var mockAuditService: AuditService = mock[AuditService]
+  val mockMetrics: MicroserviceMetrics = mock[MicroserviceMetrics]
+  val mockProcessingReport = mock[ProcessingReport]
+  val mockAppGlobal = mock[ApplicationGlobal]
 
-  before {
-    mockAuditService = mock[AuditService]
+  override def beforeEach(): Unit = {
+    reset(mockDesConnector)
+    reset(mockJsonValidator)
+    reset(mockRegistrationHelper)
+    reset(mockSecureStorage)
+    reset(mockAuditService)
+    reset(mockDesConnector)
+    reset(mockProcessingReport)
+    reset(mockMetrics)
+    reset(mockAppGlobal)
+    super.beforeEach()
   }
 
   def applicationController = new ApplicationController {
-
-    override val desConnector = mockDesConnector
+    override val ihtConnector: IhtConnector = mockDesConnector
     override val jsonValidator = JsonValidator
-    override val registrationHelper = mockRegistrationHelper
     override lazy val secureStorage = mockSecureStorage
-
-    override def metrics: Metrics = Metrics
-
+    override val registrationHelper = mockRegistrationHelper
+    override val metrics: MicroserviceMetrics = mockMetrics
     override def auditService = mockAuditService
+    override val appGlobal: ApplicationGlobal = mockAppGlobal
   }
 
   def applicationControllerMockedValidator = new ApplicationController {
-    override val desConnector = mockDesConnector
+    override val ihtConnector: IhtConnector = mockDesConnector
     override val jsonValidator = mockJsonValidator
-    override val registrationHelper = mockRegistrationHelper
     override lazy val secureStorage = mockSecureStorage
-
-    override def metrics: Metrics = Metrics
-
+    override val registrationHelper = mockRegistrationHelper
+    override val metrics: MicroserviceMetrics = mockMetrics
     override def auditService = mockAuditService
+    override val appGlobal: ApplicationGlobal = mockAppGlobal
   }
 
   private def buildApplicationDetails = {
@@ -118,9 +129,14 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
   val acknowledgementReference = AcknowledgementRefGenerator.getUUID
 
-  val rd = CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails
-  when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
-    .thenReturn(Some(rd))
+  class Setup {
+    val rd = CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails
+    when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
+      .thenReturn(Some(rd))
+
+    when(mockProcessingReport.isSuccess()).thenReturn(true)
+    when(mockProcessingReport.iterator()).thenReturn(null)
+  }
 
   val successHttpResponseForIhtReturn = HttpResponse(OK, Some(Json.parse(AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
     """
@@ -159,23 +175,27 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
   ))), Map())
 
   "Application Controller" must {
-    "return JSON for application details on valid IHT Reference" in {
-      when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(new ApplicationDetails)))
+    "return JSON for application details on valid IHT Reference" in new Setup {
+      when(mockSecureStorage.get(any(), any())(any())).thenReturn(Some(Json.toJson(new ApplicationDetails)))
 
       val result = applicationController.get("", "IHT123", acknowledgementReference)(request)
       status(result) should be(OK)
     }
 
-    "return empty application details with not started status" in {
-      when(mockSecureStorage.get(any(), any())).thenReturn(None)
+    "return empty application details with not started status" in new Setup {
+      when(mockSecureStorage.get(any(), any())(any())).thenReturn(None)
 
       val result = applicationController.get("", "IHT123", acknowledgementReference)(request)
       status(result) should be(OK)
       contentAsString(result) should include(Constants.AppStatusNotStarted)
     }
 
-    "call persistence connector and return success on save" in {
+    "call persistence connector and return success on save" in new Setup {
+      import scala.concurrent.ExecutionContext.Implicits.global
+
       doNothing().when(mockSecureStorage).update("chicken", acknowledgementReference, Json.toJson(new ApplicationDetails))
+      when(mockSecureStorage.get(any(), any())(any())).thenReturn(None)
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val applicationDetails = Json.toJson(buildApplicationDetails)
 
@@ -186,7 +206,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
     val expectedIhtReference = Some("IHT123")
 
-    "call the audit service on save of single value" in {
+    "call the audit service on save of single value" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
@@ -195,7 +215,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val optionAllAssetsAfter = adBefore.allAssets.map(_ copy (moneyOwed = Some(moneyOwedAfter)))
       val adAfter = adBefore.copy(allAssets = optionAllAssetsAfter)
 
-      when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
+      when(mockSecureStorage.get(any(), any())(any())).thenReturn(Some(Json.toJson(adBefore)))
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
@@ -211,7 +231,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
         Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "50")
     }
 
-    "call the audit service on save of multiple values" in {
+    "call the audit service on save of multiple values" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
       val beforeGiftsList = CommonBuilder.buildGiftsList
@@ -269,7 +289,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
         ))
       val adAfter = adBefore.copy(giftsList = Some(optionAllGifts))
 
-      when(mockSecureStorage.get(any(), any())).thenReturn(Some(Json.toJson(adBefore)))
+      when(mockSecureStorage.get(any(), any())(any())).thenReturn(Some(Json.toJson(adBefore)))
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
       val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
@@ -285,24 +305,22 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
         Constants.AuditTypeGifts + Constants.AuditTypeNewValue -> "27790")
     }
 
-    val mockProcessingReport = mock[ProcessingReport]
-    when(mockProcessingReport.isSuccess()).thenReturn(true)
-    when(mockProcessingReport.iterator()).thenReturn(null)
-
-    "return internal server error when valid front-end JSON submitted but failure response returned from DES with a reason" in {
+    "return internal server error when valid front-end JSON submitted but failure response returned from DES with a reason" in new Setup {
       val incorrectIhtFailureJson = Json.parse( """{"failureResponse":{"reason":"IHT Case not found"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
-      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
-        .thenReturn(Future.successful(errorHttpResponse))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any())).thenReturn(Future.successful(errorHttpResponse))
+      doNothing().when(mockMetrics).incrementFailedCounter(any())
+
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+
       status(result) should be(INTERNAL_SERVER_ERROR)
       //contentAsString(result) should include("Failure response received:")
     }
 
-    "return internal server error when valid front-end JSON submitted but failure response returned from DES without a reason" in {
+    "return internal server error when valid front-end JSON submitted but failure response returned from DES without a reason" in new Setup {
       val incorrectIhtFailureJson = Json.parse( """{"failureResponse":{"bla":"bla"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
@@ -310,12 +328,14 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
       when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(errorHttpResponse))
+      doNothing().when(mockMetrics).incrementFailedCounter(any())
+
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
       status(result) should be(INTERNAL_SERVER_ERROR)
       //contentAsString(result) should include("Failure response received but no reason found")
     }
 
-    "return internal server error when valid front-end JSON submitted but neither failure nor success response returned from DES" in {
+    "return internal server error when valid front-end JSON submitted but neither failure nor success response returned from DES" in new Setup {
       val incorrectIhtFailureJson = Json.parse( """{"bla":{"bla":"bla"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
@@ -324,12 +344,13 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
       when(mockDesConnector.submitApplication(any(), any(), any())(any()))
         .thenReturn(Future.successful(errorHttpResponse))
+      doNothing().when(mockMetrics).incrementFailedCounter(any())
 
       val result = applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
-    "return success response when valid front end JSON submitted" in {
+    "return success response when valid front end JSON submitted" in new Setup {
       val correctIhtSuccessJson = Json.parse(
         """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""")
       val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
@@ -340,17 +361,16 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockAuditService.sendEvent(any(), any(classOf[Map[String,String]]), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
 
-      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
-        .thenReturn(Future.successful(correctHttpResponse))
+      when(mockDesConnector.submitApplication(any(), any(), any())(any())).thenReturn(Future.successful(correctHttpResponse))
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any())).thenReturn(Future.successful(AuditResult.Success))
-
 
       val result = applicationController.submit("", "")(request.withBody(jsonAD))
       status(result) should be(OK)
-      assert(Metrics.successCounters(Api.SUB_APPLICATION).getCount > 0, "Success counter for Sub Application Api is more than one")
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_APPLICATION)
+//      assert(applicationController.metrics.successCounters(Api.SUB_APPLICATION).getCount > 0, "Success counter for Sub Application Api is more than one")
     }
 
-    "send an audit event containing the final estate value on a successful submission" in {
+    "send an audit event containing the final estate value on a successful submission" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
@@ -382,7 +402,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
         Constants.AuditTypeValue -> "28090")
     }
 
-    "return no content response when valid front end JSON submitted to real time risking" in {
+    "return no content response when valid front end JSON submitted to real time risking" in new Setup {
 
       val ihtNoRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeNoRulesFired.json").toString)
@@ -399,7 +419,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(NO_CONTENT)
     }
 
-    "return no content response when valid front end JSON submitted to real time risking but rules fired in risking" in {
+    "return no content response when valid front end JSON submitted to real time risking but rules fired in risking" in new Setup {
 
       val ihtRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeRulesFiredNotInclRule2.json").toString)
@@ -415,7 +435,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(NO_CONTENT)
     }
 
-    "return success response when valid front end JSON submitted to real time risking but rules fired in risking including rule 2 (money)" in {
+    "return success response when valid front end JSON submitted to real time risking but rules fired in risking including rule 2 (money)" in new Setup {
 
       val ihtRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeRulesFiredInclRule2.json").toString)
@@ -424,15 +444,16 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
         .thenReturn(Some(CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails))
-
       when(mockDesConnector.submitRealtimeRisking(any(), any(), any()))
         .thenReturn(Future.successful(correctHttpResponse))
+
       val result = applicationController.getRealtimeRiskingMessage("", "")(request)
-      assert(Metrics.successCounters(Api.SUB_REAL_TIME_RISKING).getCount > 0, "Success counter for Real Time Risking Api is more than one")
+
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_REAL_TIME_RISKING)
       status(result) should be(OK)
     }
 
-    "return OK when clearance successfully requested" in {
+    "return OK when clearance successfully requested" in new Setup {
       val correctIhtSuccessJson = Json.toJson("""{ "clearanceStatus": { "status": "Clearance Granted", "statusDate": "2015-04-29" }, "caseStatus":"Clearance Granted" }""")
       val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map())
 
@@ -440,11 +461,12 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
         .thenReturn(Future.successful(correctHttpResponse))
 
       val result = applicationController.requestClearance("", "")(request)
+
       status(result) should be(OK)
-      assert(Metrics.successCounters(Api.SUB_REQUEST_CLEARANCE).getCount > 0, "Success counter for Request Clearance Api is more than one")
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
     }
 
-    "correct Probate Details values are returned after parsing JS response " in {
+    "correct Probate Details values are returned after parsing JS response " in new Setup {
       val json = Json.parse(TestHelper.JsSampleProbateDetails)
       val jsonValueAfterParsing: ProbateDetails = Json.fromJson((json \ "probateTotals").get)(probateDetailsReads)
         .getOrElse(throw new RuntimeException("Probate Details response not parsed properly"))
@@ -454,32 +476,32 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
     }
 
-    "Respond appropriately to a failure response while fetching Probate Details" in {
+    "Respond appropriately to a failure response while fetching Probate Details" in new Setup {
       when(mockDesConnector.getProbateDetails(any(), any(), any())).thenReturn((Future(errorHttpResponse)))
       val result = applicationController.getProbateDetails("", "", "")(request)
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
-    "Respond with no content if a Probate Detail is not available" in {
+    "Respond with no content if a Probate Detail is not available" in new Setup {
       when(mockDesConnector.getProbateDetails(any(), any(), any())).thenReturn((Future(noProbateDetailsHttpResponse)))
       val result = applicationController.getProbateDetails("", "", "")(request)
       status(result) should be(NO_CONTENT)
     }
 
-    "Respond with OK on successful return of Probate Detail" in {
+    "Respond with OK on successful return of Probate Detail" in new Setup {
       when(mockDesConnector.getProbateDetails(any(), any(), any())).thenReturn(Future(successHttpResponseForProbateDetails))
       val result = applicationController.getProbateDetails("", "", "")(request)
       status(result) should be(OK)
-      assert(Metrics.successCounters(Api.GET_PROBATE_DETAILS).getCount > 0, "Success counter for Get Probate Details Api is more than one")
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
     }
 
-    "Respond appropriately to a failure response while fetching IHT return details" in {
+    "Respond appropriately to a failure response while fetching IHT return details" in new Setup {
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn((Future(errorHttpResponse)))
       val result = applicationController.getSubmittedApplicationDetails("", "", "")(request)
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
-    "Respond appropriately to a schema validation failure while fetching IHT return details" in {
+    "Respond appropriately to a schema validation failure while fetching IHT return details" in new Setup {
       val incorrectIhtReturnJson = Json.toJson("""{ "SomeRubbish":"Not an IHT return" }""")
       val incorrectHttpResponse = HttpResponse(OK, Some(incorrectIhtReturnJson), Map())
 
@@ -488,7 +510,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
-    "Respond appropriately when the IHT return details are not found" in {
+    "Respond appropriately when the IHT return details are not found" in new Setup {
       val noIhtReturnHttpResponse = HttpResponse(NOT_FOUND, None, Map(), None)
 
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn((Future(noIhtReturnHttpResponse)))
@@ -496,11 +518,11 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       status(result) should be(INTERNAL_SERVER_ERROR)
     }
 
-    "Respond with OK on successful return of IHT return details" in {
+    "Respond with OK on successful return of IHT return details" in new Setup {
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn(Future(successHttpResponseForIhtReturn))
       val result = applicationController.getSubmittedApplicationDetails("", "", "")(request)
       status(result) should be(OK)
-      assert(Metrics.successCounters(Api.GET_APPLICATION_DETAILS).getCount > 0, "Success counter for Get Application Details Api is more than one")
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
     }
   }
 }

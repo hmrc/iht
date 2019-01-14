@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,118 +17,50 @@
 package config
 
 import akka.actor._
-import com.typesafe.config.Config
-import connectors.{ApplicationAuditConnector, ApplicationAuthConnector}
+import com.google.inject.Provider
 import connectors.securestorage._
-import net.ceedubs.ficus.Ficus.{configValueReader, toFicusConfig}
+import javax.inject.Inject
+import play.api.http.DefaultHttpErrorHandler
+import play.api.inject.ApplicationLifecycle
 import play.api.libs.concurrent.Execution.Implicits._
-import play.api.mvc.{RequestHeader, Result}
-import play.api.{Application, Configuration, Logger, Play}
-import play.libs.Akka
-import uk.gov.hmrc.play.auth.controllers.AuthParamsControllerConfig
-import uk.gov.hmrc.play.auth.microservice.filters.AuthorisationFilter
-import uk.gov.hmrc.play.config.{AppName, ControllerConfig, RunMode}
-import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
-import uk.gov.hmrc.play.microservice.filters.{AuditFilter, LoggingFilter, MicroserviceFilterSupport}
-import utils.exception.DESInternalServerError
 import play.api.mvc.Results._
+import play.api.mvc.{RequestHeader, Result}
+import play.api.routing.Router
+import play.api.{Configuration, Environment, Logger, Mode, OptionalSourceMapper}
 import reactivemongo.api.MongoConnectionOptions
+import utils.exception.DESInternalServerError
 
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
-object ControllerConfiguration extends ControllerConfig {
-  lazy val controllerConfigs = Play.current.configuration.underlying.as[Config]("controllers")
-}
-
-object AuthParamsControllerConfiguration extends AuthParamsControllerConfig {
-  lazy val controllerConfigs = ControllerConfiguration.controllerConfigs
-}
-
-object MicroserviceAuditFilter extends AuditFilter with AppName with MicroserviceFilterSupport{
-  override val auditConnector = ApplicationAuditConnector
-  override def controllerNeedsAuditing(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsAuditing
-}
-
-object MicroserviceLoggingFilter extends LoggingFilter with MicroserviceFilterSupport{
-  override def controllerNeedsLogging(controllerName: String) = ControllerConfiguration.paramsForController(controllerName).needsLogging
-}
-
-object MicroserviceAuthFilter extends AuthorisationFilter with MicroserviceFilterSupport{
-  override lazy val authParamsConfig = AuthParamsControllerConfiguration
-  override lazy val authConnector = ApplicationAuthConnector
-  override def controllerNeedsAuth(controllerName: String): Boolean = ControllerConfiguration.paramsForController(controllerName).needsAuth
-}
-
-object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
-  override val auditConnector = ApplicationAuditConnector
-
-  override def microserviceMetricsConfig(implicit app: Application): Option[Configuration] = app.configuration.getConfig("microservice.metrics")
-
-  override val loggingFilter = MicroserviceLoggingFilter
-
-  override val microserviceAuditFilter = MicroserviceAuditFilter
-
-  override val authFilter = Some(MicroserviceAuthFilter)
-  private val driver = new reactivemongo.api.MongoDriver
-
-  override def onError(request: RequestHeader, ex: Throwable): Future[Result] = {
-    ex match {
+class ErrorHandler @Inject() (env: Environment,
+                              config: Configuration,
+                              sourceMapper: OptionalSourceMapper,
+                              router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
+  override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
+    exception match {
       case DESInternalServerError(cause) =>
-        Logger.warn("500 response returned from DES", cause)
-        Future.successful(BadGateway("500 response returned from DES"))
-      case _ => super.onError(request, ex)
+        Logger.warn("500 or 503 response returned from DES", cause)
+        Future.successful(BadGateway("500 or 503 response returned from DES"))
+      case _ => super.onServerError(request, exception)
     }
-    
   }
+}
 
-  override def onStart(app: Application) {
-    super.onStart(app)
-    val conf = app.configuration
+class ApplicationStart @Inject()(val lifecycle: ApplicationLifecycle,
+                                 val conf: Configuration,
+                                 val env: Environment) extends ApplicationGlobal
+trait ApplicationGlobal {
+  val lifecycle: ApplicationLifecycle
+  val conf: Configuration
+  val env: Environment
+  private lazy val driver = new reactivemongo.api.MongoDriver
 
-    val secureStorage : SecureStorage = {
-      val platformKey = conf.getString("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
-
-      if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
-
-      val host = conf.getString("securestorage.host").getOrElse("localhost")
-      val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
-      val (nodes, ssl) = host.split('?').toList match {
-        case h :: t   => h -> t.contains("sslEnabled=true")
-        case h :: Nil => h -> false
+  lifecycle.addStopHook { () => Future.successful(
+      if (env.mode != Mode.Test) {
+        driver.close(10 seconds)
       }
-      val conn = driver.connection(nodes.split(","), MongoConnectionOptions(sslEnabled = ssl))
-      val db = conn(dbName)
-
-      TypedActor(Akka.system).typedActorOf(TypedProps(
-        classOf[SecureStorage],
-        new SecureStorageTypedActor(platformKey, db)
-      ), "securestorage")
-    }
-
-    val cleanerActor: Cancellable = {
-
-      val maxDuration : org.joda.time.Period =
-        conf.getString("securestorage.maxDuration").
-          map{
-          stringToPeriod
-        }.getOrElse{
-          import com.github.nscala_time.time.Imports._
-          13.months - Period.days(1)
-        }
-
-      val cleanerRunInterval : FiniteDuration =
-        conf.getString("securestorage.cleanerRunInterval").
-          map{stringToFDuration}.getOrElse(1 hour)
-
-      val cleaner = Akka.system.actorOf(Props{
-        new CleanerActor(secureStorage, maxDuration)
-      })
-
-      Akka.system.scheduler.schedule(
-        0 seconds, cleanerRunInterval, cleaner, "secureStoreCleaner"
-      )
-    }
+    )
   }
 
   def stringToPeriod(s : String) : org.joda.time.Period =
@@ -137,16 +69,48 @@ object ApplicationGlobal extends DefaultMicroserviceGlobal with RunMode {
   def stringToFDuration(s : String) : FiniteDuration =
     Duration.create(s).toMillis millis
 
-  override def onStop(app: Application) {
-    super.onStop(app)
-    /*
-     * We need to terminate the mongo store used by secure storage, but
-     * if done during testing this will close down the akka actor and
-     * prevent subsequent tests from running.
-     */
-    if (env.toUpperCase != "TEST") {
-      driver.close(10 seconds)
+  lazy val system = ActorSystem("iht")
+  lazy val secureStorage : SecureStorage = {
+    val platformKey = conf.getString("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
+
+    if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
+
+    val host = conf.getString("securestorage.host").getOrElse("localhost")
+    val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
+    val (nodes, ssl) = host.split('?').toList match {
+      case h :: t   => h -> t.contains("sslEnabled=true")
+      case h :: Nil => h -> false
     }
 
+    lazy val conn = driver.connection(nodes = nodes.split(","), options = MongoConnectionOptions(sslEnabled = ssl))
+    val db = Await.result(conn.database(dbName), Duration.Inf)
+
+    TypedActor(system).typedActorOf(TypedProps(
+      classOf[SecureStorage],
+      new SecureStorageTypedActor(platformKey, db)
+    ), "securestorage")
+  }
+
+  val cleanerActor: Cancellable = {
+    val maxDuration : org.joda.time.Period =
+      conf.getString("securestorage.maxDuration").
+        map{
+          stringToPeriod
+        }.getOrElse{
+        import com.github.nscala_time.time.Imports._
+        13.months - Period.days(1)
+      }
+
+    val cleanerRunInterval : FiniteDuration =
+      conf.getString("securestorage.cleanerRunInterval").
+        map{stringToFDuration}.getOrElse(1 hour)
+
+    val cleaner = system.actorOf(Props{
+      new CleanerActor(secureStorage, maxDuration)
+    })
+
+    system.scheduler.schedule(
+      0 seconds, cleanerRunInterval, cleaner, "secureStoreCleaner"
+    )
   }
 }

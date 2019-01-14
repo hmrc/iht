@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,12 @@
 
 package connectors.securestorage
 
-import play.api.mvc._
 import akka.actor._
 import akka.util._
-import play.libs.Akka
-import uk.gov.hmrc.play.config._
+import config.ApplicationGlobal
+import play.api.mvc._
+
 import scala.concurrent.duration._
-import play.api.libs.concurrent.Execution.Implicits._
-import scala.util._
 
 /**
   * A mixin to supply the secure storage interface to a controller
@@ -31,11 +29,13 @@ import scala.util._
 trait SecureStorageController {
   self : Controller =>
 
+  val appGlobal: ApplicationGlobal
+
   lazy val secureStorage : SecureStorage = {
     implicit val timeout = Timeout(1 second)
-    val f = Akka.system.actorSelection("user/securestorage").resolveOne
+    val f = appGlobal.system.actorSelection("user/securestorage").resolveOne
     val untypedActor = scala.concurrent.Await.result(f, 1 second)
-    TypedActor(Akka.system).typedActorOf(
+    TypedActor(appGlobal.system).typedActorOf(
       TypedProps[SecureStorage], untypedActor
     )
   }

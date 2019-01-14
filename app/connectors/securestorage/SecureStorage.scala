@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,12 +65,12 @@ trait SecureStorage {
   /**
     * Trigger the destruction of old records
     */
-  def clean(olderThan : org.joda.time.DateTime) : Unit
+  def clean(olderThan : org.joda.time.DateTime)(implicit ec: ExecutionContext) : Unit
 
   /**
     * Insert a new JSON value into Secure Storage.
     */
-  def update(id : String, key : String, v : JsValue): Unit = {
+  def update(id : String, key : String, v : JsValue)(implicit ec: ExecutionContext): Unit = {
     val async: Future[Any] = updateAsync(id, key, v)
     Await.result[Any](async, delay)
   }
@@ -78,12 +78,12 @@ trait SecureStorage {
   /**
     * Insert a new JSON value into Secure Storage without blocking.
     */
-  def updateAsync(id : String, key : String, v : JsValue) : Future[Any]
+  def updateAsync(id : String, key : String, v : JsValue)(implicit ec: ExecutionContext) : Future[Any]
 
   /**
     * Retrieve a JSON record from secure storage
     */
-  def get(id : String, key : String) : Option[JsValue] = {
+  def get(id : String, key : String)(implicit ec: ExecutionContext) : Option[JsValue] = {
     val async = getAsync(id, key)
     Await.ready(async, delay)
     getOrException(async.value) match {
@@ -96,12 +96,12 @@ trait SecureStorage {
   /**
     * Retrieve a JSON record from secure storage asynchronously
     */
-  def getAsync(id : String, key : String) : Future[JsValue]
+  def getAsync(id : String, key : String)(implicit ec: ExecutionContext) : Future[JsValue]
 
   /**
     * Retrieve a JSON record from secure storage
     */
-  def apply(id : String, key : String) = getOrException(get(id, key))
+  def apply(id : String, key : String)(implicit ec: ExecutionContext) = getOrException(get(id, key))
 
   protected class SecureStorageObjectInterface[T]
     (se : SecureStorage, clazz : Class[T])
@@ -152,6 +152,6 @@ trait SecureStorage {
     new SecureStorageObjectInterface[T](this, clazz)
 
   //scalastyle:off method.name
-  def -(id : String) : Future[Any]
+  def -(id : String)(implicit ec: ExecutionContext) : Future[Any]
   //scalastyle:on
 }

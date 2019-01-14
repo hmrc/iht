@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,12 @@
 
 package utils
 
-import org.scalatest.mock.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
-import org.scalatest.Matchers._
 
-
-class AcknowledgementRefGeneratorTest extends UnitSpec with FakeIhtApp with MockitoSugar  {
+class AcknowledgementRefGeneratorTest extends UnitSpec  {
   "AcknowledgementRefGenerator" must {
     "Generate a valid length UUID" in {
-      AcknowledgementRefGenerator.getUUID should have length (32)
+      AcknowledgementRefGenerator.getUUID should have length 32
     }
   }
 }
