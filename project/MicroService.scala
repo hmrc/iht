@@ -24,7 +24,6 @@ import uk.gov.hmrc.versioning.SbtGitVersioning
 import play.sbt.routes.RoutesKeys.routesGenerator
 import play.routes.compiler.StaticRoutesGenerator
 import wartremover._
-
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 
@@ -68,6 +67,11 @@ trait MicroService {
     )
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
+    .settings(
+      Keys.fork                  in IntegrationTest := false,
+      unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+      parallelExecution          in IntegrationTest := false
+    )
     .settings(wartremoverSettings : _*)
     .settings(
       wartremoverWarnings ++= Warts.unsafe,

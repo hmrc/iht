@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package metrics
 
-import com.codahale.metrics.{MetricRegistry, Timer}
+import com.codahale.metrics.MetricRegistry
 import com.codahale.metrics.Timer.Context
+import com.kenshoo.play.metrics.Metrics
+import javax.inject.Inject
 import models.enums.Api
 import models.enums.Api.Api
-import uk.gov.hmrc.play.graphite.MicroserviceMetrics
 
 /**
  *
@@ -30,14 +31,10 @@ import uk.gov.hmrc.play.graphite.MicroserviceMetrics
  * to see the stats in Grafana.
  */
 
-trait Metrics {
-  def startTimer(api: Api): Timer.Context
-  def incrementSuccessCounter(api: Api): Unit
-  def incrementFailedCounter(api: Api): Unit
-}
+class MicroserviceMetricsImpl @Inject()(val metrics: Metrics) extends MicroserviceMetrics
 
-object Metrics extends Metrics with MicroserviceMetrics{
-
+trait MicroserviceMetrics {
+  val metrics: Metrics
   val registry: MetricRegistry = metrics.defaultRegistry
 
   val timers = Map(
@@ -74,9 +71,9 @@ object Metrics extends Metrics with MicroserviceMetrics{
     Api.SUB_REQUEST_CLEARANCE -> registry.counter("subReqClearance-failed-counter")
   )
 
-  override def startTimer(api: Api): Context = timers(api).time()
+  def startTimer(api: Api): Context = timers(api).time()
 
-  override def incrementSuccessCounter(api: Api): Unit = successCounters(api).inc()
+  def incrementSuccessCounter(api: Api): Unit = successCounters(api).inc()
 
-  override def incrementFailedCounter(api: Api): Unit = failedCounters(api).inc()
+  def incrementFailedCounter(api: Api): Unit = failedCounters(api).inc()
 }

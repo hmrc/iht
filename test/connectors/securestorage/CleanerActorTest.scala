@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,20 @@
 
 package connectors.securestorage
 
-import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor._
-import akka.pattern._
-import org.joda.time.Period
 import org.scalatest._
 import com.typesafe.config._
+import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json._
+import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.play.test.UnitSpec
 
-class CleanerActorTest extends FlatSpec with BeforeAndAfter {
+class CleanerActorTest extends UnitSpec with WordSpecLike with BeforeAndAfter with MongoSpecSupport {
 
   val driver = new reactivemongo.api.MongoDriver
   val conn = driver.connection(Seq("localhost"))
-  val db = conn("cleaneractortest")
+  val db = await(conn.database("cleaneractortest"))
 
   val system = ActorSystem("TEST", ConfigFactory.parseString("""
     akka.stdout-loglevel = "OFF"
@@ -43,7 +43,7 @@ class CleanerActorTest extends FlatSpec with BeforeAndAfter {
 
   val ss: SecureStorage =
     TypedActor(system).typedActorOf(TypedProps(classOf[SecureStorage],
-      new SecureStorageTypedActor("PLATFORMKEY",db)), "ss")
+      new SecureStorageTypedActor("PLATFORMKEY", mongo())), "ss")
 
   val cleaner = system.actorOf(Props{
     import com.github.nscala_time.time.Imports._
@@ -57,7 +57,7 @@ class CleanerActorTest extends FlatSpec with BeforeAndAfter {
     )
   }
 
-  "A Cleaner Actor" should "remove an expired record automatically" in {
+  "A Cleaner Actor should remove an expired record automatically" in {
     import com.github.nscala_time.time.Imports._
     ss.update("somerecord","correctkey", JsArray(Seq(JsString("hiya"))))
 

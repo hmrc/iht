@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,23 @@
 
 package utils
 
+import connectors.IhtConnector
+import javax.inject.Inject
+import metrics.MicroserviceMetrics
 import models.registration.RegistrationDetails
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import models.enums._
 
-trait RegistrationHelper {
-  def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails]
-}
+class RegistrationHelperImpl @Inject()(val ihtConnector: IhtConnector,
+                                       val metrics: MicroserviceMetrics) extends RegistrationHelper
 
-object RegistrationHelper extends RegistrationHelper {
-
+trait RegistrationHelper extends ControllerHelper {
+  val ihtConnector: IhtConnector
   /*
   * Fetch the registration Details from DES for the given nino and Iht Reference
   */
-  override def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails] = {
-    import connectors.IhtConnector
+  def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails] = {
     import play.api.http.Status._
     import RegistrationDetails.registrationDetailsReads
     import play.api.Logger
@@ -40,8 +41,7 @@ object RegistrationHelper extends RegistrationHelper {
     import scala.concurrent.Await
     import scala.concurrent.duration._
 
-    lazy val ihtConnector = IhtConnector
-    val rd = ControllerHelper.exceptionCheckForResponses ({
+    val rd = exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
         httpResponse => httpResponse.status match {
           case OK => {

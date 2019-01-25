@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@
 package controllers.registration
 
 import connectors.IhtConnector
-import metrics.Metrics
+import metrics.MicroserviceMetrics
 import models.enums._
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
@@ -35,11 +36,11 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, Upstream4xxResponse}
 
-class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar {
+class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfterEach {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
-
   val mockAuditService: AuditService = mock[AuditService]
+  val mockMetrics: MicroserviceMetrics = mock[MicroserviceMetrics]
 
   def testRegistrationController = {
     when(mockAuditService.sendEvent(ArgumentMatchers.any(), ArgumentMatchers.any[JsValue](), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
@@ -48,7 +49,15 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
     new RegistrationController {
       override val desConnector = mockDesConnector
       override val auditService = mockAuditService
+      override val metrics = mockMetrics
     }
+  }
+
+  override def beforeEach(): Unit = {
+    reset(mockDesConnector)
+    reset(mockAuditService)
+    reset(mockMetrics)
+    super.beforeEach()
   }
 
   "RegistrationController" must {
@@ -79,7 +88,7 @@ class RegistrationControllerTest extends UnitSpec with FakeIhtApp with MockitoSu
       val result = testRegistrationController
         .submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       contentAsString(result) should be("AAA111222")
-      assert(Metrics.successCounters(Api.SUB_REGISTRATION).getCount>0, "Success counter for Sub Registration Api is more than one")
+      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_REGISTRATION)
     }
 
     "respond appropriately to a failure response" in {

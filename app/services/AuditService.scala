@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package services
 
-import config.wiring.MicroserviceAuditConnector
+import javax.inject.Inject
 import org.joda.time.{DateTime, DateTimeZone}
 import play.api.Logger
 import play.api.libs.json.JsValue
@@ -35,8 +35,8 @@ import scala.concurrent.{ExecutionContext, Future}
   * Created by Vineet Tyagi on 13/11/15.
   *
   */
-object AuditService extends AuditService{
-  override def auditConnector: AuditConnector = MicroserviceAuditConnector
+class AuditServiceImpl @Inject()(val auditConnect: AuditConnector) extends AuditService {
+  override def auditConnector: AuditConnector = auditConnect
 }
 
 trait AuditService extends HttpAuditing {

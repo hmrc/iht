@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,10 @@
 package utils
 
 import org.scalatest.Suite
-import play.api.test.FakeApplication
-import uk.gov.hmrc.play.test.WithFakeApplication
+import play.api.inject.guice.GuiceApplicationBuilder
 
-trait FakeIhtApp extends WithFakeApplication {
+trait FakeIhtApp {
   this: Suite =>
 
-  override lazy val fakeApplication = FakeApplication()
+  lazy val fakeApplication = GuiceApplicationBuilder()
 }

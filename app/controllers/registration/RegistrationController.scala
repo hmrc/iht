@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 HM Revenue & Customs
+ * Copyright 2019 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,39 +18,33 @@ package controllers.registration
 
 import connectors.IhtConnector
 import constants.Constants
+import javax.inject.Inject
 import json.JsonValidator
-import metrics.Metrics
+import metrics.MicroserviceMetrics
+import models.enums._
 import play.api.Logger
-import play.api.http.Status._
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, Result}
-import uk.gov.hmrc.play.http._
-import uk.gov.hmrc.play.microservice.controller.BaseController
-import utils.ControllerHelper._
+import services.AuditService
+import uk.gov.hmrc.http._
+import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import utils.ControllerHelper
+import utils.exception.DESInternalServerError
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import models.enums._
-import services.AuditService
-import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import utils.exception.DESInternalServerError
 
 /**
   * Created by yasar on 2/5/15.
   */
-object RegistrationController extends RegistrationController {
-  val desConnector = IhtConnector
+class RegistrationControllerImpl @Inject()(val desConnector: IhtConnector,
+                                           val metrics: MicroserviceMetrics,
+                                           val auditService: AuditService) extends RegistrationController
 
-  override def metrics: Metrics = Metrics
-
-  override def auditService = AuditService
-}
-
-trait RegistrationController extends BaseController {
+trait RegistrationController extends BaseController with ControllerHelper {
   val desConnector: IhtConnector
 
-  def metrics: Metrics = Metrics
+  def metrics: MicroserviceMetrics
 
   def auditService: AuditService
 
