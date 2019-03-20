@@ -69,7 +69,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
   /**
     * Save application details to secure storage using the IHT reference as the cache ID.
     */
-  def save(nino: String, acknowledgementReference: String) = Action.async(parse.json) {
+  def save(nino: String, acknowledgementReference: String) = Action(parse.json) {
     implicit request => {
       request.body.validate[ApplicationDetails] match {
         case success: JsSuccess[ApplicationDetails] =>
@@ -78,25 +78,17 @@ trait ApplicationController extends BaseController with SecureStorageController 
           try {
             Logger.info("Updating secure storage")
             // Explicit auditing check
-            val result: Future[Seq[AuditResult]] = doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
+            doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
             secureStorage.update(ihtRef, acknowledgementReference, Json.toJson(applicationDetails))
-            result.map { seqAuditResult =>
-              seqAuditResult.foreach {
-                case AuditResult.Failure(msg, throwable) =>
-                  Logger.warn("Audit failed. AuditResult is " + msg + ":-\n" + throwable.toString)
-                case _ =>
-              }
-              Ok
-            }
+            Ok
           } catch {
             case e: Exception => {
-              println(e.getMessage)
               Logger.info("Failed to get a return from Secure Storage")
-              Future.successful(InternalServerError)
+              InternalServerError
             }
           }
         case _: JsError =>
-          Future.successful(BadRequest)
+          BadRequest
       }
     }
   }
@@ -163,7 +155,7 @@ trait ApplicationController extends BaseController with SecureStorageController 
     Logger.info("Real-time risking response json:-\n" + Json.prettyPrint(jsValue))
 
     val riskResponse = jsValue.asOpt[RiskResponse]
-    Logger.debug("Created RiskResponse object:-\n" + riskResponse.toString())
+    Logger.debug("Created RiskResponse object:-\n" + riskResponse.toString)
     CommonHelper.getOrException(riskResponse).rulesFired match {
       case None =>
         Logger.info("Real-time risking response: No rules fired.")
@@ -391,21 +383,19 @@ trait ApplicationController extends BaseController with SecureStorageController 
   }
 
   /**
-    * Does the explicit auditing if requires
+    * Does the explicit auditing if required
     *
     * @param appDetails
     */
   private def doExplicitAuditCheck(nino: String, acknowledgementReference: String, appDetails: ApplicationDetails)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[Seq[AuditResult]] = {
+                                  (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Seq[Future[AuditResult]] = {
 
     val securedStorageAppDetails: ApplicationDetails = getApplicationDetails(acknowledgementReference,
       CommonHelper.getOrException(appDetails.ihtRef))
 
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
-      val appMap: Map[String, Map[String, String]] =
-        AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
-      if (appMap.nonEmpty) {
-        val seqFutureAuditResult = appMap.keys.toSeq.map { current =>
+      val appMap: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
+      appMap.keys.toSeq.map { current =>
           auditService.sendEvent(Constants.AuditTypeMonetaryValueChange,
             appMap(current),
             Constants.AuditTypeIHTEstateReportSaved).map { auditResult =>
@@ -413,12 +403,8 @@ trait ApplicationController extends BaseController with SecureStorageController 
             auditResult
           }
         }
-        Future.sequence(seqFutureAuditResult)
-      } else {
-        Future.successful(Seq.empty)
-      }
     } else {
-      Future.successful(Seq.empty)
+      Nil
     }
   }
 
