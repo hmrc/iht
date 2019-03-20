@@ -33,6 +33,7 @@ import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
+import org.mockito.Mockito.{atMost => expected}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json._
@@ -449,7 +450,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
 
       val result = applicationController.getRealtimeRiskingMessage("", "")(request)
 
-      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_REAL_TIME_RISKING)
+      verify(mockMetrics, expected(1)).incrementSuccessCounter(Api.SUB_REAL_TIME_RISKING)
       status(result) should be(OK)
     }
 
@@ -463,7 +464,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       val result = applicationController.requestClearance("", "")(request)
 
       status(result) should be(OK)
-      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
+      verify(mockMetrics, expected(1)).incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
     }
 
     "correct Probate Details values are returned after parsing JS response " in new Setup {
@@ -492,7 +493,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockDesConnector.getProbateDetails(any(), any(), any())).thenReturn(Future(successHttpResponseForProbateDetails))
       val result = applicationController.getProbateDetails("", "", "")(request)
       status(result) should be(OK)
-      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
+      verify(mockMetrics, expected(1)).incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
     }
 
     "Respond appropriately to a failure response while fetching IHT return details" in new Setup {
@@ -522,7 +523,7 @@ class ApplicationControllerTest extends UnitSpec with FakeIhtApp with MockitoSug
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn(Future(successHttpResponseForIhtReturn))
       val result = applicationController.getSubmittedApplicationDetails("", "", "")(request)
       status(result) should be(OK)
-      verify(mockMetrics, times(1)).incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
+      verify(mockMetrics, expected(1)).incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
     }
   }
 }

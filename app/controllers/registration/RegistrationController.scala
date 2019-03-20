@@ -34,9 +34,6 @@ import utils.exception.DESInternalServerError
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-/**
-  * Created by yasar on 2/5/15.
-  */
 class RegistrationControllerImpl @Inject()(val desConnector: IhtConnector,
                                            val metrics: MicroserviceMetrics,
                                            val auditService: AuditService) extends RegistrationController
@@ -63,15 +60,15 @@ trait RegistrationController extends BaseController with ControllerHelper {
     case e: Upstream4xxResponse =>
       Logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(new Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
+      Future.failed(Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
     case e: Upstream5xxResponse =>
       Logger.info("Upstream5xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(new Upstream5xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
+      Future.failed(Upstream5xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
     case e: NotFoundException =>
       Logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(new Upstream4xxResponse(e.message, NOT_FOUND, NOT_FOUND))
+      Future.failed(Upstream4xxResponse(e.message, NOT_FOUND, NOT_FOUND))
     case e: DESInternalServerError =>
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       throw e
@@ -88,28 +85,26 @@ trait RegistrationController extends BaseController with ControllerHelper {
       if (pr.isSuccess) {
         Logger.debug("DES Request Validated")
         Logger.info("Acknowledgment Ref: " + request.body.\("acknowledgmentReference"))
-        desConnector.submitRegistration(nino, request.body).flatMap {
-          httpResponse =>
-            (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String] match {
-              case Some(ihtRef) =>
-                Logger.info("Parsed IHT Reference from response")
-                metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)
-                val jsonValue = request.body
-                auditService.sendEvent(Constants.AuditTypeIHTRegistrationSubmitted,
-                  jsonValue,
-                  Constants.AuditTypeIHTRegistrationSubmittedTransactionName).map { auditResult =>
-                  Logger.debug("http response status code " + httpResponse.status)
-                  Logger.debug("Response " + Json.prettyPrint(httpResponse.json))
-                  Ok(ihtRef)
-                }
-              case None =>
+        desConnector.submitRegistration(nino, request.body) map { httpResponse =>
+            (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String].map { ihtRef =>
+              Logger.info("Parsed IHT Reference from response")
+              metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)
+              val jsonValue = request.body
+              auditService.sendEvent(
+                Constants.AuditTypeIHTRegistrationSubmitted,
+                jsonValue,
+                Constants.AuditTypeIHTRegistrationSubmittedTransactionName
+              )
+              Ok(ihtRef)
+            }.getOrElse {
                 Logger.info("Failure to parse IHTREF from response")
-                Future.successful(InternalServerError("CAN NOT PARSE IHT REF FROM RESPONSE "))
+                InternalServerError("CAN NOT PARSE IHT REF FROM RESPONSE ")
             }
         }
       } else {
-        Future(processJsonValidationError(pr, request.body))
+        Future.successful(processJsonValidationError(pr, request.body))
       }
     } recoverWith recoverOnSubmit
   }
 }
+
