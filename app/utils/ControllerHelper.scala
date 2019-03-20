@@ -67,17 +67,17 @@ trait ControllerHelper {
       case e: Upstream4xxResponse => {
         Logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
-        Future.failed(new Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
+        Future.failed(Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
       }
       case e: Upstream5xxResponse => {
         Logger.info("Upstream5xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
-        Future.failed(new Upstream5xxResponse(updateMessage(e.message,e.upstreamResponseCode), e.upstreamResponseCode, e.reportAs))
+        Future.failed(Upstream5xxResponse(updateMessage(e.message,e.upstreamResponseCode), e.upstreamResponseCode, e.reportAs))
       }
       case e: NotFoundException => {
         Logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
-        Future.failed(new Upstream4xxResponse(e.message + "des_not_found", notFoundExceptionCode, notFoundExceptionCode))
+        Future.failed(Upstream4xxResponse(e.message + "des_not_found", notFoundExceptionCode, notFoundExceptionCode))
       }
       case e: Exception => {
         Logger.info("Exception Returned ::: " + e.getMessage)

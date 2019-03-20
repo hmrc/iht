@@ -50,7 +50,7 @@ trait IhtConnector {
     authorization = Some(Authorization(urlHeaderAuthorization)))
 
   def submitRegistration(nino: String, registrationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     /*
    * Recover cases are written because of the framework design.
    * Any HttpResponse that does NOT have 2xx status code is wrapped into a different kind of exception by framework.
@@ -89,7 +89,7 @@ trait IhtConnector {
   }
 
   def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
 
     Logger.info("Start Submitting application process, creating metrics ")
     val timerContext = metrics.startTimer(Api.SUB_APPLICATION)
@@ -116,13 +116,13 @@ trait IhtConnector {
 
   def submitRealtimeRisking(ihtReference: String, ackRef: String, realtimeRiskingJs: JsValue):
   Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Submit risking info to DES")
     val timerContext = metrics.startTimer(Api.SUB_REAL_TIME_RISKING)
     http.POST(s"$serviceURL/risk-score/inheritance-tax/$ihtReference?ackRef=$ackRef", realtimeRiskingJs) map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from submission of risking info to DES")
+        Logger.info(s"${response.status} returned from submission of risking info to DES")
         response
       }
     }
@@ -132,13 +132,13 @@ trait IhtConnector {
    * Fetch the CaseList data from Des (As os now getting from Stub)for given nino
    */
   def getCaseList(nino: String): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Get case list from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_LIST)
     http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/") map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from Getting Case List")
+        Logger.info(s"${response.status} returned when getting Case List")
         response
       }
     }
@@ -148,26 +148,26 @@ trait IhtConnector {
    * Fetch the case Details fro DES for the given nino and Iht Reference
    */
   def getCaseDetails(nino: String, ihtReference: String): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Get case details from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_DETAILS)
     http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference") map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from Getting Case Details")
+        Logger.info(s"${response.status} returned from Getting Case Details")
         response
       }
     }
   }
 
   def requestClearance(nino: String, ihtReference: String, requestJs: JsValue): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Request clearance from DES")
     val timerContext = metrics.startTimer(Api.SUB_REQUEST_CLEARANCE)
     http.POST(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/clearance", requestJs) map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from submitting the Request Clearance")
+        Logger.info(s"${response.status} returned from submitting the Request Clearance")
         response
       }
     }
@@ -177,26 +177,26 @@ trait IhtConnector {
    * Fetch the Probate Details for given nino,ihtRef and returnId
    */
   def getProbateDetails(nino: String, ihtReference: String, ihtReturnId: String): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Get Probate Details from DES")
     val timerContext = metrics.startTimer(Api.GET_PROBATE_DETAILS)
     http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$ihtReturnId/probate") map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from getting Probate details")
+        Logger.info(s"${response.status} returned from getting Probate details")
         response
       }
     }
   }
 
   def getSubmittedApplicationDetails(nino: String, ihtReference: String, returnId: String): Future[HttpResponse] = {
-    implicit val hc = createHeaderCarrier
+    implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Get submitted application details from DES")
     val timerContext = metrics.startTimer(Api.SUB_APPLICATION)
     http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$returnId") map {
       response => {
         timerContext.stop()
-        Logger.info("Future httpResponse returned from submitting the application")
+        Logger.info(s"${response.status} returned from submitting the application")
         response
       }
     }
@@ -208,8 +208,11 @@ trait IhtConnector {
     * @param requestJs
     * @param responseToAudit
     */
-  private def auditSubmissionFailure(requestJs: JsValue, responseToAudit: Future[HttpResponse], keys: Map[String, String], transactionName:String)(implicit request:Request[_]) = {
-    implicit val hc = createHeaderCarrier
+  private def auditSubmissionFailure(requestJs: JsValue,
+                                     responseToAudit: Future[HttpResponse],
+                                     keys: Map[String, String],
+                                     transactionName:String)(implicit request:Request[_]): Unit = {
+    implicit val hc: HeaderCarrier = createHeaderCarrier
 
     responseToAudit.onComplete[Any] {
       case Failure(t) => {
@@ -238,7 +241,8 @@ object IhtResponseHandler extends IhtResponseHandler
 trait IhtResponseHandler extends HttpErrorFunctions {
   def handleIhtResponse(method: String, url: String, response: HttpResponse): HttpResponse = {
     response.status match {
-      case 500 | 503 => throw new DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
+      case 500 | 503 =>
+        throw DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
       case _ => handleResponse(method, url)(response)
     }
   }
