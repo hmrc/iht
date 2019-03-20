@@ -30,10 +30,10 @@ private object AppDependencies {
   val compile = Seq(
     "org.reactivemongo" %% "reactivemongo" % "0.16.4" force(),
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.7.0",
-    "uk.gov.hmrc" %% "play-scheduling" % "5.4.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "8.0.0",
-    "uk.gov.hmrc" %% "domain" % "5.3.0",
+    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.9.0",
+    "uk.gov.hmrc" %% "play-scheduling" % "6.0.0",
+    "uk.gov.hmrc" %% "http-caching-client" % "8.1.0",
+    "uk.gov.hmrc" %% "domain" % "5.6.0-play-25",
     "com.github.fge" % "json-schema-validator" % "2.2.6"
   )
 
@@ -42,16 +42,20 @@ private object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
+  val reactiveMongoTestVersion = "4.9.0-play-25"
+  val hmrcTestVersion = "3.6.0-play-25"
+  val jsonSchemaValidatorVersion = "2.2.6"
+
   object Test {
     def apply() = new TestDependencies {
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % "4.4.0-play-25" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "3.4.0-play-25" % scope,
+        "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
+        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
         "org.scalacheck" %% "scalacheck" % "1.13.4" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
+        "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
         "org.mockito" % "mockito-core" % "2.19.0" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope
       )
@@ -62,13 +66,13 @@ private object AppDependencies {
     def apply() = new TestDependencies {
       override lazy val scope: String = "it"
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % "4.4.0-play-25" % scope,
-        "uk.gov.hmrc" %% "hmrctest" % "3.4.0-play-25" % scope,
+        "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
+        "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
         "org.pegdown" % "pegdown" % "1.4.2" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "com.github.fge" % "json-schema-validator" % "2.2.6" % scope,
+        "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
         "org.mockito" % "mockito-all" % "1.9.5" % scope,
         "com.github.tomakehurst" % "wiremock" % "2.9.0" % scope
       )
