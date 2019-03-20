@@ -16,17 +16,14 @@
 
 package connectors.securestorage
 
-import akka.actor.TypedActor
+import org.joda.time.DateTime
+import play.api.libs.json.{JsValue, Json, _}
+import reactivemongo.api.DefaultDB
+import reactivemongo.api.collections.bson.BSONCollection
+import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.play.json.ImplicitBSONHandlers._
 
 import scala.concurrent._
-import org.joda.time.DateTime
-import play.api.libs.json.{JsValue, Json}
-import reactivemongo.api.DefaultDB
-import reactivemongo.bson._
-import play.api.libs.json._
-import reactivemongo.api.collections.bson.BSONCollection
-import reactivemongo.bson.BSONDocument
-import reactivemongo.play.json.ImplicitBSONHandlers._
 
 /**
   * Stores to MongoDB with data encoded in a single field
@@ -40,7 +37,6 @@ class SecureStorageTypedActor(
   @transient val platformKey : String,
   val db : DefaultDB
 ) extends SecureStorage with AESEncryption {
-//  implicit val ec : ExecutionContext = TypedActor.dispatcher
 
   val collection: BSONCollection = db.collection(this.getClass.getSimpleName)
 
@@ -48,19 +44,17 @@ class SecureStorageTypedActor(
 
   def getAsync(id: String, key: String)(implicit ec: ExecutionContext): Future[JsValue] = {
     getBson(id).flatMap {
-      _ match {
-        case Some(bson) => Future{
-          val top = BSONDocumentFormat.writes(bson).as[JsObject]
-          val dataAsString = decrypt(
-            (top \\ "data").head.asInstanceOf[JsString].value.getBytes,
-            key
-          )
-          Json.parse(dataAsString)
-        }
-        case None => Future.failed(
-          new NoSuchElementException(s"key not found $id")
+      case Some(bson) => Future{
+        val top = BSONDocumentFormat.writes(bson).as[JsObject]
+        val dataAsString = decrypt(
+          (top \\ "data").head.asInstanceOf[JsString].value.getBytes,
+          key
         )
+        Json.parse(dataAsString)
       }
+      case None => Future.failed(
+        new NoSuchElementException(s"key not found $id")
+      )
     }
   }
 

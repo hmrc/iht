@@ -28,7 +28,7 @@ private object AppDependencies {
   import play.core.PlayVersion
 
   val compile = Seq(
-    "org.reactivemongo" %% "reactivemongo" % "0.15.1" force(),
+    "org.reactivemongo" %% "reactivemongo" % "0.16.4" force(),
     ws,
     "uk.gov.hmrc" %% "bootstrap-play-25" % "4.7.0",
     "uk.gov.hmrc" %% "play-scheduling" % "5.4.0",

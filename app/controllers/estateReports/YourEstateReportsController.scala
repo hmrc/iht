@@ -24,7 +24,7 @@ import connectors.IhtConnector
 import models.application.IhtApplication
 import models.registration.RegistrationDetails
 import org.joda.time.LocalDate
-import play.api.mvc.Action
+import play.api.mvc.{Action, AnyContent}
 import play.api.libs.json._
 import utils.ControllerHelper
 import play.api.Logger
@@ -47,11 +47,11 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
   val ihtConnector: IhtConnector
   val metrics: MicroserviceMetrics
 
-  def listCases(nino: String) = Action.async {
+  def listCases(nino: String): Action[AnyContent] = Action.async {
     implicit request => exceptionCheckForResponses ({
       ihtConnector.getCaseList(nino).map {
         httpResponse => httpResponse.status match {
-          case OK => {
+          case OK =>
             Logger.info("List Cases Response")
             metrics.incrementSuccessCounter(Api.GET_CASE_LIST)
 
@@ -61,17 +61,16 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
               try {
                 Ok(Json.toJson(processResponse(js))).as("text/json")
               } catch {
-                case e: Exception => throw new Upstream4xxResponse("Empty case return", NOT_FOUND, NOT_FOUND)
+                case e: Exception => throw Upstream4xxResponse("Empty case return", NOT_FOUND, NOT_FOUND)
               }
             } else {
               processJsonValidationError(pr, js)
             }
-          }
           case NO_CONTENT => {
             Logger.info("List cases returned No Content")
             NoContent
           }
-          case ( _ ) => {
+          case _ => {
             Logger.info("List cases failed to work")
             InternalServerError
           }
@@ -89,7 +88,7 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
 
 
   def processResponse(js:JsValue): Seq[IhtApplication] = {
-    (js \ "deathEvents").as[JsArray].value.map(createIhtApplication(_))
+    (js \ "deathEvents").as[JsArray].value.map(createIhtApplication)
 
   }
 
@@ -138,7 +137,7 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
     implicit request => exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
       httpResponse => httpResponse.status match {
-        case OK => {
+        case OK =>
           Logger.debug("getCase Details response")
           metrics.incrementSuccessCounter(Api.GET_CASE_DETAILS)
           val js:JsValue = Json.parse(httpResponse.body)
@@ -149,20 +148,17 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
             Logger.info("Get Case Details Acknowledgment Ref: " + httpResponse.json.\("acknowledgmentReference"))
 
             val registrationDetails: RegistrationDetails = Json.fromJson(js)(registrationDetailsReads) match {
-              case JsSuccess(x, js) => {
+              case JsSuccess(value, _) =>
                 Logger.info("Successful return on getCaseDetails")
-                x
-              }
-              case JsError(e) => {
+                value
+              case JsError(e) =>
                 Logger.error("Failure to get correct")
                 throw new RuntimeException(e.toString())
-              }
             }
             Ok(Json.toJson(registrationDetails)).as("text/json")
           } else {
            processJsonValidationError(pr, js)
           }
-        }
         case NO_CONTENT => {
           NoContent
         }

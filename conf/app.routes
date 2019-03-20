@@ -10,9 +10,9 @@ POST       /:nino/application/save/:acknowledgementReference                    
 GET        /:nino/application/delete/:ihtRef                                            @controllers.application.ApplicationController.deleteRecord(nino: String, ihtRef:String)
 
 
-POST        /:nino/:ihtAppReference/application/submit                                  @controllers.application.ApplicationController.submit(ihtAppReference: String, nino: String)
+POST       /:nino/:ihtAppReference/application/submit                                   @controllers.application.ApplicationController.submit(ihtAppReference: String, nino: String)
 
-GET         /:nino/application/getRealtimeRiskingMessage/:ihtAppReference               @controllers.application.ApplicationController.getRealtimeRiskingMessage(ihtAppReference, nino)
+GET        /:nino/application/getRealtimeRiskingMessage/:ihtAppReference                @controllers.application.ApplicationController.getRealtimeRiskingMessage(ihtAppReference, nino)
 
 GET        /:nino/:ihtReference/application/requestClearance                            @controllers.application.ApplicationController.requestClearance(nino:String, ihtReference:String)
 GET        /:nino/application/probateDetails/:ihtReference/:ihtReturnId                 @controllers.application.ApplicationController.getProbateDetails(nino:String, ihtReference:String, ihtReturnId:String)
