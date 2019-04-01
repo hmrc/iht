@@ -44,7 +44,7 @@ class IHTReturnTest  extends UnitSpec {
         acknowledgmentReference, dateOfDeath)
 
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason shouldBe ("Excepted Estate")
+      reason shouldBe "Excepted Estate"
     }
 
     "successfully convert declaration reasonForBeingBelowLimit to  Spouse, Civil Partner or Charity Exemption" in {
@@ -53,7 +53,7 @@ class IHTReturnTest  extends UnitSpec {
         declarationDate,
         acknowledgmentReference, dateOfDeath)
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason shouldBe ("Spouse, Civil Partner or Charity Exemption")
+      reason shouldBe "Spouse, Civil Partner or Charity Exemption"
     }
 
     "successfully convert declaration reasonForBeingBelowLimit to Transferred Nil Rate Band" in {
@@ -62,7 +62,7 @@ class IHTReturnTest  extends UnitSpec {
         declarationDate,
         acknowledgmentReference, dateOfDeath)
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason shouldBe ("Transferred Nil Rate Band")
+      reason shouldBe "Transferred Nil Rate Band"
     }
 
     "throw an exception if asked to convert an IHT model with a property with an invalid property type" in {
@@ -130,7 +130,7 @@ class IHTReturnTest  extends UnitSpec {
   }
 
   def buildIHTReturnCorrespondingToApplicationDetailsAllFields(declarationDate:LocalDateTime,
-                                                               acknowledgmentReference: String) = {
+                                                               acknowledgmentReference: String): IHTReturn = {
     val address = Address(
       addressLine1= Some("addr1"), addressLine2= Some("addr2"),
       addressLine3= None, addressLine4= None,

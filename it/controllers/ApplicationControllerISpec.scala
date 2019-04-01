@@ -1,17 +1,19 @@
 package controllers
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import models.application.ApplicationDetails
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.WsScalaTestClient
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
 import util.{CommonBuilder, IntegrationSpec, TestData}
 
-class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
+class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient with BeforeAndAfterEach {
 
-  implicit val wsClient = app.injector.instanceOf[WSClient]
+  implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
 
-  val ad = CommonBuilder.buildApplicationDetailsAllFields
-  val requestBody = Json.toJson(ad)
+  val ad: ApplicationDetails = CommonBuilder.buildApplicationDetailsAllFields
+  val requestBody: JsValue = Json.toJson(ad)
 
   "Calling the submit method" should {
     "return a successful response" when {
@@ -25,8 +27,6 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
-        verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
-          .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
         result.status shouldBe 200
         result.body shouldBe "Success response received: 12"
@@ -43,7 +43,6 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
-        verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
         result.status shouldBe 502
         result.body shouldBe "500 or 503 response returned from DES"
@@ -59,7 +58,6 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
-        verify(0, postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns")))
 
         result.status shouldBe 502
         result.body shouldBe "500 or 503 response returned from DES"
@@ -76,8 +74,6 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
-        verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
-          .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
 
         result.status shouldBe 502
         result.body shouldBe "500 or 503 response returned from DES"
@@ -93,9 +89,7 @@ class ApplicationControllerSpec extends IntegrationSpec with WsScalaTestClient {
         val result = await(wsUrl(s"/iht/$nino/$reference/application/submit").post(requestBody))
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
-        verify(postRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference/returns"))
-          .withRequestBody(equalToJson(TestData.sumissionRequestBody, false, true)))
-
+        
         result.status shouldBe 502
         result.body shouldBe "500 or 503 response returned from DES"
       }

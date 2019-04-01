@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package models.application.debts
+package controllers
 
-import models.application.basicElements.EstateElement
-import play.api.libs.json.{Json, OFormat}
+import play.api.mvc.{AnyContent, BodyParser, DefaultActionBuilderImpl}
+import play.api.test.Helpers._
 
-case class BasicEstateElementLiabilities(isOwned: Option[Boolean],
-                                         value: Option[BigDecimal]) extends EstateElement
+import scala.concurrent.ExecutionContext.Implicits.global
 
-object BasicEstateElementLiabilities {
-  implicit val formats: OFormat[BasicEstateElementLiabilities] = Json.format[BasicEstateElementLiabilities]
+trait ControllerComponentsHelper {
+  val mockBodyParser: BodyParser[AnyContent] = stubBodyParser[AnyContent]()
+  val testActionBuilder: DefaultActionBuilderImpl = new DefaultActionBuilderImpl(mockBodyParser)
 }

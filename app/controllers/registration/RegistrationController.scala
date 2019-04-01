@@ -24,10 +24,10 @@ import metrics.MicroserviceMetrics
 import models.enums._
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, Result}
+import play.api.mvc.{Action, ControllerComponents, Result}
 import services.AuditService
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.ControllerHelper
 import utils.exception.DESInternalServerError
 
@@ -36,13 +36,12 @@ import scala.concurrent.Future
 
 class RegistrationControllerImpl @Inject()(val desConnector: IhtConnector,
                                            val metrics: MicroserviceMetrics,
-                                           val auditService: AuditService) extends RegistrationController
+                                           val auditService: AuditService,
+                                           val cc: ControllerComponents) extends BackendController(cc) with RegistrationController
 
-trait RegistrationController extends BaseController with ControllerHelper {
+trait RegistrationController extends BackendController with ControllerHelper {
   val desConnector: IhtConnector
-
   def metrics: MicroserviceMetrics
-
   def auditService: AuditService
 
   def recoverOnSubmit: PartialFunction[Throwable, Future[Result]] = {

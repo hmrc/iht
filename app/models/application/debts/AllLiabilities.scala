@@ -16,11 +16,8 @@
 
 package models.application.debts
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
-/**
-  * Created by vineet on 05/07/17.
-  */
 case class AllLiabilities(funeralExpenses: Option[BasicEstateElementLiabilities] = None,
                           trust: Option[BasicEstateElementLiabilities] = None,
                           debtsOutsideUk: Option[BasicEstateElementLiabilities] = None,
@@ -39,14 +36,12 @@ case class AllLiabilities(funeralExpenses: Option[BasicEstateElementLiabilities]
     val mort = mortgages.getOrElse(new MortgageEstateElement(Some(false), Nil)).mortgageList
 
     mort match {
-      case x : List[Mortgage] if x.length > 0  => {
-        x.flatMap(_.value).sum
-      }
-      case _ => BigDecimal(0)
+      case x : List[Mortgage] if x.nonEmpty => x.flatMap(_.value).sum
+      case _                                => BigDecimal(0)
     }
   }
 }
 
 object AllLiabilities {
-  implicit val formats = Json.format[AllLiabilities]
+  implicit val formats: OFormat[AllLiabilities] = Json.format[AllLiabilities]
 }

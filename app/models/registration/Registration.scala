@@ -20,6 +20,8 @@ import constants.Constants
 import models.{ContactDetails, UkAddress}
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.JodaWrites._
 
 /**
   * Created by yasar on 3/10/15.

@@ -41,6 +41,16 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
                               reasonForBeingBelowLimit: Option[String] = None,
                               hasSeenExemptionGuidance: Option[Boolean] = Some(false)){
 
+  def totalPropertyValue: BigDecimal = propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
+
+  def estateValue: BigDecimal = {
+    if(totalExemptionsValue > 0) {
+      totalAssetsValue + totalGiftsValue.getOrElse(0) - totalExemptionsValue - totalLiabilitiesValue
+    } else {
+      totalAssetsValue + totalGiftsValue.getOrElse(0)
+    }
+  }
+
   def totalGiftsValue: Option[BigDecimal] = {
     val seqOfPreviousYearsGifts = giftsList.getOrElse(Seq())
     val valueOfGifts = seqOfPreviousYearsGifts.flatMap(_.value).sum
@@ -48,24 +58,14 @@ case class ApplicationDetails(allAssets: Option[AllAssets] = None,
     Some(valueOfGifts - valueOfExemptions)
   }
 
-  def totalPropertyValue:BigDecimal = propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
+  def totalAssetsValue: BigDecimal =
+    allAssets.map(_.totalValueWithoutProperties()).getOrElse(BigDecimal(0)) + propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
 
-  def totalAssetsValue:BigDecimal =
-    allAssets.map(_.totalValueWithoutProperties).getOrElse(BigDecimal(0)) + propertyList.map(_.value.getOrElse(BigDecimal(0))).sum
-
-  def totalExemptionsValue:BigDecimal = charities.map(_.totalValue.getOrElse(BigDecimal(0))).sum +
+  def totalExemptionsValue: BigDecimal = charities.map(_.totalValue.getOrElse(BigDecimal(0))).sum +
     qualifyingBodies.map(_.totalValue.getOrElse(BigDecimal(0))).sum +
     allExemptions.flatMap(_.partner.map(_.totalAssets.getOrElse(BigDecimal(0)))).sum
 
-  def totalLiabilitiesValue:BigDecimal = allLiabilities.map(_.totalValue()).getOrElse(BigDecimal(0))
-
-  def estateValue:BigDecimal = {
-    if(totalExemptionsValue > 0) {
-      totalAssetsValue + totalGiftsValue.getOrElse(0) - totalExemptionsValue - totalLiabilitiesValue
-    } else {
-      totalAssetsValue + totalGiftsValue.getOrElse(0)
-    }
-  }
+  def totalLiabilitiesValue: BigDecimal = allLiabilities.map(_.totalValue()).getOrElse(BigDecimal(0))
 
 }
 
