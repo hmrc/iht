@@ -32,6 +32,7 @@ import utils.exception.DESInternalServerError
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.util.matching.Regex
 
 class ErrorHandler @Inject() (env: Environment,
                               config: Configuration,
@@ -70,19 +71,20 @@ trait ApplicationGlobal {
     Duration.create(s).toMillis millis
 
   lazy val system = ActorSystem("iht")
-  lazy val secureStorage : SecureStorage = {
+  lazy val secureStorage: SecureStorage = {
     val platformKey = conf.getString("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
 
     if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
 
-    val host = conf.getString("securestorage.host").getOrElse("localhost")
-    val dbName = conf.getString("securestorage.dbname").getOrElse("securestorage")
-    val (nodes, ssl) = host.split('?').toList match {
-      case h :: t   => h -> t.contains("sslEnabled=true")
-      case h :: Nil => h -> false
+
+    val dbConf = conf.getString("securestorage.dbConfig").getOrElse(throw new RuntimeException("securestorage.dbConfig is not defined"))
+    val (mongoRegexSSL, mongoRegex) = """mongodb://(.*)\/(.*)\?(.*)""".r -> """mongodb://(.*)\/(.*)""".r
+    val (nodes, dbName, ssl: Option[String]) = dbConf match {
+      case mongoRegexSSL(a, b, c) => (a, b, c)
+      case mongoRegex(a, b) => (a, b, None)
     }
 
-    lazy val conn = driver.connection(nodes = nodes.split(","), options = MongoConnectionOptions(sslEnabled = ssl))
+    lazy val conn = driver.connection(nodes = nodes.split(","), options = MongoConnectionOptions(sslEnabled = ssl.contains("sslEnabled=true")))
     val db = Await.result(conn.database(dbName), Duration.Inf)
 
     TypedActor(system).typedActorOf(TypedProps(
