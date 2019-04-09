@@ -18,12 +18,14 @@ package connectors.securestorage
 
 import org.joda.time.DateTime
 import play.api.libs.json.{JsValue, Json, _}
-import reactivemongo.api.DefaultDB
+import reactivemongo.api.{DefaultDB, FailoverStrategy}
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, _}
+import reactivemongo.core.nodeset.Authenticate
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
-import scala.concurrent._
+import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Stores to MongoDB with data encoded in a single field
@@ -35,10 +37,15 @@ import scala.concurrent._
   */
 class SecureStorageTypedActor(
   @transient val platformKey : String,
-  val db : DefaultDB
+  val db: DefaultDB,
+  auth: Option[Authenticate]
 ) extends SecureStorage with AESEncryption {
 
   val collection: BSONCollection = db.collection(this.getClass.getSimpleName)
+
+  auth map { a =>
+    db.connection.authenticate(db.name, a.user, a.password.get, failoverStrategy = FailoverStrategy.default)
+  }
 
   private def getBson(id: String)(implicit ec: ExecutionContext) = collection.find(BSONDocument("id" -> id)).one[BSONDocument]
 

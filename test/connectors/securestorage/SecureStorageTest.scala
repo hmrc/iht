@@ -167,7 +167,7 @@ with SecureStorageBehaviours with BeforeAndAfter {
 
   val actor: SecureStorage =
     TypedActor(system).typedActorOf(TypedProps(classOf[SecureStorage],
-      new SecureStorageTypedActor("PLATFORMKEY",db)), "ss")
+      new SecureStorageTypedActor("PLATFORMKEY",db,None)), "ss")
 
   "A Secure Storage Dummy Mongo Implementation" should
     behave like secureStorage(actor)

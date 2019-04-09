@@ -43,7 +43,7 @@ class CleanerActorTest extends UnitSpec with WordSpecLike with BeforeAndAfter wi
 
   val ss: SecureStorage =
     TypedActor(system).typedActorOf(TypedProps(classOf[SecureStorage],
-      new SecureStorageTypedActor("PLATFORMKEY", mongo())), "ss")
+      new SecureStorageTypedActor("PLATFORMKEY", mongo(), None)), "ss")
 
   val cleaner = system.actorOf(Props{
     import com.github.nscala_time.time.Imports._

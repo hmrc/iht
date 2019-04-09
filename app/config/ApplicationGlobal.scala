@@ -27,8 +27,10 @@ import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
 import play.api.{Configuration, Environment, Logger, Mode, OptionalSourceMapper}
-import reactivemongo.api.MongoConnectionOptions
+import reactivemongo.api.{FailoverStrategy, MongoConnection, MongoConnectionOptions}
 import utils.exception.DESInternalServerError
+import reactivemongo.api.MongoConnection.ParsedURI
+import reactivemongo.core.nodeset.Authenticate
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -76,20 +78,18 @@ trait ApplicationGlobal {
 
     if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
 
-
     val dbConf = conf.getString("securestorage.dbConfig").getOrElse(throw new RuntimeException("securestorage.dbConfig is not defined"))
-    val (mongoRegexSSL, mongoRegex) = """mongodb://(.*)\/(.*)\?(.*)""".r -> """mongodb://(.*)\/(.*)""".r
-    val (nodes, dbName, ssl: Option[String]) = dbConf match {
-      case mongoRegexSSL(a, b, c) => (a, b, c)
-      case mongoRegex(a, b) => (a, b, None)
+
+    val (nodes, options, dbName, auth) = MongoConnection.parseURI(dbConf).get match {
+      case ParsedURI(hosts, opts, _, database, authenticate) => (hosts.map{case (k,_) => k}, opts, database, authenticate)
     }
 
-    lazy val conn = driver.connection(nodes = nodes.split(","), options = MongoConnectionOptions(sslEnabled = ssl.contains("sslEnabled=true")))
-    val db = Await.result(conn.database(dbName), Duration.Inf)
+    lazy val conn = driver.connection(nodes, options)
+    val db = Await.result(conn.database(dbName.get), Duration.Inf)
 
     TypedActor(system).typedActorOf(TypedProps(
       classOf[SecureStorage],
-      new SecureStorageTypedActor(platformKey, db)
+      new SecureStorageTypedActor(platformKey, db, auth)
     ), "securestorage")
   }
 
