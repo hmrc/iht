@@ -23,7 +23,8 @@ import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
-import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
   * Stores to MongoDB with data encoded in a single field
@@ -35,7 +36,7 @@ import scala.concurrent._
   */
 class SecureStorageTypedActor(
   @transient val platformKey : String,
-  val db : DefaultDB
+  val db: DefaultDB
 ) extends SecureStorage with AESEncryption {
 
   val collection: BSONCollection = db.collection(this.getClass.getSimpleName)
