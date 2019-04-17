@@ -17,6 +17,7 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
+import controllers.ControllerComponentsHelper
 import metrics.MicroserviceMetrics
 import models.enums._
 import models.registration.RegistrationDetails
@@ -25,9 +26,11 @@ import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.mockito.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
+import play.api.mvc.ControllerComponents
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonHelper._
 import utils.TestHelper
@@ -35,10 +38,11 @@ import utils.TestHelper
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class YourEstateReportsControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach {
+class YourEstateReportsControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
   val mockMetrics: MicroserviceMetrics = mock[MicroserviceMetrics]
+  val mockControllerComponents: ControllerComponents = mock[ControllerComponents]
   val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR,None,Map(),None)
   val badRequestHttpResponse = HttpResponse(BAD_REQUEST,None,Map(),None)
   val noListHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)
@@ -59,9 +63,16 @@ class YourEstateReportsControllerTest extends UnitSpec with MockitoSugar with Be
     super.beforeEach()
   }
 
-  def ihtHomeController = new YourEstateReportsController {
-    override val ihtConnector = mockDesConnector
-    override val metrics: MicroserviceMetrics = mockMetrics
+  def ihtHomeController: YourEstateReportsController = {
+    class TestController extends BackendController(mockControllerComponents) with YourEstateReportsController {
+      override val ihtConnector = mockDesConnector
+      override val metrics: MicroserviceMetrics = mockMetrics
+    }
+
+    when(mockControllerComponents.actionBuilder)
+      .thenReturn(testActionBuilder)
+
+    new TestController
   }
 
   "Respond appropriately to a failure response" in {

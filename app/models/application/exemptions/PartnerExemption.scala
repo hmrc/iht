@@ -18,6 +18,9 @@ package models.application.exemptions
 
 import org.joda.time.LocalDate
 import play.api.libs.json.Json
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.JodaWrites._
+
 
 /**
   * Created by vineet on 05/07/17.

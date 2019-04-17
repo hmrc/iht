@@ -36,7 +36,7 @@ object IHTReturn {
   def fromApplicationDetails(ad:ApplicationDetails,
                              declarationDate:LocalDateTime,
                              acknowledgmentReference: String,
-                              dateOfDeath:LocalDate) :IHTReturn = {
+                             dateOfDeath:LocalDate) :IHTReturn = {
 
     val kickoutReason = ad.kickoutReason.getOrElse("")
     if (kickoutReason.length>0) {

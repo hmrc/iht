@@ -17,33 +17,32 @@
 package controllers.estateReports
 
 import com.github.fge.jsonschema.core.report.ProcessingReport
+import connectors.IhtConnector
 import constants.Constants
+import javax.inject.Inject
 import json.JsonValidator
 import metrics.MicroserviceMetrics
-import connectors.IhtConnector
 import models.application.IhtApplication
+import models.enums._
 import models.registration.RegistrationDetails
+import models.registration.RegistrationDetails.registrationDetailsReads
 import org.joda.time.LocalDate
-import play.api.mvc.{Action, AnyContent}
-import play.api.libs.json._
-import utils.ControllerHelper
+import play.api.libs.json.JodaReads._
+import play.api.libs.json.JodaWrites._
 import play.api.Logger
+import play.api.libs.json._
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import utils.ControllerHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import RegistrationDetails.registrationDetailsReads
-import javax.inject.Inject
-import models.enums._
-import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse}
-import uk.gov.hmrc.play.bootstrap.controller.BaseController
 
-
-/**
- * Created by jon on 19/06/15.
- */
 class YourEstateReportsControllerImpl @Inject()(val metrics: MicroserviceMetrics,
-                                                val ihtConnector: IhtConnector) extends YourEstateReportsController
+                                                val ihtConnector: IhtConnector,
+                                                val cc: ControllerComponents) extends BackendController(cc) with YourEstateReportsController
 
-trait YourEstateReportsController extends BaseController with ControllerHelper {
+trait YourEstateReportsController extends BackendController with ControllerHelper {
   val ihtConnector: IhtConnector
   val metrics: MicroserviceMetrics
 
@@ -66,14 +65,12 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
             } else {
               processJsonValidationError(pr, js)
             }
-          case NO_CONTENT => {
+          case NO_CONTENT =>
             Logger.info("List cases returned No Content")
             NoContent
-          }
-          case _ => {
+          case _ =>
             Logger.info("List cases failed to work")
             InternalServerError
-          }
         }
       }
     } recover {
@@ -93,7 +90,6 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
   }
 
   def createIhtApplication(js:JsValue):IhtApplication = {
-
     val ihtRef =                  js \\ "ihtReference" head
     val firstName =               js \\ "firstName" head
     val lastName =                js \\ "lastName" head
@@ -126,14 +122,12 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
       registrationDate.as[LocalDate],
       currentStatus.as[String],
       acknowledgmentReference.as[String])
-
   }
 
   /*
   * Fetch the case Details fro DES for the given nino and Iht Reference
   */
-  def caseDetails(nino:String,ihtReference:String) = Action.async {
-
+  def caseDetails(nino: String, ihtReference: String): Action[AnyContent] = Action.async {
     implicit request => exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
       httpResponse => httpResponse.status match {
@@ -159,12 +153,8 @@ trait YourEstateReportsController extends BaseController with ControllerHelper {
           } else {
            processJsonValidationError(pr, js)
           }
-        case NO_CONTENT => {
-          NoContent
-        }
-        case ( _ ) => {
-          InternalServerError
-        }
+        case NO_CONTENT => NoContent
+        case _          => InternalServerError
       }
     }
     },Api.GET_CASE_DETAILS)

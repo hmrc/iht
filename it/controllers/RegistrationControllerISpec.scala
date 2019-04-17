@@ -1,12 +1,11 @@
 package controllers
 
-import com.github.tomakehurst.wiremock.client.WireMock.{getRequestedFor, postRequestedFor, urlPathMatching, verify}
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import util.{CommonBuilder, IntegrationSpec, TestData}
+import util.{CommonBuilder, IntegrationSpec}
 
-class RegistrationControllerSpec extends IntegrationSpec with WsScalaTestClient {
+class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient {
 
   implicit val wsClient = app.injector.instanceOf[WSClient]
 

@@ -17,11 +17,7 @@
 package models.application.assets
 
 import models.application.basicElements.{BasicEstateElement, ShareableBasicEstateElement}
-import play.api.libs.json.Json
-
-/**
-  * Created by vineet on 02/11/16.
-  */
+import play.api.libs.json.{Json, OFormat}
 
 case class AllAssets(action: Option[String],
                      money: Option[ShareableBasicEstateElement] = None,
@@ -62,6 +58,5 @@ case class AllAssets(action: Option[String],
 }
 
 object AllAssets {
-  implicit val formats = Json.format[AllAssets]
-
+  implicit val formats: OFormat[AllAssets] = Json.format[AllAssets]
 }

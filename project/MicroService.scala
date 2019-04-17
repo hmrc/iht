@@ -58,12 +58,12 @@ trait MicroService {
     .settings(publishingSettings: _*)
     .settings(
       libraryDependencies ++= appDependencies,
-      retrieveManaged := true,
-      routesGenerator := StaticRoutesGenerator)
+      retrieveManaged := true
+    )
     .settings(
       resolvers += Resolver.bintrayRepo("hmrc", "releases"),
       resolvers += Resolver.jcenterRepo,
-      scalaVersion := "2.11.11"
+      scalaVersion := "2.11.12"
     )
     .configs(IntegrationTest)
     .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)

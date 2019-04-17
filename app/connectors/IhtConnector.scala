@@ -21,27 +21,37 @@ import constants.Constants._
 import javax.inject.Inject
 import metrics.MicroserviceMetrics
 import models.enums._
+import play.api.Logger
 import play.api.libs.json.JsValue
 import play.api.mvc.Request
-import play.api.{Configuration, Environment, Logger, Play}
 import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.logging.Authorization
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.play.config.ServicesConfig
-import utils.CommonHelper._
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
 import utils.exception.DESInternalServerError
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
+class IhtConnectorImpl @Inject()(val metrics: MicroserviceMetrics,
+                                 val http: DefaultHttpClient,
+                                 val auditService: AuditService,
+                                 val servicesConfig: ServicesConfig) extends IhtConnector {
+  override val serviceURL: String = servicesConfig.baseUrl("iht")
+  override val urlHeaderEnvironment: String = servicesConfig.getConfString("iht.des.environment",
+    throw new RuntimeException("No iht.des.environment value defined"))
+  override val urlHeaderAuthorization = s"Bearer ${servicesConfig.getConfString("iht.des.authorization-key",
+    throw new RuntimeException("No iht.des.authorization-key value defined"))}"
+}
+
 trait IhtConnector {
 
   val serviceURL: String
   val urlHeaderEnvironment: String
   val urlHeaderAuthorization: String
-  val http: HttpClient
+  val http: DefaultHttpClient
   val auditService: AuditService
 
   def metrics: MicroserviceMetrics
@@ -49,7 +59,7 @@ trait IhtConnector {
   private def createHeaderCarrier = HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment),
     authorization = Some(Authorization(urlHeaderAuthorization)))
 
-  def submitRegistration(nino: String, registrationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
+  def submitRegistration(nino: String, registrationJs: JsValue)(implicit request: Request[_]): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     /*
    * Recover cases are written because of the framework design.
@@ -75,20 +85,19 @@ trait IhtConnector {
         response
       }
     } recoverWith {
-      case e: Exception => {
+      case e: Exception =>
         Logger.info("Exception occured while registration submission ::: " + e.getMessage)
         val keyMap = Map("request" -> RegSubmissionRequestKey, "response" -> RegSubmissionFailureResponseKey)
         auditSubmissionFailure(registrationJs, futureResponse, keyMap, Constants.AuditTypeIHTRegistrationSubmitted)
         Future.failed(throw e)
-      }
     }
   }
 
   implicit val readApiResponse: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
-    def read(method: String, url: String, response: HttpResponse) = IhtResponseHandler.handleIhtResponse(method, url, response)
+    def read(method: String, url: String, response: HttpResponse): HttpResponse = IhtResponseHandler.handleIhtResponse(method, url, response)
   }
 
-  def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request:Request[_]): Future[HttpResponse] = {
+  def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request: Request[_]): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
 
     Logger.info("Start Submitting application process, creating metrics ")
@@ -105,17 +114,15 @@ trait IhtConnector {
         response
       }
     } recoverWith {
-      case e: Exception => {
+      case e: Exception =>
         Logger.info("Exception occured while application submission ::: " + e.getMessage)
         val keyMap = Map("request" -> AppSubmissionRequestKey, "response" -> AppSubmissionFailureResponseKey)
         auditSubmissionFailure(applicationJs, futureResponse, keyMap, Constants.AuditTypeIHTEstateReportSubmitted)
         Future.failed(throw e)
-      }
     }
   }
 
-  def submitRealtimeRisking(ihtReference: String, ackRef: String, realtimeRiskingJs: JsValue):
-  Future[HttpResponse] = {
+  def submitRealtimeRisking(ihtReference: String, ackRef: String, realtimeRiskingJs: JsValue): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     Logger.info("Submit risking info to DES")
     val timerContext = metrics.startTimer(Api.SUB_REAL_TIME_RISKING)
@@ -211,7 +218,7 @@ trait IhtConnector {
   private def auditSubmissionFailure(requestJs: JsValue,
                                      responseToAudit: Future[HttpResponse],
                                      keys: Map[String, String],
-                                     transactionName:String)(implicit request:Request[_]): Unit = {
+                                     transactionName: String)(implicit request: Request[_]): Unit = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
 
     responseToAudit.onComplete[Any] {
@@ -223,17 +230,6 @@ trait IhtConnector {
     }
   }
 
-}
-
-class IhtConnectorImpl @Inject()(val metrics: MicroserviceMetrics,
-                                 val http: HttpClient,
-                                 val auditService: AuditService,
-                                 env: Environment,
-                                 val runModeConfiguration: Configuration) extends IhtConnector with ServicesConfig {
-  override val mode = env.mode
-  override val serviceURL = baseUrl("iht")
-  override val urlHeaderEnvironment = getOrException(config("iht").getString("des.environment"))
-  override val urlHeaderAuthorization = s"Bearer ${getOrException(config("iht").getString("des.authorization-key"))}"
 }
 
 object IhtResponseHandler extends IhtResponseHandler

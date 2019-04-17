@@ -19,7 +19,7 @@ package connectors.securestorage
 import akka.actor._
 import akka.util._
 import config.ApplicationGlobal
-import play.api.mvc._
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.duration._
 
@@ -27,7 +27,7 @@ import scala.concurrent.duration._
   * A mixin to supply the secure storage interface to a controller
   */
 trait SecureStorageController {
-  self : Controller =>
+  self : BackendController =>
 
   val appGlobal: ApplicationGlobal
 

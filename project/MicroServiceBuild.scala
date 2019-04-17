@@ -27,14 +27,17 @@ private object AppDependencies {
   import play.sbt.PlayImport._
   import play.core.PlayVersion
 
-  val compile = Seq(
-    "org.reactivemongo" %% "reactivemongo" % "0.16.4" force(),
+  val jsonSchemaValidatorVersion = "2.2.6"
+
+  val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "bootstrap-play-25" % "4.9.0",
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "7.18.0-play-26",
+    "uk.gov.hmrc" %% "bootstrap-play-26" % "0.37.0",
     "uk.gov.hmrc" %% "play-scheduling" % "6.0.0",
     "uk.gov.hmrc" %% "http-caching-client" % "8.1.0",
-    "uk.gov.hmrc" %% "domain" % "5.6.0-play-25",
-    "com.github.fge" % "json-schema-validator" % "2.2.6"
+    "uk.gov.hmrc" %% "domain" % "5.6.0-play-26",
+    "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
+    "com.typesafe.play" %% "play-json-joda" % "2.6.13"
   )
 
   trait TestDependencies {
@@ -42,12 +45,11 @@ private object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
-  val reactiveMongoTestVersion = "4.9.0-play-25"
-  val hmrcTestVersion = "3.6.0-play-25"
-  val jsonSchemaValidatorVersion = "2.2.6"
+  val reactiveMongoTestVersion = "4.11.0-play-26"
+  val hmrcTestVersion = "3.6.0-play-26"
 
   object Test {
-    def apply() = new TestDependencies {
+    def apply(): Seq[ModuleID] = new TestDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
@@ -57,27 +59,27 @@ private object AppDependencies {
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
         "org.mockito" % "mockito-core" % "2.19.0" % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope
+        "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope
       )
     }.test
   }
 
   object IntegrationTest {
-    def apply() = new TestDependencies {
+    def apply(): Seq[ModuleID] = new TestDependencies {
       override lazy val scope: String = "it"
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
-        "org.pegdown" % "pegdown" % "1.4.2" % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % "2.0.0" % scope,
+        "org.pegdown" % "pegdown" % "1.6.0" % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
         "org.mockito" % "mockito-all" % "1.9.5" % scope,
-        "com.github.tomakehurst" % "wiremock" % "2.9.0" % scope
+        "com.github.tomakehurst" % "wiremock-jre8" % "2.22.0" % "test,it"
       )
     }.test
   }
 
-  def apply() = compile ++ Test() ++ IntegrationTest()
+  def apply(): Seq[ModuleID] = compile ++ Test() ++ IntegrationTest()
 }
