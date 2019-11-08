@@ -35,8 +35,11 @@ class AllLiabilitiesTest extends UnitSpec with FakeIhtApp with MockitoSugar{
         val ad = CommonBuilder.buildApplicationDetailsEmpty
         ad.allLiabilities.fold(BigDecimal(0))(_.totalValue) shouldBe BigDecimal(0)
       }
-    }
 
+      "return the correct value for total liabilities when missing" in {
+        AllLiabilities().totalValue() shouldBe 0
+      }
+    }
 
     "mortgageValue is called" must {
 
