@@ -32,9 +32,9 @@ private object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc" %% "simple-reactivemongo" % "7.20.0-play-26",
-    "uk.gov.hmrc" %% "bootstrap-play-26" % "0.37.0",
-    "uk.gov.hmrc" %% "play-scheduling" % "6.0.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "8.4.0-play-26",
+    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.1.0",
+    "uk.gov.hmrc" %% "play-scheduling" % "6.1.0",
+    "uk.gov.hmrc" %% "http-caching-client" % "9.0.0-play-26",
     "uk.gov.hmrc" %% "domain" % "5.6.0-play-26",
     "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
     "com.typesafe.play" %% "play-json-joda" % "2.6.13"
@@ -54,11 +54,11 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % "3.0.0" % scope,
-        "org.scalacheck" %% "scalacheck" % "1.13.4" % scope,
+        "org.scalacheck" %% "scalacheck" % "1.14.2" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
-        "org.mockito" % "mockito-core" % "2.19.0" % scope,
+        "org.mockito" % "mockito-core" % "3.1.0" % scope,
         "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope
       )
     }.test
@@ -70,13 +70,13 @@ private object AppDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % "3.0.0" % scope,
+        "org.scalatest" %% "scalatest" % "3.0.8" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
-        "org.mockito" % "mockito-all" % "1.9.5" % scope,
-        "com.github.tomakehurst" % "wiremock-jre8" % "2.22.0" % "test,it"
+        "org.mockito" % "mockito-all" % "1.10.19" % scope,
+        "com.github.tomakehurst" % "wiremock-jre8" % "2.25.1" % "test,it"
       )
     }.test
   }

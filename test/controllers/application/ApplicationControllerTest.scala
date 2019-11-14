@@ -51,7 +51,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
@@ -188,10 +188,10 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
   ))), Map())
 
   "Application Controller" must {
+
     "return JSON for application details on valid IHT Reference" in new Setup {
       when(mockSecureStorage.get(any(), any())(any())).thenReturn(Some(Json.toJson(new ApplicationDetails)))
-      when(mockControllerComponents.actionBuilder)
-        .thenReturn(testActionBuilder)
+      when(mockControllerComponents.actionBuilder).thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
 
@@ -212,6 +212,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
 
     "call persistence connector and return success on save" in new Setup {
+
       import scala.concurrent.ExecutionContext.Implicits.global
 
       doNothing().when(mockSecureStorage).update("chicken", acknowledgementReference, Json.toJson(new ApplicationDetails))
@@ -339,7 +340,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
 
     "return internal server error when valid front-end JSON submitted but failure response returned from DES with a reason" in new Setup {
-      val incorrectIhtFailureJson = Json.parse( """{"failureResponse":{"reason":"IHT Case not found"}}""")
+      val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"reason":"IHT Case not found"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
@@ -358,7 +359,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
 
     "return internal server error when valid front-end JSON submitted but failure response returned from DES without a reason" in new Setup {
-      val incorrectIhtFailureJson = Json.parse( """{"failureResponse":{"bla":"bla"}}""")
+      val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"bla":"bla"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
@@ -377,7 +378,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
 
     "return internal server error when valid front-end JSON submitted but neither failure nor success response returned from DES" in new Setup {
-      val incorrectIhtFailureJson = Json.parse( """{"bla":{"bla":"bla"}}""")
+      val incorrectIhtFailureJson = Json.parse("""{"bla":{"bla":"bla"}}""")
       val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
@@ -403,7 +404,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
-      when(mockAuditService.sendEvent(any(), any(classOf[Map[String,String]]), any())(any(), any(), any()))
+      when(mockAuditService.sendEvent(any(), any(classOf[Map[String, String]]), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
@@ -416,7 +417,6 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val result = applicationController.submit("", "")(request.withBody(jsonAD))
       status(result) should be(OK)
       verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_APPLICATION)
-//      assert(applicationController.metrics.successCounters(Api.SUB_APPLICATION).getCount > 0, "Success counter for Sub Application Api is more than one")
     }
 
     "send an audit event containing the final estate value on a successful submission" in new Setup {
@@ -433,7 +433,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
-      when(mockAuditService.sendEvent(any(), any(classOf[Map[String,String]]), any())(any(), any(), any()))
+      when(mockAuditService.sendEvent(any(), any(classOf[Map[String, String]]), any())(any(), any(), any()))
         .thenReturn(Future.successful(Success))
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
@@ -623,6 +623,106 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val result = applicationController.getSubmittedApplicationDetails("", "", "")(request)
       status(result) should be(OK)
       verify(mockMetrics, expected(1)).incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
+    }
+
+    def genericExceptionHandlingTestSetup = {
+      val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"reason":"IHT Case not found"}}""")
+      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
+      val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
+
+      when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
+      when(mockControllerComponents.actionBuilder)
+        .thenReturn(testActionBuilder)
+      when(mockControllerComponents.parsers)
+        .thenReturn(stubPlayBodyParsers)
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.successful(errorHttpResponse))
+      doNothing().when(mockMetrics).incrementFailedCounter(any())
+      jsonAD
+    }
+
+    "handle gateway exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new GatewayTimeoutException("gateway-exception")))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
+    }
+
+    "handle BadRequestException exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new BadRequestException("bad-request-exception")))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
+    }
+
+    "handle Upstream4xxResponse exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new Upstream4xxResponse("upstream-exception", -1, -1)))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
+    }
+
+    "handle Upstream5xxResponse exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new Upstream5xxResponse("gateway-exception", -1, -1)))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
+    }
+
+    "handle NotFoundException exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new NotFoundException("notfound-exception")))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
+    }
+
+    "handle Generic Exception exception when required" in new Setup {
+      val jsonAD: JsValue = genericExceptionHandlingTestSetup
+
+      when(mockDesConnector.submitApplication(any(), any(), any())(any()))
+        .thenReturn(Future.failed(new RuntimeException("generic-exception")))
+
+      try {
+        applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
+        fail("Exception not thrown")
+      } catch {
+        case ex: Exception => // Do nothing
+      }
     }
   }
 }

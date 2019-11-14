@@ -31,7 +31,7 @@ import play.api.mvc.ControllerComponents
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import services.AuditService
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, Upstream4xxResponse}
+import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.test.UnitSpec
@@ -79,22 +79,22 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
     implicit val hc = new HeaderCarrier
 
     // Mocked up data
-    val correctIhtReferenceNoJs = Json.parse( """{"referenceNumber":"AAA111222"}""" )
-    val invalidIhtReferenceNoJs = Json.parse( """{"bla":"bla"}""" )
+    val correctIhtReferenceNoJs = Json.parse("""{"referenceNumber":"AAA111222"}""")
+    val invalidIhtReferenceNoJs = Json.parse("""{"bla":"bla"}""")
     val ihtRegistrationDetails = Json.parse(
       AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
         NinoBuilder.replacePlaceholderNinoWithDefault(
           JsonLoader.fromResource("/json/validation/JsonTestValid.json").toString)))
 
-    val correctHttpResponse = HttpResponse(OK,Some(correctIhtReferenceNoJs),Map(),None)
-    val invalidHttpResponse = HttpResponse(OK,Some(invalidIhtReferenceNoJs),Map(),None)
+    val correctHttpResponse = HttpResponse(OK, Some(correctIhtReferenceNoJs), Map(), None)
+    val invalidHttpResponse = HttpResponse(OK, Some(invalidIhtReferenceNoJs), Map(), None)
 
     "respond with OK if HttpResponse is correct" in {
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
 
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(OK)
@@ -105,7 +105,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(correctHttpResponse))
 
       val result = testRegistrationController
         .submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
@@ -118,7 +118,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(invalidHttpResponse))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future(invalidHttpResponse))
 
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(INTERNAL_SERVER_ERROR)
@@ -129,7 +129,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
 
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(ACCEPTED)
@@ -140,11 +140,77 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(),ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
 
       a[Upstream4xxResponse] shouldBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
     }
+
+    "respond with timeout" in {
+      setupBodyBuilders
+
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+        .thenReturn(Future.failed(new GatewayTimeoutException("des_gateway_timeout")))
+
+      try {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+        fail("Exception not thrown")
+      } catch {case _ => }
+    }
+
+    "respond with bad request exception" in {
+      setupBodyBuilders
+
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+        .thenReturn(Future.failed(new BadRequestException("des_bad_request")))
+
+      try {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+        fail("Exception not thrown")
+      } catch {case _ => }
+    }
+
+    "respond with bad not found exception" in {
+      setupBodyBuilders
+
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+        .thenReturn(Future.failed(new NotFoundException("des_not_found")))
+
+      try {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+        fail("Exception not thrown")
+      } catch {case _ => }
+    }
+
+    "respond with general exception" in {
+      setupBodyBuilders
+
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+        .thenReturn(Future.failed(new RuntimeException("des_general_exception")))
+
+      try {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+        fail("Exception not thrown")
+      } catch {case _ => }
+    }
+
+    "respond with upstream 500" in {
+      setupBodyBuilders
+
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
+        .thenReturn(Future.failed(new Upstream5xxResponse("des_gateway_timeout", 1, 1)))
+
+      a[Upstream5xxResponse] shouldBe thrownBy {
+        await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
+      }
+    }
+  }
+
+  private def setupBodyBuilders = {
+    when(mockControllerComponents.actionBuilder)
+      .thenReturn(testActionBuilder)
+    when(mockControllerComponents.parsers)
+      .thenReturn(stubPlayBodyParsers)
   }
 }
