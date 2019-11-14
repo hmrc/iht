@@ -72,7 +72,7 @@ private object AppDependencies {
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
         "org.scalatest" %% "scalatest" % "3.0.8" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % "4.0.3" % scope,
+        "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
         "org.mockito" % "mockito-all" % "1.10.19" % scope,
