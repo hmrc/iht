@@ -204,6 +204,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
     }
   }
 
+
   def submit(ihtAppReference: String, nino: String): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       exceptionCheckForResponses({
@@ -218,9 +219,8 @@ trait ApplicationController extends BackendController with SecureStorageControll
             val acknowledgmentReference = CommonHelper.generateAcknowledgeReference
             Logger.info("About to convert to DES format")
 
-            val odod = registrationHelper.getRegistrationDetails(nino, ihtAppReference) flatMap {
-              _.deceasedDateOfDeath.map(_.dateOfDeath)
-            }
+            val registrationDetails = registrationHelper.getRegistrationDetails(nino, ihtAppReference)
+            val odod = registrationDetails flatMap { _.deceasedDateOfDeath.map(_.dateOfDeath) }
 
             odod match {
               case None => Future.successful(InternalServerError("No registration details found"))
@@ -231,6 +231,13 @@ trait ApplicationController extends BackendController with SecureStorageControll
                 val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
                 if (pr.isSuccess) {
                   Logger.info("DES Json successfully validated")
+
+                  registrationDetails flatMap { _.applicantDetails } map { _.nino } match {
+                    case Some(leadExecutorNino) if nino!=leadExecutorNino =>
+                      Logger.error(s"[ApplicationController][submit] Submission attempt is NOT the lead executor")
+                    case _ =>
+                  }
+
                   for {
                     httpResponse <- ihtConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson)
                     result <- handleResponseFromDesSubmission(httpResponse, ad)
