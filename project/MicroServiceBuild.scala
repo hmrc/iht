@@ -31,8 +31,8 @@ private object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "simple-reactivemongo" % "7.20.0-play-26",
-    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.1.0",
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "7.22.0-play-26",
+    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.3.0",
     "uk.gov.hmrc" %% "play-scheduling" % "6.1.0",
     "uk.gov.hmrc" %% "http-caching-client" % "9.0.0-play-26",
     "uk.gov.hmrc" %% "domain" % "5.6.0-play-26",
@@ -45,7 +45,7 @@ private object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
-  val reactiveMongoTestVersion = "4.15.0-play-26"
+  val reactiveMongoTestVersion = "4.16.0-play-26"
   val hmrcTestVersion = "3.9.0-play-26"
 
   object Test {
@@ -53,8 +53,8 @@ private object AppDependencies {
       override lazy val test = Seq(
         "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
         "uk.gov.hmrc" %% "hmrctest" % hmrcTestVersion % scope,
-        "org.scalatest" %% "scalatest" % "3.0.0" % scope,
-        "org.scalacheck" %% "scalacheck" % "1.14.2" % scope,
+        "org.scalatest" %% "scalatest" % "3.0.8" % scope,
+        "org.scalacheck" %% "scalacheck" % "1.14.3" % scope,
         "org.pegdown" % "pegdown" % "1.6.0" % scope,
         "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
         "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
