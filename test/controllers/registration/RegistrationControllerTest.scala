@@ -52,7 +52,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
   def testRegistrationController: RegistrationController = {
-    when(mockAuditService.sendEvent(ArgumentMatchers.any(), ArgumentMatchers.any[JsValue](), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any()))
+    when(mockAuditService.sendEvent(ArgumentMatchers.any(), ArgumentMatchers.any[JsValue](), ArgumentMatchers.any())(ArgumentMatchers.any(), ArgumentMatchers.any()))
       .thenReturn(Future.successful(Success))
 
     class TestClass extends BackendController(mockControllerComponents) with RegistrationController {

@@ -386,7 +386,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
     * @param appDetails
     */
   private def doExplicitAuditCheck(nino: String, acknowledgementReference: String, appDetails: ApplicationDetails)
-                                  (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Seq[Future[AuditResult]] = {
+                                  (implicit hc: HeaderCarrier, request: Request[_]): Seq[Future[AuditResult]] = {
 
     val securedStorageAppDetails: ApplicationDetails = getApplicationDetails(acknowledgementReference,
       CommonHelper.getOrException(appDetails.ihtRef))
