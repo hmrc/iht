@@ -45,7 +45,7 @@ trait AuditService extends HttpAuditing {
   private val pathKey = "path"
 
   def sendSubmissionFailureEvent(detail: Map[String, String],
-                                 transactionName: String) (implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]) = {
+                                 transactionName: String) (implicit hc: HeaderCarrier, request: Request[_]) = {
     sendEvent(AuditTypes.SUB_FAILURE, detail, transactionName)
   }
 
@@ -68,7 +68,7 @@ trait AuditService extends HttpAuditing {
 
   def sendEvent(auditType: String,
                 detail: Map[String, String],
-                transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+                transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]): Future[AuditResult] = {
     val event = DataEvent(
       auditSource = appName,
       auditType = auditType,
@@ -80,7 +80,7 @@ trait AuditService extends HttpAuditing {
 
   def sendEvent(auditType: String,
                 detail: JsValue,
-                transactionName: String)(implicit hc: HeaderCarrier, ec: ExecutionContext, request: Request[_]): Future[AuditResult] = {
+                transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]): Future[AuditResult] = {
 
     val event = ExtendedDataEvent(
       auditSource = appName,

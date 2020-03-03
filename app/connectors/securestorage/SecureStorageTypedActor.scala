@@ -23,7 +23,6 @@ import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.bson.{BSONDocument, _}
 import reactivemongo.play.json.ImplicitBSONHandlers._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 /**
