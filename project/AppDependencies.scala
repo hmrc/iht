@@ -13,7 +13,7 @@ object AppDependencies {
     "uk.gov.hmrc" %% "http-caching-client" % "9.0.0-play-26",
     "uk.gov.hmrc" %% "domain" % "5.6.0-play-26",
     "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
-    "com.typesafe.play" %% "play-json-joda" % "2.8.1"
+    "com.typesafe.play" %% "play-json-joda" % "2.6.13"
   )
 
   trait TestDependencies {
