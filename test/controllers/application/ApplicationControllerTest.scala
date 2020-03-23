@@ -419,7 +419,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_APPLICATION)
     }
 
-    "throw an exception when nino found is not that of the lead executor" in {
+    "return forbidden response when nino found is not that of the lead executor" in {
       val rd = CommonBuilder.buildRegistrationDetailsCoExecs
       when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
         .thenReturn(Some(rd))
