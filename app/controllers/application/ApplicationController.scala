@@ -231,17 +231,16 @@ trait ApplicationController extends BackendController with SecureStorageControll
                 val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
                 if (pr.isSuccess) {
                   Logger.info("DES Json successfully validated")
-
                   registrationDetails flatMap { _.applicantDetails } map { _.nino } match {
                     case Some(leadExecutorNino) if nino!=leadExecutorNino =>
                       Logger.error(s"[ApplicationController][submit] Submission attempt is NOT the lead executor")
+                      Future.successful(Forbidden("Submitter is not the lead executor"))
                     case _ =>
+                      for {
+                        httpResponse <- ihtConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson)
+                        result <- handleResponseFromDesSubmission(httpResponse, ad)
+                      } yield result
                   }
-
-                  for {
-                    httpResponse <- ihtConnector.submitApplication(nino, ad.ihtRef.getOrElse(""), desJson)
-                    result <- handleResponseFromDesSubmission(httpResponse, ad)
-                  } yield result
                 } else {
                   Future(processJsonValidationError(pr, desJson))
                 }
@@ -394,13 +393,13 @@ trait ApplicationController extends BackendController with SecureStorageControll
     if (securedStorageAppDetails.status.equals(Constants.AppStatusInProgress)) {
       val appMap: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(securedStorageAppDetails, appDetails)
       appMap.keys.toSeq.map { current =>
-          auditService.sendEvent(Constants.AuditTypeMonetaryValueChange,
-            appMap(current),
-            Constants.AuditTypeIHTEstateReportSaved).map { auditResult =>
-            Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
-            auditResult
-          }
+        auditService.sendEvent(Constants.AuditTypeMonetaryValueChange,
+          appMap(current),
+          Constants.AuditTypeIHTEstateReportSaved).map { auditResult =>
+          Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
+          auditResult
         }
+      }
     } else {
       Nil
     }

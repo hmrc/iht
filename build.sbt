@@ -41,7 +41,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     resolvers += Resolver.bintrayRepo("hmrc", "releases"),
     resolvers += Resolver.jcenterRepo,
-    scalaVersion := "2.12.10"
+    scalaVersion := "2.12.11"
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)

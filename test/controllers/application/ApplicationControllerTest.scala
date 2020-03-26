@@ -419,6 +419,34 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       verify(mockMetrics, times(1)).incrementSuccessCounter(Api.SUB_APPLICATION)
     }
 
+    "return forbidden response when nino found is not that of the lead executor" in {
+      val rd = CommonBuilder.buildRegistrationDetailsCoExecs
+      when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
+        .thenReturn(Some(rd))
+
+      when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
+      when(mockProcessingReport.isSuccess()).thenReturn(true)
+      when(mockProcessingReport.iterator()).thenReturn(null)
+
+      val correctIhtSuccessJson = Json.parse(
+        """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""")
+      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
+      val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
+
+      when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any()))
+        .thenReturn(Future.successful(Success))
+      when(mockAuditService.sendEvent(any(), any(classOf[Map[String, String]]), any())(any(), any()))
+        .thenReturn(Future.successful(Success))
+      when(mockControllerComponents.actionBuilder)
+        .thenReturn(testActionBuilder)
+      when(mockControllerComponents.parsers)
+        .thenReturn(stubPlayBodyParsers)
+
+      val result = applicationController.submit("","AA019283A")(request.withBody(jsonAD))
+      status(result) should be (FORBIDDEN)
+      verify(mockDesConnector, times(0)).submitApplication(any(), any(), any())(any())
+    }
+
     "send an audit event containing the final estate value on a successful submission" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
       implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])

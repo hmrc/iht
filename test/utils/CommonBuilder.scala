@@ -131,6 +131,17 @@ object CommonBuilder {
     )
   }
 
+  val buildRegistrationDetailsCoExecs = {
+    RegistrationDetails(
+      deceasedDateOfDeath = Some(buildDeceasedDateOfDeath),
+      applicantDetails = Some(buildApplicantDetails.copy(nino = "AA314253A")),
+      deceasedDetails = Some(buildDeceasedDetails),
+      coExecutors = Seq(buildCoExecutor.copy(nino = "AA019283A")),
+      ihtReference = Some("ASFD"),
+      returns = Seq(buildReturnDetails)
+    )
+  }
+
   //Creates the ApplicationDetails with default values
   val buildApplicationDetailsEmpty=ApplicationDetails(
     allAssets=None,
