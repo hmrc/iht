@@ -18,12 +18,11 @@ package utils.des
 
 import constants.{AssetDetails, Constants}
 import models.application.ApplicationDetails
-import models.application.assets.{Property, HeldInTrust, AllAssets}
+import models.application.assets.{AllAssets, HeldInTrust, Property}
 import models.application.debts.Mortgage
 import models.application.exemptions.PartnerExemption
 import models.des._
-import models._
-import org.joda.time.{LocalDateTime, LocalDate}
+import org.joda.time.{LocalDate, LocalDateTime}
 import utils.CommonHelper._
 
 import scala.collection.mutable.ListBuffer

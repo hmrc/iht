@@ -16,10 +16,10 @@
 
 package connectors.securestorage
 
-import org.scalatest._
+import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import play.api.libs.json._
 import akka.actor._
-
+import org.scalatestplus.scalacheck.Checkers
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.scalacheck._
 import org.scalacheck.Shrink._
@@ -29,7 +29,7 @@ import org.scalatest.concurrent.ScalaFutures
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-trait SecureStorageBehaviours extends org.scalatest.prop.Checkers with ScalaFutures {
+trait SecureStorageBehaviours extends Checkers with ScalaFutures {
   this: FlatSpec =>
 
   import org.scalacheck.Prop

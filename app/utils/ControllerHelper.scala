@@ -16,20 +16,19 @@
 
 package utils
 
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonschema.core.report.{ProcessingMessage, ProcessingReport}
 import metrics.MicroserviceMetrics
+import models.enums._
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
-import uk.gov.hmrc.play.http._
+import play.api.mvc.Results._
+import uk.gov.hmrc.http._
+import utils.exception.DESInternalServerError
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-import play.api.Logger
-import models.enums._
-import play.api.mvc.Results._
-import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
-import utils.exception.DESInternalServerError
+import scala.concurrent.Future
 
 /**
  *

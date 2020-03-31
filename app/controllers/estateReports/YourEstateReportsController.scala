@@ -28,7 +28,6 @@ import models.registration.RegistrationDetails
 import models.registration.RegistrationDetails.registrationDetailsReads
 import org.joda.time.LocalDate
 import play.api.libs.json.JodaReads._
-import play.api.libs.json.JodaWrites._
 import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -47,7 +46,7 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
   val metrics: MicroserviceMetrics
 
   def listCases(nino: String): Action[AnyContent] = Action.async {
-    implicit request => exceptionCheckForResponses ({
+      exceptionCheckForResponses ({
       ihtConnector.getCaseList(nino).map {
         httpResponse => httpResponse.status match {
           case OK =>
@@ -128,7 +127,7 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
   * Fetch the case Details fro DES for the given nino and Iht Reference
   */
   def caseDetails(nino: String, ihtReference: String): Action[AnyContent] = Action.async {
-    implicit request => exceptionCheckForResponses ({
+      exceptionCheckForResponses ({
       ihtConnector.getCaseDetails(nino,ihtReference).map {
       httpResponse => httpResponse.status match {
         case OK =>

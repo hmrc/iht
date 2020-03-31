@@ -131,11 +131,6 @@ class IHTReturnTest  extends UnitSpec {
 
   def buildIHTReturnCorrespondingToApplicationDetailsAllFields(declarationDate:LocalDateTime,
                                                                acknowledgmentReference: String): IHTReturn = {
-    val address = Address(
-      addressLine1= Some("addr1"), addressLine2= Some("addr2"),
-      addressLine3= None, addressLine4= None,
-      postalCode= Some("AA1 1AA"), countryCode= Some("GB")
-    )
 
     val declaration = Declaration(
       reasonForBeingBelowLimit= Some("Excepted Estate"),
@@ -225,22 +220,6 @@ class IHTReturnTest  extends UnitSpec {
       lossToEstate = Some(totalGiftValue),
       dateOfGift = Some(date),
       assetTotalValue = Some(totalGiftValue),
-      howheld = Some("Standard")
-    )
-  }
-
-  private def makeGiftToTrustOrganisation(value:BigDecimal, date:String) = {
-    Gift(
-      assetCode=Some("9095"),
-      assetDescription=Some("Rolled up gifts given away to Trusts or Organisation"),
-      assetID=Some("null"),
-      valuePrevOwned = Some(value),
-      percentageSharePrevOwned = Some(BigDecimal(100)),
-      valueRetained = Some(BigDecimal(0)),
-      percentageRetained = Some(BigDecimal(0)),
-      lossToEstate = Some(value),
-      dateOfGift = Some(date),
-      assetTotalValue = Some(value),
       howheld = Some("Standard")
     )
   }
@@ -438,20 +417,6 @@ class IHTReturnTest  extends UnitSpec {
     )
   }
 
-  // Create joint household and personal items
-  private def buildJointAssetMotorVehicle = {
-    Asset(
-      // General asset
-      assetCode= Some("9004"),
-      assetDescription= Some("Rolled up household and personal goods"),
-      assetID= Some("null"),
-      assetTotalValue= Some(BigDecimal(6)),
-      howheld= Some("Joint - Beneficial Joint Tenants"),
-      devolutions= None,
-      liabilities= None
-    )
-  }
-
   private def buildAssetPrivatePensions = {
     Asset(
       // General asset
@@ -460,20 +425,6 @@ class IHTReturnTest  extends UnitSpec {
       assetID= Some("null"),
       assetTotalValue= Some(BigDecimal(7)),
       howheld= Some("Standard"),
-      devolutions= None,
-      liabilities= None
-    )
-  }
-
-  // Create jointly owen private pensions
-  private def buildJointAssetPrivatePensions = {
-    Asset(
-      // General asset
-      assetCode= Some("9005"),
-      assetDescription= Some("Rolled up pensions"),
-      assetID= Some("null"),
-      assetTotalValue= Some(BigDecimal(8)),
-      howheld= Some("Joint - Beneficial Joint Tenants"),
       devolutions= None,
       liabilities= None
     )

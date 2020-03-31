@@ -25,13 +25,13 @@ import models.enums._
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.ControllerComponents
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.test.{FakeHeaders, FakeRequest}
 import services.AuditService
-import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.test.UnitSpec
@@ -74,9 +74,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
 
   "RegistrationController" must {
     import com.github.fge.jackson.JsonLoader
-    implicit val headerCarrier = FakeHeaders()
     implicit val request = FakeRequest()
-    implicit val hc = new HeaderCarrier
 
     // Mocked up data
     val correctIhtReferenceNoJs = Json.parse("""{"referenceNumber":"AAA111222"}""")
@@ -156,7 +154,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
       try {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
         fail("Exception not thrown")
-      } catch {case _ => }
+      } catch {case _ :Throwable => }
     }
 
     "respond with bad request exception" in {
@@ -168,7 +166,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
       try {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
         fail("Exception not thrown")
-      } catch {case _ => }
+      } catch {case _ :Throwable => }
     }
 
     "respond with bad not found exception" in {
@@ -180,7 +178,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
       try {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
         fail("Exception not thrown")
-      } catch {case _ => }
+      } catch {case _ :Throwable=> }
     }
 
     "respond with general exception" in {
@@ -192,7 +190,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
       try {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
         fail("Exception not thrown")
-      } catch {case _ => }
+      } catch {case _ :Throwable=> }
     }
 
     "respond with upstream 500" in {

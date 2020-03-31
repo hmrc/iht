@@ -16,7 +16,6 @@
 
 package connectors.securestorage
 
-import play.api.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.github.nscala_time.time.Imports._
 import akka.actor.Actor

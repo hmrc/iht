@@ -38,7 +38,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 class ApplicationControllerImpl @Inject()(val ihtConnector: IhtConnector,
@@ -92,7 +92,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
     * @param ihtRef
     */
   def get(nino: String, ihtRef: String, acknowledgementReference: String): Action[AnyContent] = Action {
-    implicit request => {
       Logger.info("Fetching secure storage record. Acknowlegenent Reference " + acknowledgementReference)
       secureStorage.get(ihtRef, acknowledgementReference) match {
         case Some(jsValue) => Logger.info("Secure storage returned record"); Ok(jsValue)
@@ -100,7 +99,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
           ihtRef = Some(ihtRef))
         ))
       }
-    }
   }
 
   /**
@@ -110,7 +108,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
     * which is why this is here rather than on the ihtHomeController.
     */
   def getRealtimeRiskingMessage(ihtAppReference: String, nino: String): Action[AnyContent] = Action.async {
-    implicit request =>
       exceptionCheckForResponses({
         registrationHelper.getRegistrationDetails(nino, ihtAppReference) match {
           case None =>
@@ -253,11 +250,9 @@ trait ApplicationController extends BackendController with SecureStorageControll
   }
 
   def deleteRecord(nino: String, ihtReference: String): Action[AnyContent] = Action {
-    implicit request => {
       Logger.debug("Dropping record")
       secureStorage - ihtReference
       Ok
-    }
   }
 
   private def processResponse(ihtReference: String, httpResponseBody: String): Result = {
@@ -286,7 +281,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
   }
 
   def requestClearance(nino: String, ihtReference: String): Action[AnyContent] = Action.async {
-    implicit request =>
       exceptionCheckForResponses({
         val desJson = Json.toJson(ClearanceRequest(AcknowledgementRefGenerator.getUUID))
         val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
@@ -316,7 +310,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
    */
   def getProbateDetails(nino: String, ihtReference: String,
                         ihtReturnId: String): Action[AnyContent] = Action.async {
-    implicit request =>
       exceptionCheckForResponses({
         ihtConnector.getProbateDetails(nino, ihtReference, ihtReturnId) map {
           httpResponse =>
@@ -359,7 +352,6 @@ trait ApplicationController extends BackendController with SecureStorageControll
   }
 
   def getSubmittedApplicationDetails(nino: String, ihtReference: String, returnId: String): Action[AnyContent] = Action.async {
-    implicit request =>
       ihtConnector.getSubmittedApplicationDetails(nino, ihtReference, returnId).map {
         httpResponse =>
           httpResponse.status match {

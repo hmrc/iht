@@ -19,7 +19,7 @@ package utils
 import models.application.basicElements.BasicEstateElement
 import models.application.debts.BasicEstateElementLiabilities
 import models.application.tnrb.WidowCheck
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.play.test.UnitSpec
 import org.joda.time.LocalDate
 import constants.Constants

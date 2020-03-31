@@ -35,24 +35,23 @@ import models.application.{ApplicationDetails, ProbateDetails}
 import models.enums.Api
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
-import org.mockito.Mockito.{atMost => expected}
+import org.mockito.Mockito.{atMost => expected, _}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents}
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import services.AuditService
+import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.play.test.UnitSpec
 import utils._
-import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
-import uk.gov.hmrc.http.{BadRequestException, GatewayTimeoutException, HeaderCarrier, HttpResponse, NotFoundException, Upstream4xxResponse, Upstream5xxResponse}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import scala.concurrent.Future
 
 class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
 
@@ -234,7 +233,6 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
     "call the audit service on save of single value" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
-      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
       val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference)
       val moneyOwedAfter = BasicEstateElement(Some(BigDecimal(50)))
@@ -248,7 +246,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
         .thenReturn(stubPlayBodyParsers)
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
-      val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
+      applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
@@ -263,7 +261,6 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
     "call the audit service on save of multiple values" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
-      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
       val beforeGiftsList = CommonBuilder.buildGiftsList
       val adBefore = CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference,
         giftsList = Some(beforeGiftsList))
@@ -326,7 +323,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
         .thenReturn(stubPlayBodyParsers)
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any())).thenReturn(Future.successful(AuditResult.Success))
 
-      val result = applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
+      applicationController.save("IHT123", acknowledgementReference)(request.withBody(Json.toJson(adAfter)))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
@@ -428,9 +425,6 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       when(mockProcessingReport.isSuccess()).thenReturn(true)
       when(mockProcessingReport.iterator()).thenReturn(null)
 
-      val correctIhtSuccessJson = Json.parse(
-        """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""")
-      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
 
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any()))
@@ -449,7 +443,6 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
     "send an audit event containing the final estate value on a successful submission" in new Setup {
       implicit val headnapper = ArgumentCaptor.forClass(classOf[HeaderCarrier])
-      implicit val exenapper = ArgumentCaptor.forClass(classOf[ExecutionContext])
 
       val expectedIhtReference = Some("12345678")
 
