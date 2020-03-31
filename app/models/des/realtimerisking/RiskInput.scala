@@ -18,10 +18,7 @@ package models.des.realtimerisking
 
 import models.registration.RegistrationDetails
 import play.api.libs.json.{Json, OFormat}
-import org.joda.time.LocalDate
 import constants.{AssetDetails, Constants}
-import models._
-import org.joda.time.LocalDateTime
 
 case class RiskInput(acknowledgementReference: Option[String]=None,
                      riskConsidered:Option[Boolean],

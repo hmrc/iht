@@ -16,12 +16,11 @@
 
 package connectors.securestorage
 
-import connectors.{IhtConnector, IhtResponseHandler}
-import org.scalatest.mock.MockitoSugar
-import uk.gov.hmrc.http.{HttpResponse, Upstream5xxResponse}
+import connectors.IhtResponseHandler
+import org.scalatestplus.mockito.MockitoSugar
+import uk.gov.hmrc.http.{HttpResponse, Upstream5xxResponse, _}
 import uk.gov.hmrc.play.test.UnitSpec
 import utils.exception.DESInternalServerError
-import uk.gov.hmrc.http._
 
 
 class IhtResponseHandlerTest extends UnitSpec with MockitoSugar {

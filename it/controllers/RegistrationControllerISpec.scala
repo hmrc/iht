@@ -16,8 +16,6 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
     "return a successful response" when {
       "no errors occur" in {
         val nino = "AA123456A"
-        val reference = "A0000A0000A0000"
-        val correctIhtReferenceNoJs = Json.parse( """{"referenceNumber":"AAA111222"}""" )
 
         mockAuth(nino, 200)
         mockGetCase(nino,  200, """{"referenceNumber":"AAA111222"}""")
@@ -31,8 +29,6 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
 
       "getCase has a 500 status" in {
         val nino = "AA123456A"
-        val reference = "A0000A0000A0000"
-        val correctIhtReferenceNoJs = Json.parse( """{"referenceNumber":"AAA111222"}""" )
 
         mockAuth(nino, 200)
         mockGetCase(nino,  500, """{"referenceNumber":"AAA111222"}""")
@@ -45,8 +41,6 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
 
       "getCase has a 503 status" in {
         val nino = "AA123456A"
-        val reference = "A0000A0000A0000"
-        val correctIhtReferenceNoJs = Json.parse( """{"referenceNumber":"AAA111222"}""" )
 
         mockAuth(nino, 200)
         mockGetCase(nino,  503, """{"referenceNumber":"AAA111222"}""")

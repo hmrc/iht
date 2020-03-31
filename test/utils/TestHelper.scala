@@ -26,7 +26,6 @@ object TestHelper {
 
   // Schema paths
   val schemaPathRegistrationSubmission = "/schemas/Registration_RequestSchema_v0.7.json"
-  private val nino = CommonBuilder.DefaultNino
   val JsEmptyListCases = """{}"""
   val JsListCases=NinoBuilder.replacePlaceholderNinoWithDefault(AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault("""{
                               "deathEvents": [

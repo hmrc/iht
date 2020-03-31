@@ -16,14 +16,14 @@
 
 package connectors.securestorage
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import akka.actor._
-import org.scalatest._
 import com.typesafe.config._
-import org.scalatest.concurrent.ScalaFutures
+import org.scalatest._
 import play.api.libs.json._
 import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.test.UnitSpec
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class CleanerActorTest extends UnitSpec with WordSpecLike with BeforeAndAfter with MongoSpecSupport {
 

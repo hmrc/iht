@@ -17,9 +17,9 @@
 package json
 
 import com.github.fge.jackson.JsonLoader
-import uk.gov.hmrc.play.test.UnitSpec
 import play.api.libs.json.Json
-import utils.{AcknowledgementRefGenerator, NinoBuilder, CommonBuilder, TestHelper}
+import uk.gov.hmrc.play.test.UnitSpec
+import utils.{AcknowledgementRefGenerator, NinoBuilder, TestHelper}
 
 class JsonValidationTest  extends UnitSpec {
   "Validation" should {

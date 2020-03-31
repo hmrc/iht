@@ -16,10 +16,10 @@
 
 package services
 
-import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.mockito.Mockito._
+import org.mockito.{ArgumentCaptor, ArgumentMatchers}
 import org.scalatest.BeforeAndAfter
-import org.scalatest.mock.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.JsString
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -28,7 +28,6 @@ import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
 import uk.gov.hmrc.play.test.UnitSpec
 import utils._
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuditServiceTest extends UnitSpec with FakeIhtApp with MockitoSugar with BeforeAndAfter {

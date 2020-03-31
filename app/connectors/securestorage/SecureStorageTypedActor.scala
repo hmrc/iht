@@ -40,7 +40,8 @@ class SecureStorageTypedActor(
 
   val collection: BSONCollection = db.collection(this.getClass.getSimpleName)
 
-  private def getBson(id: String)(implicit ec: ExecutionContext) = collection.find(BSONDocument("id" -> id)).one[BSONDocument]
+  private def getBson(id: String)(implicit ec: ExecutionContext): Future[Option[BSONDocument]] =
+    collection.find(BSONDocument("id" -> id), projection = Option.empty[BSONDocument]).one[BSONDocument]
 
   def getAsync(id: String, key: String)(implicit ec: ExecutionContext): Future[JsValue] = {
     getBson(id).flatMap {
@@ -60,9 +61,10 @@ class SecureStorageTypedActor(
 
   def updateAsync(id: String, key: String, v: JsValue)(implicit ec: ExecutionContext) : Future[Any] = {
     val date = new org.joda.time.DateTime
-    collection.update(
-      selector = BSONDocument("id" -> id),
-      update = BSONDocument(
+
+    collection.update(ordered = false).one(
+      q = BSONDocument("id" -> id),
+      u = BSONDocument(
         "$setOnInsert" -> BSONDocument(
           "id" -> id,
           "createdOn" -> BSONDateTime(date.getMillis)
@@ -77,19 +79,12 @@ class SecureStorageTypedActor(
   }
 
   def clean(olderThan : DateTime)(implicit ec: ExecutionContext) {
-    collection.remove(
-      BSONDocument("createdOn" -> BSONDocument(
-        "$lt" -> BSONDateTime(olderThan.getMillis)
-      )),
-      firstMatchOnly=false)
+    collection.delete().one(BSONDocument("createdOn" -> BSONDocument("$lt" -> BSONDateTime(olderThan.getMillis))))
   }
 
   //scalastyle:off method.name
   def -(id : String)(implicit ec: ExecutionContext) : Future[Any] = {
-    collection.remove(
-      BSONDocument("id" -> id),
-      firstMatchOnly=false
-    )
+    collection.delete().one(BSONDocument("id" -> id))
   }
   //scalastyle:on
 }

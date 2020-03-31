@@ -22,21 +22,17 @@ import connectors.securestorage._
 import javax.inject.Inject
 import play.api.http.DefaultHttpErrorHandler
 import play.api.inject.ApplicationLifecycle
-import play.api.libs.concurrent.Execution.Implicits._
 import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
-import play.api.{Configuration, Environment, Logger, Mode, OptionalSourceMapper}
+import play.api._
 import reactivemongo.ReactiveMongoHelper
-import reactivemongo.api.{FailoverStrategy, MongoConnection, MongoConnectionOptions}
+import reactivemongo.api.{FailoverStrategy, MongoConnection}
 import utils.exception.DESInternalServerError
-import reactivemongo.api.MongoConnection.ParsedURI
-import reactivemongo.core.nodeset.Authenticate
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
-import scala.util.matching.Regex
 
 class ErrorHandler @Inject() (env: Environment,
                               config: Configuration,
@@ -54,11 +50,13 @@ class ErrorHandler @Inject() (env: Environment,
 
 class ApplicationStart @Inject()(val lifecycle: ApplicationLifecycle,
                                  val conf: Configuration,
-                                 val env: Environment) extends ApplicationGlobal
+                                 val env: Environment,
+                                 implicit val ec: ExecutionContext) extends ApplicationGlobal
 trait ApplicationGlobal {
   val lifecycle: ApplicationLifecycle
   val conf: Configuration
   val env: Environment
+  implicit val ec: ExecutionContext
   private lazy val driver = new reactivemongo.api.MongoDriver
 
   lifecycle.addStopHook { () => Future.successful(
@@ -76,11 +74,11 @@ trait ApplicationGlobal {
 
   lazy val system = ActorSystem("iht")
   lazy val secureStorage: SecureStorage = {
-    val platformKey = conf.getString("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
+    val platformKey = conf.getOptional[String]("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
 
     if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
 
-    val dbConf = conf.getString("securestorage.dbConfig").getOrElse(throw new RuntimeException("securestorage.dbConfig is not defined"))
+    val dbConf = conf.getOptional[String]("securestorage.dbConfig").getOrElse(throw new RuntimeException("securestorage.dbConfig is not defined"))
 
     val helper: ReactiveMongoHelper = MongoConnection.parseURI(dbConf) match {
       case Success(MongoConnection.ParsedURI(hosts, options, _, Some(database), auth)) =>
@@ -98,7 +96,7 @@ trait ApplicationGlobal {
 
   val cleanerActor: Cancellable = {
     val maxDuration : org.joda.time.Period =
-      conf.getString("securestorage.maxDuration").
+      conf.getOptional[String]("securestorage.maxDuration").
         map{
           stringToPeriod
         }.getOrElse{
@@ -107,7 +105,7 @@ trait ApplicationGlobal {
       }
 
     val cleanerRunInterval : FiniteDuration =
-      conf.getString("securestorage.cleanerRunInterval").
+      conf.getOptional[String]("securestorage.cleanerRunInterval").
         map{stringToFDuration}.getOrElse(1 hour)
 
     val cleaner = system.actorOf(Props{

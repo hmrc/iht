@@ -19,9 +19,6 @@ package utils
 import java.util.UUID._
 import constants.Constants
 import org.joda.time.{LocalDate, LocalDateTime}
-import play.api.Logger
-
-import scala.concurrent.Future
 
 object CommonHelper {
   def generateAcknowledgeReference:String=

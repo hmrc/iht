@@ -16,7 +16,7 @@
 
 package config
 
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
 import uk.gov.hmrc.play.test.UnitSpec
 import util.IntegrationSpec
