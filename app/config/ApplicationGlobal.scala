@@ -33,6 +33,7 @@ import utils.exception.DESInternalServerError
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
+import scala.language.postfixOps
 
 class ErrorHandler @Inject() (env: Environment,
                               config: Configuration,
