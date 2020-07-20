@@ -8,10 +8,10 @@ object AppDependencies {
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "simple-reactivemongo" % "7.26.0-play-26",
-    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.6.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "9.0.0-play-26",
-    "uk.gov.hmrc" %% "domain" % "5.6.0-play-26",
+    "uk.gov.hmrc" %% "simple-reactivemongo" % "7.30.0-play-26",
+    "uk.gov.hmrc" %% "bootstrap-play-26" % "1.9.0",
+    "uk.gov.hmrc" %% "http-caching-client" % "9.1.0-play-26",
+    "uk.gov.hmrc" %% "domain" % "5.9.0-play-26",
     "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
     "com.typesafe.play" %% "play-json-joda" % "2.6.13"
   )
@@ -21,7 +21,7 @@ object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
-  val reactiveMongoTestVersion = "4.19.0-play-26"
+  val reactiveMongoTestVersion = "4.21.0-play-26"
   val hmrcTestVersion = "3.9.0-play-26"
   val scalatestVersion = "3.0.8"
   val scalatestPlusVersion = "3.1.3"

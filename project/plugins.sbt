@@ -6,11 +6,11 @@ resolvers += "Typesafe Releases" at "https://repo.typesafe.com/typesafe/releases
 
 resolvers += "scoverage-bintray" at "https://dl.bintray.com/sksamuel/sbt-plugins/"
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "2.6.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "2.9.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "2.1.0")
 
-addSbtPlugin("uk.gov.hmrc" % "sbt-artifactory" % "1.2.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-artifactory" % "1.3.0")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-distributables" % "2.0.0")
 

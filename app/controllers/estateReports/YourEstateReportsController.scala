@@ -36,6 +36,8 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.ControllerHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
+
 
 class YourEstateReportsControllerImpl @Inject()(val metrics: MicroserviceMetrics,
                                                 val ihtConnector: IhtConnector,

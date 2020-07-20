@@ -28,6 +28,7 @@ import org.scalatest.concurrent.ScalaFutures
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.language.postfixOps
 
 trait SecureStorageBehaviours extends Checkers with ScalaFutures {
   this: FlatSpec =>

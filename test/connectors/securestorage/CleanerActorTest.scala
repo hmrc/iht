@@ -24,6 +24,7 @@ import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.language.postfixOps
 
 class CleanerActorTest extends UnitSpec with WordSpecLike with BeforeAndAfter with MongoSpecSupport {
 
