@@ -41,7 +41,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     resolvers += Resolver.bintrayRepo("hmrc", "releases"),
     resolvers += Resolver.jcenterRepo,
-    scalaVersion := "2.12.11"
+    scalaVersion := "2.12.12"
   )
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
@@ -60,8 +60,8 @@ lazy val microservice = Project(appName, file("."))
 scalacOptions += "-P:silencer:pathFilters=routes"
 scalacOptions += "-P:silencer:lineContentFilters=^\\w"
 libraryDependencies ++= Seq(
-  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.0" cross CrossVersion.full),
-  "com.github.ghik" % "silencer-lib" % "1.7.0" % Provided cross CrossVersion.full
+  compilerPlugin("com.github.ghik" % "silencer-plugin" % "1.7.1" cross CrossVersion.full),
+  "com.github.ghik" % "silencer-lib" % "1.7.1" % Provided cross CrossVersion.full
 )
 // ***************
 scalacOptions += "-feature"
