@@ -13,7 +13,7 @@ object AppDependencies {
     "uk.gov.hmrc" %% "http-caching-client" % "9.1.0-play-26",
     "uk.gov.hmrc" %% "domain" % "5.9.0-play-26",
     "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
-    "com.typesafe.play" %% "play-json-joda" % "2.6.13"
+    "com.typesafe.play" %% "play-json-joda" % "2.6.14"
   )
 
   trait TestDependencies {
@@ -23,7 +23,7 @@ object AppDependencies {
 
   val reactiveMongoTestVersion = "4.21.0-play-26"
   val hmrcTestVersion = "3.9.0-play-26"
-  val scalatestVersion = "3.0.8"
+  val scalatestVersion = "3.0.9"
   val scalatestPlusVersion = "3.1.3"
   val pegdownVersion = "1.6.0"
 
