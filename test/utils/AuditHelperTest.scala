@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import models.application.basicElements.BasicEstateElement
 import models.application.debts.BasicEstateElementLiabilities
 import models.application.tnrb.WidowCheck
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.play.test.UnitSpec
 import org.joda.time.LocalDate
 import constants.Constants
+import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatestplus.play.PlaySpec
 
-class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
+class AuditHelperTest extends PlaySpec with FakeIhtApp with MockitoSugar {
 
   private val expectedIhtReference = Some("1234567")
 
@@ -34,7 +35,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val beforeUpdate = CommonBuilder.buildApplicationDetailsAllFields
       val afterUpdate = CommonBuilder.buildApplicationDetailsAllFields
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map()
+      differences mustBe Map()
     }
 
     "return, as a Map[String, Map[String,String]] the differences between " +
@@ -49,7 +50,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000)
 
       val differences: Map[String, Map[String, String]] = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+      differences mustBe Map(Constants.AuditTypeMoneyOwed -> Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
         Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000"))
@@ -63,7 +64,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val beforeUpdate = appDetails(new LocalDate(2015, 10, 10))
       val afterUpdate = appDetails(new LocalDate(2015, 11, 10))
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map()
+      differences mustBe Map()
     }
 
     "return a Map containing a changed currency field but not a changed non-currency field" in {
@@ -78,7 +79,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000, new LocalDate(2015, 11, 10))
 
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(Constants.AuditTypeMoneyOwed -> Map(
+      differences mustBe Map(Constants.AuditTypeMoneyOwed -> Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
         Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "1000")
@@ -99,7 +100,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(1000, 100)
 
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(
+      differences mustBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "100",
@@ -124,7 +125,7 @@ class AuditHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar {
       val afterUpdate = appDetails(Some(BigDecimal(1000)), None)
 
       val differences = AuditHelper.currencyFieldDifferences(beforeUpdate, afterUpdate)
-      differences shouldBe Map(
+      differences mustBe Map(
         Constants.AuditTypeMoneyOwed -> Map(
           Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
           Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "",

@@ -28,7 +28,7 @@ import services.{AuditService, AuditServiceImpl}
 import utils.{RegistrationHelper, RegistrationHelperImpl}
 
 class Module extends AbstractModule {
-  def configure() = {
+  override def configure() = {
     bind(classOf[ApplicationGlobal]).to(classOf[ApplicationStart]).asEagerSingleton
     bind(classOf[DefaultHttpErrorHandler]).to(classOf[ErrorHandler]).asEagerSingleton
     bind(classOf[MicroserviceMetrics]).to(classOf[MicroserviceMetricsImpl]).asEagerSingleton

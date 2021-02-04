@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import models.enums._
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.ControllerComponents
@@ -34,14 +35,14 @@ import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatestplus.play.PlaySpec
 import utils.CommonBuilder._
 import utils.{AcknowledgementRefGenerator, NinoBuilder}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
+class RegistrationControllerTest extends PlaySpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
   val mockAuditService: AuditService = mock[AuditService]
@@ -140,7 +141,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
         .thenReturn(stubPlayBodyParsers)
       when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
 
-      a[Upstream4xxResponse] shouldBe thrownBy {
+      a[Upstream4xxResponse] mustBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
     }
@@ -199,7 +200,7 @@ class RegistrationControllerTest extends UnitSpec with MockitoSugar with BeforeA
       when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
         .thenReturn(Future.failed(new Upstream5xxResponse("des_gateway_timeout", 1, 1)))
 
-      a[Upstream5xxResponse] shouldBe thrownBy {
+      a[IllegalArgumentException] mustBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
     }

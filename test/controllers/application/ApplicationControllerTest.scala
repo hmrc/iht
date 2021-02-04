@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.{atMost => expected, _}
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents}
@@ -46,14 +47,14 @@ import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
+class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
 
   implicit val headerCarrier: FakeHeaders = FakeHeaders()
   implicit val request: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
@@ -62,9 +63,9 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
   implicit val actorSystem: ActorSystem = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer()
 
-  val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, None, Map(), None)
-  val successHttpResponseForProbateDetails = HttpResponse(OK, Some(Json.parse(TestHelper.JsSampleProbateDetails)), Map())
-  val noProbateDetailsHttpResponse = HttpResponse(NO_CONTENT, None, Map(), None)
+  val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, "")
+  val successHttpResponseForProbateDetails = HttpResponse(OK, TestHelper.JsSampleProbateDetails)
+  val noProbateDetailsHttpResponse = HttpResponse(NO_CONTENT, "")
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
   val mockJsonValidator: JsonValidator = mock[JsonValidator]
@@ -142,6 +143,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
   val acknowledgementReference = AcknowledgementRefGenerator.getUUID
 
   class Setup {
+
     val rd = CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails
     when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
       .thenReturn(Some(rd))
@@ -150,7 +152,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     when(mockProcessingReport.iterator()).thenReturn(null)
   }
 
-  val successHttpResponseForIhtReturn = HttpResponse(OK, Some(Json.parse(AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
+  val successHttpResponseForIhtReturn = HttpResponse(OK, AcknowledgementRefGenerator.replacePlaceholderAckRefWithDefault(
     """
     {
     "acknowledgmentReference" : "<ACKREF>",
@@ -184,7 +186,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
     }
   """
-  ))), Map())
+  ))
 
   "Application Controller" must {
 
@@ -252,8 +254,8 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, any())
-      eventCaptorForString.getValue shouldBe Constants.AuditTypeMonetaryValueChange
-      eventCaptorForMap.getValue shouldBe Map(
+      eventCaptorForString.getValue mustBe Constants.AuditTypeMonetaryValueChange
+      eventCaptorForMap.getValue mustBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeMoneyOwed + Constants.AuditTypePreviousValue -> "15",
         Constants.AuditTypeMoneyOwed + Constants.AuditTypeNewValue -> "50")
@@ -329,8 +331,8 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val eventCaptorForMap = ArgumentCaptor.forClass(classOf[Map[String, String]])
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, any())
-      eventCaptorForString.getValue shouldBe Constants.AuditTypeMonetaryValueChange
-      eventCaptorForMap.getValue shouldBe Map(
+      eventCaptorForString.getValue mustBe Constants.AuditTypeMonetaryValueChange
+      eventCaptorForMap.getValue mustBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeGifts + Constants.AuditTypePreviousValue -> "27800",
         Constants.AuditTypeGifts + Constants.AuditTypeNewValue -> "27790")
@@ -467,11 +469,11 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
       val result = applicationController.submit(expectedIhtReference.getOrElse(""), "")(request.withBody(jsonAD))
 
-      status(result) shouldBe OK
+      status(result) mustBe OK
 
       verify(mockAuditService).sendEvent(eventCaptorForString.capture, eventCaptorForMap.capture, any())(headnapper.capture, any())
-      eventCaptorForString.getValue shouldBe Constants.AuditTypeFinalEstateValue
-      eventCaptorForMap.getValue shouldBe Map(
+      eventCaptorForString.getValue mustBe Constants.AuditTypeFinalEstateValue
+      eventCaptorForMap.getValue mustBe Map(
         Constants.AuditTypeIHTReference -> expectedIhtReference.getOrElse(""),
         Constants.AuditTypeValue -> "28090")
     }
@@ -538,7 +540,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
     "return OK when clearance successfully requested" in new Setup {
       val correctIhtSuccessJson = Json.toJson("""{ "clearanceStatus": { "status": "Clearance Granted", "statusDate": "2015-04-29" }, "caseStatus":"Clearance Granted" }""")
-      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map())
+      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), Some("200"))
 
       when(mockDesConnector.requestClearance(any(), any(), any()))
         .thenReturn(Future.successful(correctHttpResponse))
@@ -610,7 +612,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
 
     "Respond appropriately to a schema validation failure while fetching IHT return details" in new Setup {
       val incorrectIhtReturnJson = Json.toJson("""{ "SomeRubbish":"Not an IHT return" }""")
-      val incorrectHttpResponse = HttpResponse(OK, Some(incorrectIhtReturnJson), Map())
+      val incorrectHttpResponse = HttpResponse(OK, Some(incorrectIhtReturnJson))
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
@@ -622,7 +624,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
     }
 
     "Respond appropriately when the IHT return details are not found" in new Setup {
-      val noIhtReturnHttpResponse = HttpResponse(NOT_FOUND, None, Map(), None)
+      val noIhtReturnHttpResponse = HttpResponse(NOT_FOUND, None)
 
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn((Future(noIhtReturnHttpResponse)))
       when(mockControllerComponents.actionBuilder)
@@ -708,7 +710,7 @@ class ApplicationControllerTest extends UnitSpec with MockitoSugar with BeforeAn
       val jsonAD: JsValue = genericExceptionHandlingTestSetup
 
       when(mockDesConnector.submitApplication(any(), any(), any())(any()))
-        .thenReturn(Future.failed(new Upstream5xxResponse("gateway-exception", -1, -1)))
+        .thenReturn(Future.failed(Upstream5xxResponse("gateway-exception", -1, -1)))
 
       try {
         applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))

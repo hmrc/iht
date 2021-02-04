@@ -19,8 +19,7 @@ package connectors.securestorage
 import akka.actor._
 import akka.util._
 import config.ApplicationGlobal
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import scala.language.postfixOps
 import scala.concurrent.duration._
 

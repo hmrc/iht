@@ -17,12 +17,13 @@
 package config
 
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.test.UnitSpec
+import play.api.test.Helpers.{defaultAwaitTimeout, status}
 import util.IntegrationSpec
 import utils.exception.DESInternalServerError
 
-class ApplicationGlobalITest extends UnitSpec with IntegrationSpec with MockitoSugar {
+class ApplicationGlobalITest extends PlaySpec with IntegrationSpec with MockitoSugar {
 
   val requestHeader = mock[RequestHeader]
 
@@ -31,7 +32,8 @@ class ApplicationGlobalITest extends UnitSpec with IntegrationSpec with MockitoS
       val exception = DESInternalServerError(new Exception("a generic application exception"))
       val result = app.errorHandler.onServerError(requestHeader, exception)
 
-      status(result) shouldBe 502
+      status(result) mustBe 502
     }
+
   }
 }
