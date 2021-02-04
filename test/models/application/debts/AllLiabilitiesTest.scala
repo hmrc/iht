@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
 
 package models.application.debts
 
+import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatestplus.play.PlaySpec
 import utils.{CommonBuilder, FakeIhtApp}
 
-class AllLiabilitiesTest extends UnitSpec with FakeIhtApp with MockitoSugar{
+class AllLiabilitiesTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
   "AllLiabilities" when {
 
@@ -28,16 +29,16 @@ class AllLiabilitiesTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value for total liabilities" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.allLiabilities.fold(BigDecimal(0))(_.totalValue) shouldBe BigDecimal(340)
+        ad.allLiabilities.fold(BigDecimal(0))(_.totalValue) mustBe BigDecimal(340)
       }
 
       "return the total as 0 if there are no liabilities in the estate " in {
         val ad = CommonBuilder.buildApplicationDetailsEmpty
-        ad.allLiabilities.fold(BigDecimal(0))(_.totalValue) shouldBe BigDecimal(0)
+        ad.allLiabilities.fold(BigDecimal(0))(_.totalValue) mustBe BigDecimal(0)
       }
 
       "return the correct value for total liabilities when missing" in {
-        AllLiabilities().totalValue() shouldBe 0
+        AllLiabilities().totalValue() mustBe 0
       }
     }
 
@@ -45,12 +46,12 @@ class AllLiabilitiesTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value for mortgage" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.allLiabilities.fold(BigDecimal(0))(_.mortgageValue) shouldBe BigDecimal(230)
+        ad.allLiabilities.fold(BigDecimal(0))(_.mortgageValue) mustBe BigDecimal(230)
       }
 
       "return the mortgage value ss 0 if there are no mortgage in the estate " in {
         val ad = CommonBuilder.buildApplicationDetailsEmpty
-        ad.allLiabilities.fold(BigDecimal(0))(_.mortgageValue) shouldBe BigDecimal(0)
+        ad.allLiabilities.fold(BigDecimal(0))(_.mortgageValue) mustBe BigDecimal(0)
       }
     }
 

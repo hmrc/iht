@@ -26,6 +26,10 @@ import uk.gov.hmrc.play.audit.AuditExtensions
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
+import java.time.{Clock, Instant}
+
+import play.api.Logger.logger
+import uk.gov.hmrc.http.hooks.HookData
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -49,9 +53,9 @@ trait AuditService extends HttpAuditing {
     sendEvent(AuditTypes.SUB_FAILURE, detail, transactionName)
   }
 
-  def auditRequestWithResponse(url: String, verb: String, body: Option[_], responseToAuditF: Future[HttpResponse])
+  def auditRequestWithResponse(url: String, verb: String, body: String, responseToAuditF: Future[HttpResponse])
                               (implicit hc: HeaderCarrier): Unit = {
-    AuditingHook(url, verb, body,responseToAuditF)
+    AuditingHook(url, verb, Option(HookData.FromString(body)), responseToAuditF)
   }
 
   private def tags(transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]) = {
@@ -61,7 +65,7 @@ trait AuditService extends HttpAuditing {
   def requestPath(implicit request: Request[_]) = {
     request.headers.get(pathKey) match {
       case Some(path) => path
-      case None => Logger.warn(s"No path header supplied from IHT frontend on request to backend endpoint ${request.path}")
+      case None => logger.warn(s"No path header supplied from IHT frontend on request to backend endpoint ${request.path}")
         "<NO REQUEST PATH SUPPLIED>"
     }
   }
@@ -74,7 +78,7 @@ trait AuditService extends HttpAuditing {
       auditType = auditType,
       tags = tags(transactionName),
       detail = detail,
-      generatedAt = DateTime.now(DateTimeZone.UTC))
+      generatedAt = Instant.now())
     auditConnector.sendEvent(event)
   }
 
@@ -87,8 +91,7 @@ trait AuditService extends HttpAuditing {
       auditType = auditType,
       tags = tags(transactionName),
       detail = detail,
-      generatedAt = DateTime.now(DateTimeZone.UTC)
-    )
+      generatedAt = Instant.now())
     auditConnector.sendExtendedEvent(event)
   }
 

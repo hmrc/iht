@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 
 package utils
 
-import uk.gov.hmrc.play.test.UnitSpec
+import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatestplus.play.PlaySpec
 
-class AcknowledgementRefGeneratorTest extends UnitSpec  {
+class AcknowledgementRefGeneratorTest extends PlaySpec  {
   "AcknowledgementRefGenerator" must {
     "Generate a valid length UUID" in {
       AcknowledgementRefGenerator.getUUID should have length 32

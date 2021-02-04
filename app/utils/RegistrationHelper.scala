@@ -23,6 +23,7 @@ import models.registration.RegistrationDetails
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import models.enums._
+import play.api.Logger.logger
 
 class RegistrationHelperImpl @Inject()(val ihtConnector: IhtConnector,
                                        val metrics: MicroserviceMetrics) extends RegistrationHelper
@@ -35,7 +36,6 @@ trait RegistrationHelper extends ControllerHelper {
   def getRegistrationDetails(nino:String,ihtReference:String):Option[RegistrationDetails] = {
     import play.api.http.Status._
     import RegistrationDetails.registrationDetailsReads
-    import play.api.Logger
     import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 
     import scala.concurrent.Await
@@ -45,12 +45,12 @@ trait RegistrationHelper extends ControllerHelper {
       ihtConnector.getCaseDetails(nino,ihtReference).map {
         httpResponse => httpResponse.status match {
           case OK => {
-            Logger.debug("\n getCase Details response" + Json.prettyPrint(httpResponse.json))
+            logger.debug("\n getCase Details response" + Json.prettyPrint(httpResponse.json))
             val js:JsValue = Json.parse(httpResponse.body)
             Json.fromJson(js)(registrationDetailsReads)  match {
               case JsSuccess(x,js) => Some(x)
               case JsError(e) => {
-                Logger.error(e.toString())
+                logger.error(e.toString())
                 throw new RuntimeException(e.toString())
               }
             }
