@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,20 @@
 
 package utils
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.test.UnitSpec
 
 
-class CommonHelperTest extends PlaySpec with FakeIhtApp with MockitoSugar  {
+class CommonHelperTest extends UnitSpec with FakeIhtApp with MockitoSugar  {
   "dateLongFormatToDesString" must {
     "Convert a valid date" in {
       val s = CommonHelper.dateLongFormatToDesString("1 January 2000")
-      s mustBe "2000-01-01"
+      s shouldBe "2000-01-01"
     }
 
     "Convert another valid date" in {
       val s = CommonHelper.dateLongFormatToDesString("5 April 2005")
-      s mustBe "2005-04-05"
+      s shouldBe "2005-04-05"
     }
 
     "throw an exception if asked to convert an invalid date" in {
@@ -50,12 +49,12 @@ class CommonHelperTest extends PlaySpec with FakeIhtApp with MockitoSugar  {
   "dateFormatChangeToPadZeroInDayAndMonth" must {
     "Pad 0 to month and day of a valid date" in {
       val s = CommonHelper.dateFormatChangeToPadZeroToDayAndMonth("2015-1-2")
-      s mustBe "2015-01-02"
+      s shouldBe "2015-01-02"
     }
 
     "Dont pad 0 to month and day when valid date" in {
       val s = CommonHelper.dateFormatChangeToPadZeroToDayAndMonth("2014-12-10")
-      s mustBe "2014-12-10"
+      s shouldBe "2014-12-10"
     }
 
     "throw an exception if asked to convert an invalid date" in {
@@ -68,12 +67,12 @@ class CommonHelperTest extends PlaySpec with FakeIhtApp with MockitoSugar  {
   "a negative net estate value should not be negative" must {
     "A negitive value should be converted to 0" in {
       val value = CommonHelper.isProbateNetValueNegative(BigDecimal(-2333))
-      value mustBe(BigDecimal(0))
+      value shouldBe(BigDecimal(0))
     }
 
     "A positive value should not be converted" in {
       val value = CommonHelper.isProbateNetValueNegative(BigDecimal(12334545))
-      value mustBe(BigDecimal(12334545))
+      value shouldBe(BigDecimal(12334545))
     }
 
   }

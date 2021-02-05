@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,32 @@ package connectors.securestorage
 
 import connectors.IhtResponseHandler
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.http.{HttpResponse, Upstream5xxResponse, _}
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.exception.DESInternalServerError
-import play.api.http.Status._
 
 
-class IhtResponseHandlerTest extends PlaySpec with MockitoSugar {
+class IhtResponseHandlerTest extends UnitSpec with MockitoSugar {
 
   def upstreamResponseMessage(verbName: String, url: String, status: Int, responseBody: String): String = {
     s"$verbName of '$url' returned $status. Response body: '$responseBody'"
   }
 
-  "handleIhtResponse" must  {
+  "handleIhtResponse" should  {
     "return DESInternalServerError when status is 500" in {
-      val response = HttpResponse(INTERNAL_SERVER_ERROR, "")
-      def result(): HttpResponse = IhtResponseHandler.handleIhtResponse("test method", "test url", response).right.get
-      val expectedException = DESInternalServerError(UpstreamErrorResponse(
-        upstreamResponseMessage("test method", "test url", response.status, response.body), response.status, BAD_GATEWAY))
+      val response = HttpResponse(500)
+      def result(): HttpResponse = IhtResponseHandler.handleIhtResponse("test method", "test url", response)
+      val expectedException = DESInternalServerError(Upstream5xxResponse(upstreamResponseMessage("test method", "test url", response.status, response.body), response.status, 502))
 
-      the[DESInternalServerError] thrownBy result mustBe expectedException
+      the[DESInternalServerError] thrownBy result shouldBe expectedException
     }
 
     "return Upstream4xxResponse when status is 405" in {
-      val response = HttpResponse(METHOD_NOT_ALLOWED, "")
-      def result() = IhtResponseHandler.handleIhtResponse("test method", "test url", response).left.get
-      val expectedException = UpstreamErrorResponse(upstreamResponseMessage(
-        "test method", "test url", response.status, response.body), response.status, INTERNAL_SERVER_ERROR)
+      val response = HttpResponse(405)
+      def result(): HttpResponse = IhtResponseHandler.handleIhtResponse("test method", "test url", response)
+      val expectedException = Upstream4xxResponse(upstreamResponseMessage("test method", "test url", response.status, null), response.status, 500)
 
-      result() mustBe expectedException
+      the[Upstream4xxResponse] thrownBy result shouldBe expectedException
 
     }
   }

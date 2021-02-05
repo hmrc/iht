@@ -22,12 +22,12 @@ import javax.inject.Inject
 import json.JsonValidator
 import metrics.MicroserviceMetrics
 import models.enums._
-import play.api.Logger.logger
+import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import services.AuditService
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.ControllerHelper
 import utils.exception.DESInternalServerError
 
@@ -47,46 +47,46 @@ trait RegistrationController extends BackendController with ControllerHelper {
   def recoverOnSubmit: PartialFunction[Throwable, Future[Result]] = {
     case Upstream4xxResponse(message, CONFLICT, _, _) =>
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      logger.warn(s"Received 409 from DES - converting to 202. Details:- $message")
+      Logger.warn(s"Received 409 from DES - converting to 202. Details:- $message")
       Future.successful(Accepted(message))
     case e:GatewayTimeoutException =>
-      logger.warn("Gateway Timeout Response Returned ::: " + e.getMessage)
+      Logger.warn("Gateway Timeout Response Returned ::: " + e.getMessage)
       Future.failed(new GatewayTimeoutException(e.message))
     case e: BadRequestException =>
-      logger.warn("BadRequest Response Returned ::: " + e.getMessage)
+      Logger.warn("BadRequest Response Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       Future.failed(new BadRequestException(e.message))
     case e: Upstream4xxResponse =>
-      logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
+      Logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(UpstreamErrorResponse.apply(e.message, e.upstreamResponseCode, e.reportAs))
-    case e: UpstreamErrorResponse =>
-      logger.info("Upstream5xxResponse Returned ::: " + e.getMessage)
+      Future.failed(Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
+    case e: Upstream5xxResponse =>
+      Logger.info("Upstream5xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(UpstreamErrorResponse.apply(e.message, e.statusCode, e.reportAs))
+      Future.failed(Upstream5xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
     case e: NotFoundException =>
-      logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
+      Logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
-      Future.failed(UpstreamErrorResponse.apply(e.message, NOT_FOUND, NOT_FOUND))
+      Future.failed(Upstream4xxResponse(e.message, NOT_FOUND, NOT_FOUND))
     case e: DESInternalServerError =>
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       throw e
     case e: Exception =>
-      logger.info("Exception Returned ::: " + e.getMessage)
+      Logger.info("Exception Returned ::: " + e.getMessage)
       metrics.incrementFailedCounter(Api.SUB_REGISTRATION)
       Future.failed(new Exception(e.getMessage))
   }
 
   def submit(nino: String): Action[JsValue] = Action.async(parse.json) {
     implicit request => {
-      logger.debug("RegistrationController submit request initiated")
+      Logger.debug("RegistrationController submit request initiated")
       val pr = JsonValidator.validate(request.body, Constants.schemaPathRegistrationSubmission)
       if (pr.isSuccess) {
-        logger.debug("DES Request Validated")
-        logger.info("Acknowledgment Ref: " + request.body.\("acknowledgmentReference"))
+        Logger.debug("DES Request Validated")
+        Logger.info("Acknowledgment Ref: " + request.body.\("acknowledgmentReference"))
         desConnector.submitRegistration(nino, request.body) map { httpResponse =>
             (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String].map { ihtRef =>
-              logger.info("Parsed IHT Reference from response")
+              Logger.info("Parsed IHT Reference from response")
               metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)
               val jsonValue = request.body
               auditService.sendEvent(
@@ -96,7 +96,7 @@ trait RegistrationController extends BackendController with ControllerHelper {
               )
               Ok(ihtRef)
             }.getOrElse {
-                logger.info("Failure to parse IHTREF from response")
+                Logger.info("Failure to parse IHTREF from response")
                 InternalServerError("CAN NOT PARSE IHT REF FROM RESPONSE ")
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,43 +17,41 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
-import controllers.Assets.NO_CONTENT
-import controllers.{Assets, ControllerComponentsHelper}
+import controllers.ControllerComponentsHelper
 import metrics.MicroserviceMetrics
 import models.enums._
 import models.registration.RegistrationDetails
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.{JsResult, Json}
 import play.api.mvc.ControllerComponents
 import play.api.test.Helpers._
 import play.api.test.{FakeHeaders, FakeRequest}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, NotFoundException}
-import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonHelper._
 import utils.TestHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class YourEstateReportsControllerTest extends PlaySpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
+class YourEstateReportsControllerTest extends UnitSpec with MockitoSugar with BeforeAndAfterEach with ControllerComponentsHelper {
 
   val mockDesConnector: IhtConnector = mock[IhtConnector]
   val mockMetrics: MicroserviceMetrics = mock[MicroserviceMetrics]
   val mockControllerComponents: ControllerComponents = mock[ControllerComponents]
-  val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, "")
-  val badRequestHttpResponse = HttpResponse(BAD_REQUEST, "")
-  val noListHttpResponse = HttpResponse(NO_CONTENT, "")
-  val successHttpResponse = HttpResponse(OK, TestHelper.JsListCases)
-  val successHttpResponseEmptyCaseList = HttpResponse(OK, TestHelper.JsEmptyListCases)
-  val successHttpResponseNoNINO = HttpResponse(OK, TestHelper.JsListCasesNoNINO)
+  val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR,None,Map(),None)
+  val badRequestHttpResponse = HttpResponse(BAD_REQUEST,None,Map(),None)
+  val noListHttpResponse = HttpResponse(NO_CONTENT,None,Map(),None)
+  val successHttpResponse = HttpResponse(OK,Some(Json.parse(TestHelper.JsListCases)),Map(),None)
+  val successHttpResponseEmptyCaseList = HttpResponse(OK, Some(Json.parse(TestHelper.JsEmptyListCases)),Map(),None)
+  val successHttpResponseNoNINO = HttpResponse(OK,Some(Json.parse(TestHelper.JsListCasesNoNINO)),Map(),None)
 
-  val successHttpResponseForCaseDetails= HttpResponse(OK, TestHelper.JsSampleCaseDetailsString)
-  val successHttpResponseForCaseDetailsWithPostCodeNull= HttpResponse(OK, TestHelper.JsSampleCaseDetailsString)
+  val successHttpResponseForCaseDetails=HttpResponse(OK,Some(Json.parse(TestHelper.JsSampleCaseDetailsString)),Map())
+  val successHttpResponseForCaseDetailsWithPostCodeNull=HttpResponse(OK,Some(Json.parse(TestHelper.JsSampleCaseDetailsString)),Map())
 
   implicit val headerCarrier = FakeHeaders()
   implicit val request = FakeRequest()
@@ -154,12 +152,12 @@ class YourEstateReportsControllerTest extends PlaySpec with MockitoSugar with Be
   "replies correctly when given an empty json response with a 200 return" in {
     when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future(successHttpResponseEmptyCaseList))
     val result = ihtHomeController.listCases("")(request)
-    status(result) mustBe Assets.NO_CONTENT
+    status(await(result)) shouldBe NO_CONTENT
   }
 
   "replies correctly when receiving a 404 from DES" in {
     when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future.failed(new NotFoundException("Cases not found")))
     val result = ihtHomeController.listCases("")(request)
-    status(result) mustBe Assets.NO_CONTENT
+    status(await(result)) shouldBe NO_CONTENT
   }
 }

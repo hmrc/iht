@@ -28,11 +28,11 @@ import models.registration.RegistrationDetails
 import models.registration.RegistrationDetails.registrationDetailsReads
 import org.joda.time.LocalDate
 import play.api.libs.json.JodaReads._
-import play.api.Logger.logger
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse, UpstreamErrorResponse}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse}
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils.ControllerHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -52,7 +52,7 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
       ihtConnector.getCaseList(nino).map {
         httpResponse => httpResponse.status match {
           case OK =>
-            logger.info("List Cases Response")
+            Logger.info("List Cases Response")
             metrics.incrementSuccessCounter(Api.GET_CASE_LIST)
 
             val js:JsValue = Json.parse(httpResponse.body)
@@ -61,25 +61,25 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
               try {
                 Ok(Json.toJson(processResponse(js))).as("text/json")
               } catch {
-                case e: Exception => throw UpstreamErrorResponse.apply("Empty case return", NOT_FOUND, NOT_FOUND)
+                case e: Exception => throw Upstream4xxResponse("Empty case return", NOT_FOUND, NOT_FOUND)
               }
             } else {
               processJsonValidationError(pr, js)
             }
           case NO_CONTENT =>
-            logger.info("List cases returned No Content")
+            Logger.info("List cases returned No Content")
             NoContent
           case _ =>
-            logger.info("List cases failed to work")
+            Logger.info("List cases failed to work")
             InternalServerError
         }
       }
     } recover {
       case e: Upstream4xxResponse if e.upstreamResponseCode == NOT_FOUND =>
-        logger.info("List cases returned Not Found")
+        Logger.info("List cases returned Not Found")
         NoContent
       case _: NotFoundException =>
-        logger.info("List cases returned Not Found")
+        Logger.info("List cases returned Not Found")
         NoContent
     },Api.GET_CASE_LIST)
   }
@@ -109,7 +109,7 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
     val currentStatus =           js \\ "status" head
     val acknowledgmentReference = js \\ "acknowledgmentReference" head
 
-    logger.debug("List Cases acknowledgement " + acknowledgmentReference.toString())
+    Logger.debug("List Cases acknowledgement " + acknowledgmentReference.toString())
 
     IhtApplication(ihtRef.as[String],
       firstName.as[String],
@@ -133,21 +133,21 @@ trait YourEstateReportsController extends BackendController with ControllerHelpe
       ihtConnector.getCaseDetails(nino,ihtReference).map {
       httpResponse => httpResponse.status match {
         case OK =>
-          logger.debug("getCase Details response")
+          Logger.debug("getCase Details response")
           metrics.incrementSuccessCounter(Api.GET_CASE_DETAILS)
           val js:JsValue = Json.parse(httpResponse.body)
           val pr:ProcessingReport = JsonValidator.validate(js, Constants.schemaPathCaseDetails)
 
           if (pr.isSuccess) {
-            logger.info("DES Response Validated")
-            logger.info("Get Case Details Acknowledgment Ref: " + httpResponse.json.\("acknowledgmentReference"))
+            Logger.info("DES Response Validated")
+            Logger.info("Get Case Details Acknowledgment Ref: " + httpResponse.json.\("acknowledgmentReference"))
 
             val registrationDetails: RegistrationDetails = Json.fromJson(js)(registrationDetailsReads) match {
               case JsSuccess(value, _) =>
-                logger.info("Successful return on getCaseDetails")
+                Logger.info("Successful return on getCaseDetails")
                 value
               case JsError(e) =>
-                logger.error("Failure to get correct")
+                Logger.error("Failure to get correct")
                 throw new RuntimeException(e.toString())
             }
             Ok(Json.toJson(registrationDetails)).as("text/json")

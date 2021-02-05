@@ -3,7 +3,6 @@ package controllers
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.libs.json.Json
 import play.api.libs.ws.WSClient
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import util.{CommonBuilder, IntegrationSpec}
 
 class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient {
@@ -23,8 +22,8 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
 
-        result.status mustBe 200
-        result.body mustBe "AAA111222"
+        result.status shouldBe 200
+        result.body shouldBe "AAA111222"
 
       }
 
@@ -36,8 +35,8 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
 
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "getCase has a 503 status" in {
@@ -48,8 +47,8 @@ class RegistrationControllerISpec extends IntegrationSpec with WsScalaTestClient
 
         val result = await(wsCall(controllers.registration.routes.RegistrationController.submit(nino)).post(requestBody))
 
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
       }
     }
   }

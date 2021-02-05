@@ -6,7 +6,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSClient
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import util.{CommonBuilder, IntegrationSpec, TestData}
 
 class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient with BeforeAndAfterEach {
@@ -29,8 +28,8 @@ class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient 
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
 
-        result.status mustBe 200
-        result.body mustBe "Success response received: 12"
+        result.status shouldBe 200
+        result.body shouldBe "Success response received: 12"
 
       }
 
@@ -45,8 +44,8 @@ class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient 
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
 
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "getCaseDetails has a 503 status" in {
@@ -60,8 +59,8 @@ class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient 
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
 
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
 
       }
 
@@ -76,8 +75,8 @@ class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient 
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
 
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
       }
 
       "individualReturn has a 500 status" in {
@@ -91,8 +90,8 @@ class ApplicationControllerISpec extends IntegrationSpec with WsScalaTestClient 
 
         verify(getRequestedFor(urlPathMatching(s"/inheritance-tax/individuals/$nino/cases/$reference")))
         
-        result.status mustBe 502
-        result.body mustBe "500 or 503 response returned from DES"
+        result.status shouldBe 502
+        result.body shouldBe "500 or 503 response returned from DES"
       }
     }
   }

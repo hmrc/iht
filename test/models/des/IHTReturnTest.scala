@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@ package models.des
 
 import models.application.exemptions.PartnerExemption
 import org.joda.time.LocalDate
-import org.scalatest.Matchers.convertToAnyShouldWrapper
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.{CommonBuilder, CommonHelper}
 import utils.CommonHelper._
 
-class IHTReturnTest  extends PlaySpec {
+class IHTReturnTest  extends UnitSpec {
   val dateOfDeath = new LocalDate(2000,6,28)
   import org.joda.time.LocalDateTime
 
-  "IHTReturn" must {
+  "IHTReturn" should {
     val declarationDate = new LocalDateTime
     val acknowledgmentReference = ""
 
@@ -45,7 +44,7 @@ class IHTReturnTest  extends PlaySpec {
         acknowledgmentReference, dateOfDeath)
 
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason mustBe "Excepted Estate"
+      reason shouldBe "Excepted Estate"
     }
 
     "successfully convert declaration reasonForBeingBelowLimit to  Spouse, Civil Partner or Charity Exemption" in {
@@ -54,7 +53,7 @@ class IHTReturnTest  extends PlaySpec {
         declarationDate,
         acknowledgmentReference, dateOfDeath)
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason mustBe "Spouse, Civil Partner or Charity Exemption"
+      reason shouldBe "Spouse, Civil Partner or Charity Exemption"
     }
 
     "successfully convert declaration reasonForBeingBelowLimit to Transferred Nil Rate Band" in {
@@ -63,7 +62,7 @@ class IHTReturnTest  extends PlaySpec {
         declarationDate,
         acknowledgmentReference, dateOfDeath)
       val reason:String = (for(d<-ir2.declaration) yield d.reasonForBeingBelowLimit.getOrElse("")).getOrElse("")
-      reason mustBe "Transferred Nil Rate Band"
+      reason shouldBe "Transferred Nil Rate Band"
     }
 
     "throw an exception if asked to convert an IHT model with a property with an invalid property type" in {
@@ -83,15 +82,15 @@ class IHTReturnTest  extends PlaySpec {
         declarationDate,
         acknowledgmentReference, dateOfDeath)
 
-      ir1.submitter mustBe ir2.submitter
-      ir1.declaration mustBe ir2.declaration
-      ir1.deceased mustBe ir2.deceased
-      getOrException(ir1.freeEstate).estateAssets.map( _.toSet ) mustBe getOrException(ir2.freeEstate).estateAssets.map( _.toSet )
-      getOrException(ir1.freeEstate).interestInOtherEstate mustBe getOrException(ir2.freeEstate).interestInOtherEstate
-      getOrException(ir1.freeEstate).estateLiabilities.map( _.toSet ) mustBe getOrException(ir2.freeEstate).estateLiabilities.map( _.toSet )
-      getOrException(ir1.freeEstate).estateExemptions.map( _.toSet ) mustBe getOrException(ir2.freeEstate).estateExemptions.map( _.toSet )
-      ir1.gifts mustBe ir2.gifts
-      ir1.trusts mustBe ir2.trusts
+      ir1.submitter shouldBe ir2.submitter
+      ir1.declaration shouldBe ir2.declaration
+      ir1.deceased shouldBe ir2.deceased
+      getOrException(ir1.freeEstate).estateAssets.map( _.toSet ) shouldBe getOrException(ir2.freeEstate).estateAssets.map( _.toSet )
+      getOrException(ir1.freeEstate).interestInOtherEstate shouldBe getOrException(ir2.freeEstate).interestInOtherEstate
+      getOrException(ir1.freeEstate).estateLiabilities.map( _.toSet ) shouldBe getOrException(ir2.freeEstate).estateLiabilities.map( _.toSet )
+      getOrException(ir1.freeEstate).estateExemptions.map( _.toSet ) shouldBe getOrException(ir2.freeEstate).estateExemptions.map( _.toSet )
+      ir1.gifts shouldBe ir2.gifts
+      ir1.trusts shouldBe ir2.trusts
     }
 
     "successfully convert a valid IHT model to a valid DES model without Surviving spouse " +
@@ -118,15 +117,15 @@ class IHTReturnTest  extends PlaySpec {
         acknowledgmentReference,
         dateOfDeath)
 
-      ir1.submitter mustBe ir2.submitter
-      ir1.declaration mustBe ir2.declaration
-      ir1.deceased mustBe ir2.deceased
-      getOrException(ir1.freeEstate).estateAssets.map(_.toSet) mustBe getOrException(ir2.freeEstate).estateAssets.map(_.toSet)
-      getOrException(ir1.freeEstate).interestInOtherEstate mustBe getOrException(ir2.freeEstate).interestInOtherEstate
-      getOrException(ir1.freeEstate).estateLiabilities.map(_.toSet) mustBe getOrException(ir2.freeEstate).estateLiabilities.map(_.toSet)
-      getOrException(ir1.freeEstate).estateExemptions.map(_.toSet) mustBe getOrException(ir2.freeEstate).estateExemptions.map(_.toSet)
-      ir1.gifts mustBe ir2.gifts
-      ir1.trusts mustBe ir2.trusts
+      ir1.submitter shouldBe ir2.submitter
+      ir1.declaration shouldBe ir2.declaration
+      ir1.deceased shouldBe ir2.deceased
+      getOrException(ir1.freeEstate).estateAssets.map(_.toSet) shouldBe getOrException(ir2.freeEstate).estateAssets.map(_.toSet)
+      getOrException(ir1.freeEstate).interestInOtherEstate shouldBe getOrException(ir2.freeEstate).interestInOtherEstate
+      getOrException(ir1.freeEstate).estateLiabilities.map(_.toSet) shouldBe getOrException(ir2.freeEstate).estateLiabilities.map(_.toSet)
+      getOrException(ir1.freeEstate).estateExemptions.map(_.toSet) shouldBe getOrException(ir2.freeEstate).estateExemptions.map(_.toSet)
+      ir1.gifts shouldBe ir2.gifts
+      ir1.trusts shouldBe ir2.trusts
     }
   }
 

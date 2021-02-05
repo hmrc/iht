@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,14 @@ package connectors.securestorage
 import akka.actor._
 import com.typesafe.config._
 import org.scalatest._
-import org.scalatestplus.play.PlaySpec
 import play.api.libs.json._
-import play.api.test.Helpers.{await, defaultAwaitTimeout}
 import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.play.test.UnitSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.postfixOps
 
-class CleanerActorTest extends PlaySpec with WordSpecLike with BeforeAndAfter with MongoSpecSupport {
+class CleanerActorTest extends UnitSpec with WordSpecLike with BeforeAndAfter with MongoSpecSupport {
 
   val driver = new reactivemongo.api.MongoDriver
   val conn = driver.connection(Seq("localhost"))

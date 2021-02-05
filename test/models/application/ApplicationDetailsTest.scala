@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 package models.application
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.{CommonBuilder, FakeIhtApp}
 
-class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
+class ApplicationDetailsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
   "ApplicationDetails" when {
 
@@ -30,12 +28,12 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value for total gifts where gifts are present" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.totalGiftsValue mustBe Some(BigDecimal(28000 - 200))
+        ad.totalGiftsValue shouldBe Some(BigDecimal(28000 - 200))
       }
 
       "return the correct value for total gifts where gifts are not present" in {
         val ad = CommonBuilder.buildApplicationDetailsEmpty
-        ad.totalGiftsValue mustBe Some(BigDecimal(0))
+        ad.totalGiftsValue shouldBe Some(BigDecimal(0))
       }
     }
 
@@ -43,7 +41,7 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value of property" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.totalPropertyValue mustBe BigDecimal(600)
+        ad.totalPropertyValue shouldBe BigDecimal(600)
       }
     }
 
@@ -51,7 +49,7 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value of total assets" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.totalAssetsValue mustBe BigDecimal(771)
+        ad.totalAssetsValue shouldBe BigDecimal(771)
       }
     }
 
@@ -60,7 +58,7 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value of total exemptions" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.totalExemptionsValue mustBe BigDecimal(141)
+        ad.totalExemptionsValue shouldBe BigDecimal(141)
       }
     }
 
@@ -69,7 +67,7 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value of total liabilities" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.totalLiabilitiesValue mustBe BigDecimal(340)
+        ad.totalLiabilitiesValue shouldBe BigDecimal(340)
       }
     }
 
@@ -81,19 +79,19 @@ class ApplicationDetailsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
         val debts = CommonBuilder.buildAllLiabilities
         val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
           allExemptions = Some(exemptions), allLiabilities = Some(debts))
-        ad.estateValue mustBe BigDecimal(121960 - 340)
+        ad.estateValue shouldBe BigDecimal(121960 - 340)
       }
 
       "return the correct value when there are no exemptions and no debts in" in {
         val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate
-        ad.estateValue mustBe BigDecimal(121960 + 3000)
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
       }
 
       "return the correct value when there are debts but no exemptions " in {
         val debts = CommonBuilder.buildAllLiabilities
         val ad = CommonBuilder.buildApplicationDetailsReasonForBeingBelowLimitExceptedEstate.copy(
           allLiabilities = Some(debts))
-        ad.estateValue mustBe BigDecimal(121960 + 3000)
+        ad.estateValue shouldBe BigDecimal(121960 + 3000)
       }
     }
 

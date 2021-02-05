@@ -20,7 +20,6 @@ import akka.actor._
 import com.google.inject.Provider
 import connectors.securestorage._
 import javax.inject.Inject
-import play.api.Logger.logger
 import play.api.http.DefaultHttpErrorHandler
 import play.api.inject.ApplicationLifecycle
 import play.api.mvc.Results._
@@ -43,7 +42,7 @@ class ErrorHandler @Inject() (env: Environment,
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     exception match {
       case DESInternalServerError(cause) =>
-        logger.warn("500 or 503 response returned from DES", cause)
+        Logger.warn("500 or 503 response returned from DES", cause)
         Future.successful(BadGateway("500 or 503 response returned from DES"))
       case _ => super.onServerError(request, exception)
     }
@@ -78,7 +77,7 @@ trait ApplicationGlobal {
   lazy val secureStorage: SecureStorage = {
     val platformKey = conf.getOptional[String]("securestorage.platformkey").getOrElse{throw new RuntimeException("securestorage.platformkey is not defined")}
 
-    if (platformKey == "LOCALKEY") {logger.info("Secure storage key is LOCALKEY")} else {logger.info("Secure storage key is NOT LOCALKEY") }
+    if (platformKey == "LOCALKEY") {Logger.info("Secure storage key is LOCALKEY")} else {Logger.info("Secure storage key is NOT LOCALKEY") }
 
     val dbConf = conf.getOptional[String]("securestorage.dbConfig").getOrElse(throw new RuntimeException("securestorage.dbConfig is not defined"))
 

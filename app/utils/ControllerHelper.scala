@@ -21,7 +21,6 @@ import com.github.fge.jsonschema.core.report.{ProcessingMessage, ProcessingRepor
 import metrics.MicroserviceMetrics
 import models.enums._
 import play.api.Logger
-import play.api.Logger.logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results._
@@ -50,32 +49,37 @@ trait ControllerHelper {
   def exceptionCheckForResponses[A,Api](x : Future[A], y: Api.Api) : Future[A] =
     x.recoverWith {
       case e:GatewayTimeoutException =>{
-        logger.warn("Gateway Timeout Response Returned ::: " + e.getMessage)
+        Logger.warn("Gateway Timeout Response Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
         Future.failed(new GatewayTimeoutException(e.message + "des_gateway_timeout"))
       }
       case e: BadRequestException => {
-        logger.warn("BadRequest Response Returned ::: " + e.getMessage)
+        Logger.warn("BadRequest Response Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
         Future.failed(new BadRequestException(e.message + "des_bad_request"))
       }
       case e: DESInternalServerError => {
-        logger.info(" Upstream5xxResponse Returned ::: " + e.getMessage)
+        Logger.info(" Upstream5xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
         Future.failed(e)
       }
-      case e: UpstreamErrorResponse => {
-        logger.info("UpstreamErrorResponse Returned ::: " + e.getMessage)
+      case e: Upstream4xxResponse => {
+        Logger.info(" Upstream4xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
-        Future.failed(UpstreamErrorResponse.apply(updateMessage(e.message,e.statusCode), e.statusCode, e.reportAs))
+        Future.failed(Upstream4xxResponse(e.message, e.upstreamResponseCode, e.reportAs))
+      }
+      case e: Upstream5xxResponse => {
+        Logger.info("Upstream5xxResponse Returned ::: " + e.getMessage)
+        metrics.incrementFailedCounter(y)
+        Future.failed(Upstream5xxResponse(updateMessage(e.message,e.upstreamResponseCode), e.upstreamResponseCode, e.reportAs))
       }
       case e: NotFoundException => {
-        logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
+        Logger.info("Upstream4xxResponse Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
-        Future.failed(UpstreamErrorResponse.apply(e.message + "des_not_found", notFoundExceptionCode, notFoundExceptionCode))
+        Future.failed(Upstream4xxResponse(e.message + "des_not_found", notFoundExceptionCode, notFoundExceptionCode))
       }
       case e: Exception => {
-        logger.info("Exception Returned ::: " + e.getMessage)
+        Logger.info("Exception Returned ::: " + e.getMessage)
         metrics.incrementFailedCounter(y)
         Future.failed(new Exception(e.getMessage))
       }
@@ -104,14 +108,14 @@ trait ControllerHelper {
    * @param desJson
    */
   def processJsonValidationError(pr: ProcessingReport, desJson: JsValue): Result = {
-    logger.error("JSON validation against schema failed")
+    Logger.error("JSON validation against schema failed")
     val sb = new StringBuilder("Validator messages:-\n")
     val it = pr.iterator
 
     if (Some(it).isDefined) {
       while (it.hasNext) {
         val pm = it.next()
-        logger.error("Failure reasons  :::: " + jsonNodeByName(pm, "reports"))
+        Logger.error("Failure reasons  :::: " + jsonNodeByName(pm, "reports"))
         sb.append(pm.getMessage + "\n")
       }
     }

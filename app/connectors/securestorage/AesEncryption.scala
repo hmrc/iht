@@ -19,7 +19,6 @@ package connectors.securestorage
 import play.api.Logger
 import uk.gov.hmrc.crypto._
 import com.google.common.io.BaseEncoding.base64
-import play.api.Logger.logger
 
 /**
   * Encrypts and decrypts data using the Rijndael cypher in
@@ -53,7 +52,7 @@ trait AESEncryption {
     cypher(secondKey).encrypt(new PlainText(plainData)).value.getBytes
 
   private def cypher(secondKey : String) = {
-    logger.debug("platform key : " + platformKey)
+    Logger.debug("platform key : " + platformKey)
     val keyHash = hashIt(platformKey, secondKey)
     CompositeSymmetricCrypto.aesGCM(keyHash, Nil)
   }

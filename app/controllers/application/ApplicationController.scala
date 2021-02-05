@@ -29,13 +29,12 @@ import models.des.IHTReturn
 import models.des.realtimerisking.RiskInput
 import models.enums.Api
 import play.api.Logger
-import play.api.Logger.logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.AuditService
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import utils._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -72,14 +71,14 @@ trait ApplicationController extends BackendController with SecureStorageControll
           val applicationDetails = success.get
           val ihtRef = applicationDetails.ihtRef.getOrElse(throw new RuntimeException("No IHT Reference Present"))
           try {
-            logger.info("Updating secure storage")
+            Logger.info("Updating secure storage")
             // Explicit auditing check
             doExplicitAuditCheck(nino, acknowledgementReference, applicationDetails)
             secureStorage.update(ihtRef, acknowledgementReference, Json.toJson(applicationDetails))
             Ok
           } catch {
             case _: Exception =>
-              logger.info("Failed to get a return from Secure Storage")
+              Logger.info("Failed to get a return from Secure Storage")
               InternalServerError
           }
         case _: JsError => BadRequest
@@ -93,9 +92,9 @@ trait ApplicationController extends BackendController with SecureStorageControll
     * @param ihtRef
     */
   def get(nino: String, ihtRef: String, acknowledgementReference: String): Action[AnyContent] = Action {
-      logger.info("Fetching secure storage record. Acknowlegenent Reference " + acknowledgementReference)
+      Logger.info("Fetching secure storage record. Acknowlegenent Reference " + acknowledgementReference)
       secureStorage.get(ihtRef, acknowledgementReference) match {
-        case Some(jsValue) => logger.info("Secure storage returned record"); Ok(jsValue)
+        case Some(jsValue) => Logger.info("Secure storage returned record"); Ok(jsValue)
         case None => Ok(Json.toJson(new ApplicationDetails(status = Constants.AppStatusNotStarted,
           ihtRef = Some(ihtRef))
         ))
@@ -118,10 +117,10 @@ trait ApplicationController extends BackendController with SecureStorageControll
             val ri = RiskInput.fromRegistrationDetails(rd, acknowledgmentReference)
             val desJson = Json.toJson(ri)
 
-            logger.debug("DES json for real-time risking successfully generated:-\n" + Json.prettyPrint(desJson))
+            Logger.debug("DES json for real-time risking successfully generated:-\n" + Json.prettyPrint(desJson))
             val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathRealTimeRisking)
             if (pr.isSuccess) {
-              logger.info("Request Validated")
+              Logger.info("Request Validated")
               ihtConnector.submitRealtimeRisking(rd.ihtReference.getOrElse(""),
                 ri.acknowledgementReference.getOrElse(""),
                 desJson).map {
@@ -143,20 +142,20 @@ trait ApplicationController extends BackendController with SecureStorageControll
   private def processRealtimeRiskingResponse(httpResponseBody: String): Result = {
     import models.des.realtimerisking.RiskResponse
     val jsValue = Json.parse(httpResponseBody)
-    logger.info("Real-time risking response json:-\n" + Json.prettyPrint(jsValue))
+    Logger.info("Real-time risking response json:-\n" + Json.prettyPrint(jsValue))
 
     val riskResponse = jsValue.asOpt[RiskResponse]
-    logger.debug("Created RiskResponse object:-\n" + riskResponse.toString)
+    Logger.debug("Created RiskResponse object:-\n" + riskResponse.toString)
     CommonHelper.getOrException(riskResponse).rulesFired match {
       case None =>
-        logger.info("Real-time risking response: No rules fired.")
+        Logger.info("Real-time risking response: No rules fired.")
         NoContent
       case Some(rulesFired) =>
         if (rulesFired.isEmpty) {
-          logger.info("Real-time risking response: No rules fired.")
+          Logger.info("Real-time risking response: No rules fired.")
           NoContent
         } else {
-          logger.info("Real-time risking response: " + rulesFired.size + " rules fired.")
+          Logger.info("Real-time risking response: " + rulesFired.size + " rules fired.")
 
           val moneyRule = rulesFired.find(_.ruleID.getOrElse("")
             == AssetDetails.IHTReturnRuleIDBankAndBuildingSocietyAccounts)
@@ -165,9 +164,9 @@ trait ApplicationController extends BackendController with SecureStorageControll
             case Some(_) =>
               val ruleSupportingInfo = moneyRule.get.supportingInformation.fold("")(supInfo => supInfo)
               if (ruleSupportingInfo.nonEmpty) {
-                logger.info("Rule Supporting Info :: " + ruleSupportingInfo)
+                Logger.info("Rule Supporting Info :: " + ruleSupportingInfo)
               } else {
-                logger.info("Rule Supporting Info is not available")
+                Logger.info("Rule Supporting Info is not available")
               }
               Ok(ruleSupportingInfo)
             case None =>
@@ -181,8 +180,8 @@ trait ApplicationController extends BackendController with SecureStorageControll
                                       ad: ApplicationDetails)(implicit hc: HeaderCarrier, request: Request[_]): Future[Result] = {
     httpResponse.status match {
       case OK =>
-        logger.info("Received response from DES")
-        logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
+        Logger.info("Received response from DES")
+        Logger.debug("Response received ::: " + Json.prettyPrint(httpResponse.json))
         metrics.incrementSuccessCounter(Api.SUB_APPLICATION)
         val finalEstateValue = ad.estateValue
         val map = Map(Constants.AuditTypeValue -> finalEstateValue.toString(),
@@ -197,7 +196,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
           }
         }
       case _ =>
-        logger.info("No valid response from DES")
+        Logger.info("No valid response from DES")
         Future.successful(InternalServerError(httpResponse.status.toString))
     }
   }
@@ -215,7 +214,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
             // validate json in DES format.
             val declarationDate = new LocalDateTime
             val acknowledgmentReference = CommonHelper.generateAcknowledgeReference
-            logger.info("About to convert to DES format")
+            Logger.info("About to convert to DES format")
 
             val registrationDetails = registrationHelper.getRegistrationDetails(nino, ihtAppReference)
             val odod = registrationDetails flatMap { _.deceasedDateOfDeath.map(_.dateOfDeath) }
@@ -225,13 +224,13 @@ trait ApplicationController extends BackendController with SecureStorageControll
               case Some(dateOfDeath) =>
                 val ir = IHTReturn.fromApplicationDetails(ad, declarationDate, acknowledgmentReference, dateOfDeath)
                 val desJson = Json.toJson(ir)
-                logger.debug("DES json successfully generated from application details object")
+                Logger.debug("DES json successfully generated from application details object")
                 val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathApplicationSubmission)
                 if (pr.isSuccess) {
-                  logger.info("DES Json successfully validated")
+                  Logger.info("DES Json successfully validated")
                   registrationDetails flatMap { _.applicantDetails } map { _.nino } match {
                     case Some(leadExecutorNino) if nino!=leadExecutorNino =>
-                      logger.error(s"[ApplicationController][submit] Submission attempt is NOT the lead executor")
+                      Logger.error(s"[ApplicationController][submit] Submission attempt is NOT the lead executor")
                       Future.successful(Forbidden("Submitter is not the lead executor"))
                     case _ =>
                       for {
@@ -244,14 +243,14 @@ trait ApplicationController extends BackendController with SecureStorageControll
                 }
             }
           case Failure(ex) =>
-            logger.info("Unable to extract front-end model object from JSON")
+            Logger.info("Unable to extract front-end model object from JSON")
             Future.successful(InternalServerError("Unable to extract front-end model object from JSON:-" + ex.getMessage))
         }
       }, Api.SUB_APPLICATION)
   }
 
   def deleteRecord(nino: String, ihtReference: String): Action[AnyContent] = Action {
-      logger.debug("Dropping record")
+      Logger.debug("Dropping record")
       secureStorage - ihtReference
       Ok
   }
@@ -268,14 +267,14 @@ trait ApplicationController extends BackendController with SecureStorageControll
           case Some(_) =>
             (jsonFailure \ "reason").asOpt[String] match {
               case Some(reason) =>
-                logger.info("Failure response received: " + reason)
+                Logger.info("Failure response received: " + reason)
                 InternalServerError("Failure response received: " + reason)
               case None =>
-                logger.info("Failure response received but no reason found.")
+                Logger.info("Failure response received but no reason found.")
                 InternalServerError("Failure response received but no reason found.")
             }
           case None =>
-            logger.info("Neither success nor failure response received from DES.")
+            Logger.info("Neither success nor failure response received from DES.")
             InternalServerError("Neither success nor failure response received from DES.")
         }
     }
@@ -285,15 +284,15 @@ trait ApplicationController extends BackendController with SecureStorageControll
       exceptionCheckForResponses({
         val desJson = Json.toJson(ClearanceRequest(AcknowledgementRefGenerator.getUUID))
         val pr: ProcessingReport = jsonValidator.validate(desJson, Constants.schemaPathClearanceRequest)
-        logger.info("Clearance Request Json for DES has been validated successfully")
+        Logger.info("Clearance Request Json for DES has been validated successfully")
 
         if (pr.isSuccess) {
-          logger.debug("Request Clearance Validated")
+          Logger.debug("Request Clearance Validated")
           ihtConnector.requestClearance(nino, ihtReference, desJson).map {
             httpResponse =>
               httpResponse.status match {
                 case OK =>
-                  logger.info("Received response from DES (Clearance)")
+                  Logger.info("Received response from DES (Clearance)")
                   metrics.incrementSuccessCounter(Api.SUB_REQUEST_CLEARANCE)
                   Ok("Clearance Granted")
                 case ACCEPTED => InternalServerError("The request has been accepted but not processed immediately")
@@ -316,23 +315,23 @@ trait ApplicationController extends BackendController with SecureStorageControll
           httpResponse =>
             httpResponse.status match {
               case OK =>
-                logger.info("Received response from DES")
+                Logger.info("Received response from DES")
                 metrics.incrementSuccessCounter(Api.GET_PROBATE_DETAILS)
 
                 val js: JsValue = Json.parse(httpResponse.body)
                 val pr: ProcessingReport = jsonValidator.validate(js, Constants.schemaPathProbateDetails)
 
                 if (pr.isSuccess) {
-                  logger.info("DES Response Validated")
+                  Logger.info("DES Response Validated")
                   Ok(Json.toJson(processResponse(js))).as("text/json")
                 } else {
                   processJsonValidationError(pr, js)
                 }
               case NO_CONTENT =>
-                logger.info("No contents in response from DES")
+                Logger.info("No contents in response from DES")
                 NoContent
               case _ =>
-                logger.info("No valid response from DES")
+                Logger.info("No valid response from DES")
                 InternalServerError
 
             }
@@ -357,12 +356,12 @@ trait ApplicationController extends BackendController with SecureStorageControll
         httpResponse =>
           httpResponse.status match {
             case OK =>
-              logger.debug("getSubmittedApplicationDetails response OK")
+              Logger.debug("getSubmittedApplicationDetails response OK")
               metrics.incrementSuccessCounter(Api.GET_APPLICATION_DETAILS)
               val js: JsValue = Json.parse(httpResponse.body)
               val pr: ProcessingReport = jsonValidator.validate(js, Constants.schemaPathIhtReturn)
               if (pr.isSuccess) {
-                logger.info("DES Response Validated")
+                Logger.info("DES Response Validated")
                 Ok(js)
               } else {
                 processJsonValidationError(pr, js)
@@ -389,7 +388,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
         auditService.sendEvent(Constants.AuditTypeMonetaryValueChange,
           appMap(current),
           Constants.AuditTypeIHTEstateReportSaved).map { auditResult =>
-          logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
+          Logger.debug(s"audit event sent for currency change: $appMap and audit result received of $auditResult")
           auditResult
         }
       }
@@ -409,7 +408,7 @@ trait ApplicationController extends BackendController with SecureStorageControll
   private def getApplicationDetails(acknowledgementReference: String, ihtRef: String): ApplicationDetails = {
 
     Json.fromJson[ApplicationDetails](secureStorage.get(ihtRef, acknowledgementReference) match {
-      case Some(jsValue) => logger.info("Secure storage returned record"); jsValue
+      case Some(jsValue) => Logger.info("Secure storage returned record"); jsValue
       case None => Json.toJson(new ApplicationDetails(status = Constants.AppStatusNotStarted,
         ihtRef = Some(ihtRef)))
     }).get

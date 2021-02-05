@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package models.application.assets
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.{CommonBuilder, FakeIhtApp}
 
-class AllAssetsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
+class AllAssetsTest extends UnitSpec with FakeIhtApp with MockitoSugar{
 
   "AllAssets" when {
 
@@ -29,12 +28,12 @@ class AllAssetsTest extends PlaySpec with FakeIhtApp with MockitoSugar{
 
       "return the correct value for total assets excluding properties" in {
         val ad = CommonBuilder.buildApplicationDetailsAllFields
-        ad.allAssets.fold(BigDecimal(0))(_.totalValueWithoutProperties) mustBe BigDecimal(171)
+        ad.allAssets.fold(BigDecimal(0))(_.totalValueWithoutProperties) shouldBe BigDecimal(171)
       }
 
       "return the total as 0 if there are no assets in the estate " in {
         val ad = CommonBuilder.buildApplicationDetailsEmpty
-        ad.allAssets.fold(BigDecimal(0))(_.totalValueWithoutProperties) mustBe BigDecimal(0)
+        ad.allAssets.fold(BigDecimal(0))(_.totalValueWithoutProperties) shouldBe BigDecimal(0)
       }
     }
   }

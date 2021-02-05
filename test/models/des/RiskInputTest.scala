@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 
 package models.des.realtimerisking
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
-import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.test.UnitSpec
 import utils.CommonBuilder
 
-class RiskInputTest extends PlaySpec {
-  "RiskInput" must {
+class RiskInputTest  extends UnitSpec {
+  "RiskInput" should {
     val acknowledgementReference = "acknowledgement"
 
     "successfully convert a valid IHT model to a valid DES RiskInput model" in {
@@ -30,11 +29,11 @@ class RiskInputTest extends PlaySpec {
         CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails,
         acknowledgementReference)
 
-      ir1.acknowledgementReference mustBe ir2.acknowledgementReference
-      ir1.deceased mustBe ir2.deceased
-      ir1.entryType mustBe ir2.entryType
-      ir1.eventType mustBe ir2.eventType
-      ir1.latestReturn mustBe ir2.latestReturn
+      ir1.acknowledgementReference shouldBe ir2.acknowledgementReference
+      ir1.deceased shouldBe ir2.deceased
+      ir1.entryType shouldBe ir2.entryType
+      ir1.eventType shouldBe ir2.eventType
+      ir1.latestReturn shouldBe ir2.latestReturn
     }
   }
 

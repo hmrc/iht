@@ -19,15 +19,15 @@ package util
 import akka.actor.ActorSystem
 import akka.stream.{ActorMaterializer, Materializer}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, MustMatchers}
-import org.scalatestplus.play.PlaySpec
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{Application, Environment, Mode}
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.test.UnitSpec
 
-trait IntegrationSpec extends PlaySpec
-  with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience with MustMatchers
+trait IntegrationSpec extends UnitSpec
+  with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience with Matchers
   with WiremockHelper with BeforeAndAfterEach with BeforeAndAfterAll {
 
   override implicit lazy val app: Application = GuiceApplicationBuilder(environment = Environment.simple(mode = Mode.Dev))
