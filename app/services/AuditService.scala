@@ -26,11 +26,12 @@ import uk.gov.hmrc.play.audit.AuditExtensions
 import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
-import java.time.{Clock, Instant}
 
+import java.time.{Clock, Instant}
 import play.api.Logger.logger
 import uk.gov.hmrc.http.hooks.HookData
 
+import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -54,8 +55,9 @@ trait AuditService extends HttpAuditing {
   }
 
   def auditRequestWithResponse(url: String, verb: String, body: String, responseToAuditF: Future[HttpResponse])
-                              (implicit hc: HeaderCarrier): Unit = {
-    AuditingHook(url, verb, Option(HookData.FromString(body)), responseToAuditF)
+                              (implicit hc: HeaderCarrier, request: Request[_]): Unit = {
+    AuditingHook(verb, new URL(url), request.headers.headers, Some(HookData.FromString(body)),
+      responseToAuditF)
   }
 
   private def tags(transactionName: String)(implicit hc: HeaderCarrier, request: Request[_]) = {

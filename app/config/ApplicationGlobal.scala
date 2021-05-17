@@ -19,6 +19,7 @@ package config
 import akka.actor._
 import com.google.inject.Provider
 import connectors.securestorage._
+
 import javax.inject.Inject
 import play.api.Logger.logger
 import play.api.http.DefaultHttpErrorHandler
@@ -30,6 +31,7 @@ import play.api._
 import reactivemongo.ReactiveMongoHelper
 import reactivemongo.api.{FailoverStrategy, MongoConnection}
 import utils.exception.DESInternalServerError
+import views.html.helper.options
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._

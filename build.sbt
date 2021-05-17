@@ -1,11 +1,9 @@
 import sbt._
 import sbt.Keys._
-import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.SbtAutoBuildPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin._
 import uk.gov.hmrc.versioning.SbtGitVersioning
-import wartremover.wartremoverSettings
 import uk.gov.hmrc.versioning.SbtGitVersioning.autoImport.majorVersion
 
 val appName: String = "iht"
@@ -29,11 +27,12 @@ lazy val scoverageSettings = {
 val wartRemovedExcludedClasses = Seq()
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory) ++ plugins : _*)
+  .enablePlugins(Seq(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin) ++ plugins : _*)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(playSettings ++ scoverageSettings : _*)
   .settings(majorVersion := 5)
   .settings(publishingSettings: _*)
+  .settings(isPublicArtefact := true)
   .settings(
     libraryDependencies ++= appDependencies,
     retrieveManaged := true
@@ -50,7 +49,7 @@ lazy val microservice = Project(appName, file("."))
     unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
     parallelExecution          in IntegrationTest := false
   )
-  .settings(wartremoverSettings : _*)
+  .settings(wartremover.WartRemover.projectSettings : _*)
   .settings(
     wartremoverWarnings ++= Warts.unsafe,
     wartremoverExcluded ++= wartRemovedExcludedClasses,

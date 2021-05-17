@@ -18,18 +18,18 @@ package connectors
 
 import constants.Constants
 import constants.Constants._
+
 import javax.inject.Inject
 import metrics.MicroserviceMetrics
 import models.enums._
-import play.api.Logger
 import play.api.Logger.logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Request
 import services.AuditService
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.logging.Authorization
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.DefaultHttpClient
+import utils.HeaderDecorator
 import utils.exception.DESInternalServerError
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,12 +39,11 @@ import scala.util.{Failure, Success}
 class IhtConnectorImpl @Inject()(val metrics: MicroserviceMetrics,
                                  val http: DefaultHttpClient,
                                  val auditService: AuditService,
+                                 val headerDecorator: HeaderDecorator,
                                  val servicesConfig: ServicesConfig) extends IhtConnector {
   override val serviceURL: String = servicesConfig.baseUrl("iht")
-  override val urlHeaderEnvironment: String = servicesConfig.getConfString("iht.des.environment",
-    throw new RuntimeException("No iht.des.environment value defined"))
-  override val urlHeaderAuthorization = s"Bearer ${servicesConfig.getConfString("iht.des.authorization-key",
-    throw new RuntimeException("No iht.des.authorization-key value defined"))}"
+  override val urlHeaderEnvironment = headerDecorator.urlHeaderEnvironmentValue
+  override val urlHeaderAuthorization = headerDecorator.decoratedAuthorization(headerDecorator.urlHeaderAuthorizationValue)
 }
 
 trait IhtConnector {
@@ -54,14 +53,15 @@ trait IhtConnector {
   val urlHeaderAuthorization: String
   val http: DefaultHttpClient
   val auditService: AuditService
+  val headerDecorator: HeaderDecorator
 
   def metrics: MicroserviceMetrics
 
-  private def createHeaderCarrier = HeaderCarrier(extraHeaders = Seq("Environment" -> urlHeaderEnvironment),
-    authorization = Some(Authorization(urlHeaderAuthorization)))
+  private def createHeaderCarrier =  HeaderCarrier()
 
   def submitRegistration(nino: String, registrationJs: JsValue)(implicit request: Request[_]): Future[HttpResponse] = {
     implicit val hc: HeaderCarrier = createHeaderCarrier
+
     /*
    * Recover cases are written because of the framework design.
    * Any HttpResponse that does NOT have 2xx status code is wrapped into a different kind of exception by framework.
@@ -72,7 +72,7 @@ trait IhtConnector {
     val urlToRead = s"$serviceURL/inheritance-tax/individuals/$nino/cases/"
 
     logger.info("Submitting registration to DES")
-    val futureResponse: Future[HttpResponse] = http.POST(urlToRead, registrationJs)
+    val futureResponse: Future[HttpResponse] = http.POST(urlToRead, registrationJs, headerDecorator.desExternalHttpHeaders())
     /* Code to replicate a failure due to duplicated submission.
        Uncomment to replace above line when testing required:-
       Future.failed[HttpResponse](Upstream4xxResponse("test", 409, 409))
@@ -106,7 +106,7 @@ trait IhtConnector {
     val urlToRead = s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtRef/returns"
 
     logger.info("Submit application to DES")
-    val futureResponse = http.POST(urlToRead, applicationJs)
+    val futureResponse = http.POST(urlToRead, applicationJs, headerDecorator.desExternalHttpHeaders())
     futureResponse map {
       response => {
         logger.info("Received response from DES")
@@ -127,7 +127,8 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Submit risking info to DES")
     val timerContext = metrics.startTimer(Api.SUB_REAL_TIME_RISKING)
-    http.POST(s"$serviceURL/risk-score/inheritance-tax/$ihtReference?ackRef=$ackRef", realtimeRiskingJs) map {
+    http.POST(s"$serviceURL/risk-score/inheritance-tax/$ihtReference?ackRef=$ackRef",
+      realtimeRiskingJs, headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from submission of risking info to DES")
@@ -143,7 +144,7 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Get case list from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_LIST)
-    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/") map {
+    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/", headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned when getting Case List")
@@ -159,7 +160,8 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Get case details from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_DETAILS)
-    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference") map {
+    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference",
+      headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from Getting Case Details")
@@ -172,7 +174,8 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Request clearance from DES")
     val timerContext = metrics.startTimer(Api.SUB_REQUEST_CLEARANCE)
-    http.POST(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/clearance", requestJs) map {
+    http.POST(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/clearance",
+      requestJs, headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from submitting the Request Clearance")
@@ -188,7 +191,9 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Get Probate Details from DES")
     val timerContext = metrics.startTimer(Api.GET_PROBATE_DETAILS)
-    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$ihtReturnId/probate") map {
+    http.GET(
+      s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$ihtReturnId/probate",
+      headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from getting Probate details")
@@ -201,7 +206,9 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Get submitted application details from DES")
     val timerContext = metrics.startTimer(Api.SUB_APPLICATION)
-    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$returnId") map {
+    http.GET(
+      s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$returnId",
+      headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from submitting the application")

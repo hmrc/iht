@@ -84,7 +84,8 @@ trait RegistrationController extends BackendController with ControllerHelper {
       if (pr.isSuccess) {
         logger.debug("DES Request Validated")
         logger.info("Acknowledgment Ref: " + request.body.\("acknowledgmentReference"))
-        desConnector.submitRegistration(nino, request.body) map { httpResponse =>
+        desConnector.
+          submitRegistration(nino, request.body) map { httpResponse =>
             (Json.parse(httpResponse.body) \ "referenceNumber").asOpt[String].map { ihtRef =>
               logger.info("Parsed IHT Reference from response")
               metrics.incrementSuccessCounter(Api.SUB_REGISTRATION)

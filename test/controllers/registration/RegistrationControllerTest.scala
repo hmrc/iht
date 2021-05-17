@@ -34,8 +34,8 @@ import play.api.test.Helpers._
 import services.AuditService
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.play.audit.http.connector.AuditResult.Success
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import org.scalatestplus.play.PlaySpec
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import utils.CommonBuilder._
 import utils.{AcknowledgementRefGenerator, NinoBuilder}
 
@@ -85,8 +85,8 @@ class RegistrationControllerTest extends PlaySpec with MockitoSugar with BeforeA
         NinoBuilder.replacePlaceholderNinoWithDefault(
           JsonLoader.fromResource("/json/validation/JsonTestValid.json").toString)))
 
-    val correctHttpResponse = HttpResponse(OK, Some(correctIhtReferenceNoJs), Map(), None)
-    val invalidHttpResponse = HttpResponse(OK, Some(invalidIhtReferenceNoJs), Map(), None)
+    val correctHttpResponse = HttpResponse(OK, correctIhtReferenceNoJs, Map.empty[String, Seq[String]])
+    val invalidHttpResponse = HttpResponse(OK, invalidIhtReferenceNoJs, Map.empty[String, Seq[String]])
 
     "respond with OK if HttpResponse is correct" in {
       when(mockControllerComponents.actionBuilder)
@@ -128,7 +128,7 @@ class RegistrationControllerTest extends PlaySpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", CONFLICT, CONFLICT)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(UpstreamErrorResponse("", CONFLICT, CONFLICT)))
 
       val result = testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails))
       status(result) should be(ACCEPTED)
@@ -139,9 +139,9 @@ class RegistrationControllerTest extends PlaySpec with MockitoSugar with BeforeA
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
         .thenReturn(stubPlayBodyParsers)
-      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(Upstream4xxResponse("", NOT_FOUND, NOT_FOUND)))
+      when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any())).thenReturn(Future.failed(UpstreamErrorResponse("", NOT_FOUND, NOT_FOUND)))
 
-      a[Upstream4xxResponse] mustBe thrownBy {
+      a[UpstreamErrorResponse] mustBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
     }
@@ -198,9 +198,9 @@ class RegistrationControllerTest extends PlaySpec with MockitoSugar with BeforeA
       setupBodyBuilders
 
       when(mockDesConnector.submitRegistration(ArgumentMatchers.any(), ArgumentMatchers.any())(ArgumentMatchers.any()))
-        .thenReturn(Future.failed(new Upstream5xxResponse("des_gateway_timeout", 1, 1)))
+        .thenReturn(Future.failed(UpstreamErrorResponse("des_gateway_timeout", 500, 1)))
 
-      a[IllegalArgumentException] mustBe thrownBy {
+      a[UpstreamErrorResponse] mustBe thrownBy {
         await(testRegistrationController.submit(DefaultNino)(request.withBody(ihtRegistrationDetails)))
       }
     }
