@@ -340,7 +340,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     "return internal server error when valid front-end JSON submitted but failure response returned from DES with a reason" in new Setup {
       val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"reason":"IHT Case not found"}}""")
-      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
+      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, incorrectIhtFailureJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
@@ -359,7 +359,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     "return internal server error when valid front-end JSON submitted but failure response returned from DES without a reason" in new Setup {
       val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"bla":"bla"}}""")
-      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
+      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, incorrectIhtFailureJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
@@ -378,7 +378,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     "return internal server error when valid front-end JSON submitted but neither failure nor success response returned from DES" in new Setup {
       val incorrectIhtFailureJson = Json.parse("""{"bla":{"bla":"bla"}}""")
-      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
+      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, incorrectIhtFailureJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
 
@@ -398,7 +398,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
     "return success response when valid front end JSON submitted" in new Setup {
       val correctIhtSuccessJson = Json.parse(
         """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""")
-      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
+      val correctHttpResponse = HttpResponse(OK, correctIhtSuccessJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = Some("12345678")))
 
       when(mockAuditService.sendEvent(any(), any[JsValue](), any())(any(), any()))
@@ -450,7 +450,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
       val correctIhtSuccessJson = Json.parse(
         """{"processingDate":"2001-12-17T09:30:47Z","returnId":"1234567890","versionNumber":"1234567890"}""")
-      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), None)
+      val correctHttpResponse = HttpResponse(OK, correctIhtSuccessJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields.copy(ihtRef = expectedIhtReference))
 
       val eventCaptorForString = ArgumentCaptor.forClass(classOf[String])
@@ -483,7 +483,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
       val ihtNoRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeNoRulesFired.json").toString)
 
-      val correctHttpResponse = HttpResponse(OK, Some(ihtNoRulesFiredResponseJson), Map(), None)
+      val correctHttpResponse = HttpResponse(OK, ihtNoRulesFiredResponseJson, Map.empty[String, Seq[String]])
 
 
       when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
@@ -503,7 +503,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
       val ihtRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeRulesFiredNotInclRule2.json").toString)
 
-      val correctHttpResponse = HttpResponse(OK, Some(ihtRulesFiredResponseJson), Map(), None)
+      val correctHttpResponse = HttpResponse(OK, ihtRulesFiredResponseJson, Map.empty[String, Seq[String]])
 
       when(mockRegistrationHelper.getRegistrationDetails(any(), any()))
         .thenReturn(Some(CommonBuilder.buildRegistrationDetailsDODandDeceasedDetails))
@@ -522,7 +522,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
       val ihtRulesFiredResponseJson = Json.parse(JsonLoader
         .fromResource("/json/des/risking/RiskOutcomeRulesFiredInclRule2.json").toString)
 
-      val correctHttpResponse = HttpResponse(OK, Some(ihtRulesFiredResponseJson), Map(), None)
+      val correctHttpResponse = HttpResponse(OK, ihtRulesFiredResponseJson, Map.empty[String, Seq[String]])
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
@@ -540,7 +540,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     "return OK when clearance successfully requested" in new Setup {
       val correctIhtSuccessJson = Json.toJson("""{ "clearanceStatus": { "status": "Clearance Granted", "statusDate": "2015-04-29" }, "caseStatus":"Clearance Granted" }""")
-      val correctHttpResponse = HttpResponse(OK, Some(correctIhtSuccessJson), Map(), Some("200"))
+      val correctHttpResponse = HttpResponse(OK, correctIhtSuccessJson.toString(), Map.empty[String, Seq[String]])
 
       when(mockDesConnector.requestClearance(any(), any(), any()))
         .thenReturn(Future.successful(correctHttpResponse))
@@ -612,7 +612,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     "Respond appropriately to a schema validation failure while fetching IHT return details" in new Setup {
       val incorrectIhtReturnJson = Json.toJson("""{ "SomeRubbish":"Not an IHT return" }""")
-      val incorrectHttpResponse = HttpResponse(OK, Some(incorrectIhtReturnJson))
+      val incorrectHttpResponse = HttpResponse(OK, incorrectIhtReturnJson.toString())
       when(mockControllerComponents.actionBuilder)
         .thenReturn(testActionBuilder)
       when(mockControllerComponents.parsers)
@@ -624,7 +624,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
     }
 
     "Respond appropriately when the IHT return details are not found" in new Setup {
-      val noIhtReturnHttpResponse = HttpResponse(NOT_FOUND, None)
+      val noIhtReturnHttpResponse = HttpResponse(NOT_FOUND, "")
 
       when(mockDesConnector.getSubmittedApplicationDetails(any(), any(), any())).thenReturn((Future(noIhtReturnHttpResponse)))
       when(mockControllerComponents.actionBuilder)
@@ -650,7 +650,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
 
     def genericExceptionHandlingTestSetup = {
       val incorrectIhtFailureJson = Json.parse("""{"failureResponse":{"reason":"IHT Case not found"}}""")
-      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, Some(incorrectIhtFailureJson), Map(), None)
+      val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, incorrectIhtFailureJson, Map.empty[String, Seq[String]])
       val jsonAD = Json.toJson(CommonBuilder.buildApplicationDetailsAllFields)
 
       when(mockJsonValidator.validate(any(), any())).thenReturn(mockProcessingReport)
@@ -696,7 +696,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
       val jsonAD: JsValue = genericExceptionHandlingTestSetup
 
       when(mockDesConnector.submitApplication(any(), any(), any())(any()))
-        .thenReturn(Future.failed(new Upstream4xxResponse("upstream-exception", -1, -1)))
+        .thenReturn(Future.failed(UpstreamErrorResponse("upstream-exception", 500, -1)))
 
       try {
         applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))
@@ -710,7 +710,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
       val jsonAD: JsValue = genericExceptionHandlingTestSetup
 
       when(mockDesConnector.submitApplication(any(), any(), any())(any()))
-        .thenReturn(Future.failed(Upstream5xxResponse("gateway-exception", -1, -1)))
+        .thenReturn(Future.failed(UpstreamErrorResponse("gateway-exception", 500, -1)))
 
       try {
         applicationControllerMockedValidator.submit("", "")(request.withBody(jsonAD))

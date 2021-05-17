@@ -9,7 +9,7 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc" %% "simple-reactivemongo" % "7.31.0-play-27",
-    "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "3.3.0",
+    "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "4.2.0",
     "uk.gov.hmrc" %% "http-caching-client" % "9.2.0-play-27",
     "uk.gov.hmrc" %% "domain" % "5.10.0-play-27",
     "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
