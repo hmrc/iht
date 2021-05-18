@@ -144,7 +144,8 @@ trait IhtConnector {
     implicit val hc: HeaderCarrier = createHeaderCarrier
     logger.info("Get case list from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_LIST)
-    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/", headerDecorator.desExternalHttpHeaders()) map {
+    http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/",
+      headers = headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned when getting Case List")
@@ -161,7 +162,7 @@ trait IhtConnector {
     logger.info("Get case details from DES")
     val timerContext = metrics.startTimer(Api.GET_CASE_DETAILS)
     http.GET(s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference",
-      headerDecorator.desExternalHttpHeaders()) map {
+      headers = headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from Getting Case Details")
@@ -193,7 +194,7 @@ trait IhtConnector {
     val timerContext = metrics.startTimer(Api.GET_PROBATE_DETAILS)
     http.GET(
       s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$ihtReturnId/probate",
-      headerDecorator.desExternalHttpHeaders()) map {
+      headers = headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from getting Probate details")
@@ -208,7 +209,7 @@ trait IhtConnector {
     val timerContext = metrics.startTimer(Api.SUB_APPLICATION)
     http.GET(
       s"$serviceURL/inheritance-tax/individuals/$nino/cases/$ihtReference/returns/$returnId",
-      headerDecorator.desExternalHttpHeaders()) map {
+      headers = headerDecorator.desExternalHttpHeaders()) map {
       response => {
         timerContext.stop()
         logger.info(s"${response.status} returned from submitting the application")
