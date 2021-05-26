@@ -95,7 +95,10 @@ trait IhtConnector {
   }
 
   implicit val readApiResponse: HttpReads[HttpResponse] = new HttpReads[HttpResponse] {
-    def read(method: String, url: String, response: HttpResponse): HttpResponse = IhtResponseHandler.handleIhtResponse(method, url, response).right.get
+    def read(method: String, url: String, response: HttpResponse): HttpResponse = IhtResponseHandler.handleIhtResponse(method, url, response) match {
+      case Right(x) => x
+      case Left(x) => throw UpstreamErrorResponse.apply(x.getMessage(), x.statusCode, x.reportAs, x.headers)
+    }
   }
 
   def submitApplication(nino: String, ihtRef: String, applicationJs: JsValue)(implicit request: Request[_]): Future[HttpResponse] = {
@@ -246,7 +249,7 @@ object IhtResponseHandler extends IhtResponseHandler
 trait IhtResponseHandler extends HttpErrorFunctions {
   def handleIhtResponse(method: String, url: String, response: HttpResponse): Either[UpstreamErrorResponse, HttpResponse] = {
     response.status match {
-      case 500 | 503 =>
+      case x if is5xx(response.status) =>
         throw DESInternalServerError(UpstreamErrorResponse.apply(upstreamResponseMessage(method, url, response.status, response.body), response.status, 502))
       case _ => handleResponseEither(method, url)(response)
     }
