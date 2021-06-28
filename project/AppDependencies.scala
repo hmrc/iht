@@ -4,16 +4,16 @@ import sbt._
 
 object AppDependencies {
 
-  val jsonSchemaValidatorVersion = "2.2.6"
+  private val jsonSchemaValidatorVersion = "2.2.6"
 
   val compile: Seq[ModuleID] = Seq(
     ws,
-    "uk.gov.hmrc" %% "simple-reactivemongo" % "8.0.0-play-27",
-    "uk.gov.hmrc" %% "bootstrap-backend-play-27" % "5.3.0",
-    "uk.gov.hmrc" %% "http-caching-client" % "9.5.0-play-27",
-    "uk.gov.hmrc" %% "domain" % "5.11.0-play-27",
-    "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion,
-    "com.typesafe.play" %% "play-json-joda" % "2.9.0"
+    "uk.gov.hmrc"       %% "simple-reactivemongo"      % "8.0.0-play-28",
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "5.4.0",
+    "uk.gov.hmrc"       %% "http-caching-client"       % "9.5.0-play-28",
+    "uk.gov.hmrc"       %% "domain"                    % "6.0.0-play-28",
+    "com.github.fge"    % "json-schema-validator"      % jsonSchemaValidatorVersion,
+    "com.typesafe.play" %% "play-json-joda"            % "2.9.2"
   )
 
   trait TestDependencies {
@@ -21,22 +21,22 @@ object AppDependencies {
     lazy val test : Seq[ModuleID] = ???
   }
 
-  val reactiveMongoTestVersion = "4.22.0-play-27"
-  val scalatestVersion = "3.0.9"
-  val scalatestPlusVersion = "4.0.3"
+  val reactiveMongoTestVersion = "5.0.0-play-28"
+  val scalatestPlusVersion = "5.1.0"
   val pegdownVersion = "1.6.0"
 
   object Test {
     def apply(): Seq[ModuleID] = new TestDependencies {
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
-        "org.scalatest" %% "scalatest" % scalatestVersion % scope,
-        "org.scalacheck" %% "scalacheck" % "1.14.3" % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
-        "org.mockito" % "mockito-core" % "3.3.3" % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusVersion % scope
+        "uk.gov.hmrc"            %% "reactivemongo-test"        % reactiveMongoTestVersion   % scope,
+        "org.pegdown"            % "pegdown"                    % pegdownVersion             % scope,
+        "com.typesafe.play"      %% "play-test"                 % PlayVersion.current        % scope,
+        "com.github.fge"         % "json-schema-validator"      % jsonSchemaValidatorVersion % scope,
+        "org.mockito"            % "mockito-core"               % "3.3.3"                    % scope,
+        "com.vladsch.flexmark"   % "flexmark-all"               % "0.35.10"                  % scope,
+        "org.scalatestplus.play" %%  "scalatestplus-play"       % scalatestPlusVersion       % scope,
+        "org.scalatestplus"      %%  "scalatestplus-mockito"    % "1.0.0-M2"                 % scope,
+        "org.scalatestplus"      %%  "scalatestplus-scalacheck" % "3.1.0.0-RC2"              % scope
       )
     }.test
   }
@@ -45,14 +45,15 @@ object AppDependencies {
     def apply(): Seq[ModuleID] = new TestDependencies {
       override lazy val scope: String = "it"
       override lazy val test = Seq(
-        "uk.gov.hmrc" %% "reactivemongo-test" % reactiveMongoTestVersion % scope,
-        "org.scalatest" %% "scalatest" % scalatestVersion % scope,
-        "org.pegdown" % "pegdown" % pegdownVersion % scope,
-        "org.scalatestplus.play" %% "scalatestplus-play" % scalatestPlusVersion % scope,
-        "com.typesafe.play" %% "play-test" % PlayVersion.current % scope,
-        "com.github.fge" % "json-schema-validator" % jsonSchemaValidatorVersion % scope,
-        "org.mockito" % "mockito-all" % "1.10.19" % scope,
-        "com.github.tomakehurst" % "wiremock-jre8" % "2.26.3" % "test,it"
+        "uk.gov.hmrc"               %% "reactivemongo-test"        % reactiveMongoTestVersion   % scope,
+        "org.pegdown"               % "pegdown"                    % pegdownVersion             % scope,
+        "com.typesafe.play"         %% "play-test"                 % PlayVersion.current        % scope,
+        "com.github.fge"            % "json-schema-validator"      % jsonSchemaValidatorVersion % scope,
+        "org.mockito"               % "mockito-all"                % "1.10.19"                  % scope,
+        "org.scalatestplus.play"    %%  "scalatestplus-play"       % scalatestPlusVersion       % scope,
+        "org.scalatestplus"         %%  "scalatestplus-mockito"    % "1.0.0-M2"                 % scope,
+        "org.scalatestplus"         %%  "scalatestplus-scalacheck" % "3.1.0.0-RC2"              % scope,
+        "com.github.tomakehurst"    % "wiremock-jre8"              % "2.26.3"                   % "test,it"
       )
     }.test
   }

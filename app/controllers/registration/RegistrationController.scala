@@ -22,7 +22,6 @@ import javax.inject.Inject
 import json.JsonValidator
 import metrics.MicroserviceMetrics
 import models.enums._
-import play.api.Logger.logger
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, ControllerComponents, Result}
 import services.AuditService

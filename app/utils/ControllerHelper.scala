@@ -20,8 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.fge.jsonschema.core.report.{ProcessingMessage, ProcessingReport}
 import metrics.MicroserviceMetrics
 import models.enums._
-import play.api.Logger
-import play.api.Logger.logger
+import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results._
@@ -37,7 +36,7 @@ import scala.concurrent.Future
  *
  */
 //scalastyle:off magic.number
-trait ControllerHelper {
+trait ControllerHelper extends Logging {
     def metrics: MicroserviceMetrics
 
     val desErrorCode502 = "des_error_code_502"

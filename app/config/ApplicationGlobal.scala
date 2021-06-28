@@ -21,7 +21,6 @@ import com.google.inject.Provider
 import connectors.securestorage._
 
 import javax.inject.Inject
-import play.api.Logger.logger
 import play.api.http.DefaultHttpErrorHandler
 import play.api.inject.ApplicationLifecycle
 import play.api.mvc.Results._
@@ -31,7 +30,6 @@ import play.api._
 import reactivemongo.ReactiveMongoHelper
 import reactivemongo.api.{FailoverStrategy, MongoConnection}
 import utils.exception.DESInternalServerError
-import views.html.helper.options
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -41,7 +39,7 @@ import scala.language.postfixOps
 class ErrorHandler @Inject() (env: Environment,
                               config: Configuration,
                               sourceMapper: OptionalSourceMapper,
-                              router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
+                              router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with Logging {
   override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = {
     exception match {
       case DESInternalServerError(cause) =>
@@ -56,7 +54,7 @@ class ApplicationStart @Inject()(val lifecycle: ApplicationLifecycle,
                                  val conf: Configuration,
                                  val env: Environment,
                                  implicit val ec: ExecutionContext) extends ApplicationGlobal
-trait ApplicationGlobal {
+trait ApplicationGlobal extends Logging {
   val lifecycle: ApplicationLifecycle
   val conf: Configuration
   val env: Environment
@@ -116,7 +114,7 @@ trait ApplicationGlobal {
       new CleanerActor(secureStorage, maxDuration)
     })
 
-    system.scheduler.schedule(
+    system.scheduler.scheduleWithFixedDelay(
       0 seconds, cleanerRunInterval, cleaner, "secureStoreCleaner"
     )
   }

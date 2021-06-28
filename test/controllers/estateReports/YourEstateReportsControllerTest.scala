@@ -17,7 +17,6 @@
 package controllers.estateReports
 
 import connectors.IhtConnector
-import controllers.Assets.NO_CONTENT
 import controllers.{Assets, ControllerComponentsHelper}
 import metrics.MicroserviceMetrics
 import models.enums._
@@ -154,12 +153,12 @@ class YourEstateReportsControllerTest extends PlaySpec with MockitoSugar with Be
   "replies correctly when given an empty json response with a 200 return" in {
     when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future(successHttpResponseEmptyCaseList))
     val result = ihtHomeController.listCases("")(request)
-    status(result) mustBe Assets.NO_CONTENT
+    status(result) mustBe NO_CONTENT
   }
 
   "replies correctly when receiving a 404 from DES" in {
     when(mockDesConnector.getCaseList(ArgumentMatchers.any())).thenReturn(Future.failed(new NotFoundException("Cases not found")))
     val result = ihtHomeController.listCases("")(request)
-    status(result) mustBe Assets.NO_CONTENT
+    status(result) mustBe NO_CONTENT
   }
 }

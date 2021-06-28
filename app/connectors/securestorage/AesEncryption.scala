@@ -16,10 +16,9 @@
 
 package connectors.securestorage
 
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.crypto._
 import com.google.common.io.BaseEncoding.base64
-import play.api.Logger.logger
 
 /**
   * Encrypts and decrypts data using the Rijndael cypher in
@@ -42,7 +41,7 @@ import play.api.Logger.logger
   */
 final class AES(@transient val platformKey : String) extends AESEncryption
 
-trait AESEncryption {
+trait AESEncryption extends Logging {
 
   protected val platformKey : String
 

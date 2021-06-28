@@ -17,8 +17,7 @@
 package services
 
 import javax.inject.Inject
-import org.joda.time.{DateTime, DateTimeZone}
-import play.api.Logger
+import play.api.Logging
 import play.api.libs.json.JsValue
 import play.api.mvc.Request
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
@@ -27,8 +26,7 @@ import uk.gov.hmrc.play.audit.http.HttpAuditing
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
 import uk.gov.hmrc.play.audit.model.{DataEvent, ExtendedDataEvent}
 
-import java.time.{Clock, Instant}
-import play.api.Logger.logger
+import java.time.Instant
 import uk.gov.hmrc.http.hooks.HookData
 
 import java.net.URL
@@ -44,7 +42,7 @@ class AuditServiceImpl @Inject()(val auditConnect: AuditConnector) extends Audit
   override def auditConnector: AuditConnector = auditConnect
 }
 
-trait AuditService extends HttpAuditing {
+trait AuditService extends HttpAuditing with Logging {
   override def appName: String="iht"
 
   private val pathKey = "path"

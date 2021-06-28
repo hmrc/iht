@@ -28,8 +28,6 @@ import models.application.{ApplicationDetails, ClearanceRequest, ProbateDetails}
 import models.des.IHTReturn
 import models.des.realtimerisking.RiskInput
 import models.enums.Api
-import play.api.Logger
-import play.api.Logger.logger
 import play.api.libs.json.{JsError, JsSuccess, JsValue, Json}
 import play.api.mvc._
 import services.AuditService
