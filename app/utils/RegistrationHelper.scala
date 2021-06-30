@@ -23,7 +23,6 @@ import models.registration.RegistrationDetails
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import models.enums._
-import play.api.Logger.logger
 
 class RegistrationHelperImpl @Inject()(val ihtConnector: IhtConnector,
                                        val metrics: MicroserviceMetrics) extends RegistrationHelper

@@ -22,7 +22,7 @@ import constants.Constants._
 import javax.inject.Inject
 import metrics.MicroserviceMetrics
 import models.enums._
-import play.api.Logger.logger
+import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.Request
 import services.AuditService
@@ -46,7 +46,7 @@ class IhtConnectorImpl @Inject()(val metrics: MicroserviceMetrics,
   override val urlHeaderAuthorization = headerDecorator.decoratedAuthorization(headerDecorator.urlHeaderAuthorizationValue)
 }
 
-trait IhtConnector {
+trait IhtConnector extends Logging {
 
   val serviceURL: String
   val urlHeaderEnvironment: String

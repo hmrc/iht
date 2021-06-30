@@ -28,7 +28,6 @@ import models.registration.RegistrationDetails
 import models.registration.RegistrationDetails.registrationDetailsReads
 import org.joda.time.LocalDate
 import play.api.libs.json.JodaReads._
-import play.api.Logger.logger
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.http.{NotFoundException, Upstream4xxResponse, UpstreamErrorResponse}
