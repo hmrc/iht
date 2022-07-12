@@ -17,7 +17,7 @@
 package json
 
 import com.github.fge.jackson.JsonLoader
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.libs.json.Json
 import org.scalatestplus.play.PlaySpec
 import utils.{AcknowledgementRefGenerator, NinoBuilder, TestHelper}

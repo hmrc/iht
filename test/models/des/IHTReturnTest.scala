@@ -18,7 +18,7 @@ package models.des
 
 import models.application.exemptions.PartnerExemption
 import org.joda.time.LocalDate
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.play.PlaySpec
 import utils.{CommonBuilder, CommonHelper}
 import utils.CommonHelper._

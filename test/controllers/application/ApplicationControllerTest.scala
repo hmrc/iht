@@ -17,7 +17,7 @@
 package controllers.application
 
 import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, Materializer}
 import com.github.fge.jackson.JsonLoader
 import com.github.fge.jsonschema.core.report.ProcessingReport
 import config.ApplicationGlobal
@@ -37,7 +37,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito.{atMost => expected, _}
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents}
@@ -61,7 +61,7 @@ class ApplicationControllerTest extends PlaySpec with MockitoSugar with BeforeAn
   implicit val hc: HeaderCarrier = new HeaderCarrier
 
   implicit val actorSystem: ActorSystem = ActorSystem()
-  implicit val materializer: ActorMaterializer = ActorMaterializer()
+  implicit val materializer: Materializer = Materializer.matFromSystem
 
   val errorHttpResponse = HttpResponse(INTERNAL_SERVER_ERROR, "")
   val successHttpResponseForProbateDetails = HttpResponse(OK, TestHelper.JsSampleProbateDetails)

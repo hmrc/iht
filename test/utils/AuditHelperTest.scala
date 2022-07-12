@@ -22,7 +22,7 @@ import models.application.tnrb.WidowCheck
 import org.scalatestplus.mockito.MockitoSugar
 import org.joda.time.LocalDate
 import constants.Constants
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.play.PlaySpec
 
 class AuditHelperTest extends PlaySpec with FakeIhtApp with MockitoSugar {

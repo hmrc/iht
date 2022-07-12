@@ -16,7 +16,7 @@
 
 package utils
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.play.PlaySpec
 
 class AcknowledgementRefGeneratorTest extends PlaySpec  {

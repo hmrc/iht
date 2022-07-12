@@ -16,7 +16,7 @@
 
 package models.des.realtimerisking
 
-import org.scalatest.Matchers.convertToAnyShouldWrapper
+import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import org.scalatestplus.play.PlaySpec
 import utils.CommonBuilder
 
